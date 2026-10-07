@@ -8,6 +8,7 @@ import {
   ThemeVignette,
   TilingVignette,
 } from "@/components/Vignettes";
+import { latestRelease } from "@/lib/release";
 import { site } from "@/lib/site";
 import { themes } from "@/lib/themes";
 
@@ -82,7 +83,8 @@ const shortcuts: [string, string][] = [
   ["mod+LMB drag", "Move or swap a window"],
 ];
 
-export default function Home() {
+export default async function Home() {
+  const release = await latestRelease();
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -93,12 +95,12 @@ export default function Home() {
     applicationCategory: "GameApplication",
     applicationSubCategory: "Minecraft utility client",
     operatingSystem: "Windows, macOS, Linux",
-    softwareVersion: site.version,
+    softwareVersion: release.version,
     softwareRequirements: `Minecraft ${site.minecraft}, Fabric Loader, Fabric API, Java 25`,
     license: "https://creativecommons.org/publicdomain/zero/1.0/",
     isAccessibleForFree: true,
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
-    downloadUrl: site.releases,
+    downloadUrl: release.url,
     codeRepository: site.github,
     author: { "@type": "Person", name: site.author, url: "https://github.com/fyzz-dev" },
   };
@@ -143,10 +145,10 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <a
-                href={site.releases}
+                href={release.url}
                 className="rounded-md bg-mint px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#9fe0bf]"
               >
-                Download {site.version}
+                Download {release.version}
               </a>
               <a
                 href={site.github}

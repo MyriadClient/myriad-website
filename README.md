@@ -26,6 +26,9 @@ Two ways, both fine for Coolify. With the Nixpacks build pack, `npm run build` t
 The sitemap, robots, canonical link, Open Graph tags, JSON-LD and the manifest all derive from it. Serving under a
 subpath instead of a domain root needs `NEXT_PUBLIC_BASE_PATH` too, e.g. `/myriad`.
 
+The download button shows the latest release at the time of the build. Myriad's release workflow calls the Coolify
+deploy webhook (the `WEBSITE_DEPLOY_HOOK` secret on fyzz-dev/myriad) so the site rebuilds after each tag.
+
 ```bash
 docker build --build-arg NEXT_PUBLIC_SITE_URL=https://myriad.example -t myriad-website . && docker run -p 8080:80 myriad-website
 ```
@@ -34,7 +37,8 @@ docker build --build-arg NEXT_PUBLIC_SITE_URL=https://myriad.example -t myriad-w
 
 | Path | What |
 |---|---|
-| `src/lib/site.ts` | Name, description, version, links. Bump `version` with each Myriad release. |
+| `src/lib/site.ts` | Name, description, links, and a fallback version. |
+| `src/lib/release.ts` | Looks up the latest Myriad release on GitHub during the build for the download button and JSON-LD. |
 | `src/lib/themes.ts` | The palettes the demo can wear: the three presets and the Neon Blueprint user theme. |
 | `src/app/page.tsx` | The page: hero, features, themes, addons, install, keys. All copy lives here. |
 | `src/app/opengraph-image.tsx` | The social card, drawn in code. |
