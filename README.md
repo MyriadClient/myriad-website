@@ -16,16 +16,19 @@ npm run build    # static site in out/
 
 ## Deploying
 
-`.github/workflows/pages.yml` builds and publishes `out/` to GitHub Pages on every push. Two environment variables set
-the canonical URL and the path the site is served under; both are in the workflow and can be put in `.env.local` for a
-local build:
+The `Dockerfile` builds the export and serves it with nginx on port 80. In Coolify, add the repository as a Dockerfile
+application and set one build variable:
 
-| Variable | Project page | Custom domain |
-|---|---|---|
-| `NEXT_PUBLIC_SITE_URL` | `https://fyzz-dev.github.io/myriad-website` | `https://your.domain` |
-| `NEXT_PUBLIC_BASE_PATH` | `/myriad-website` | unset |
+| Variable | Value |
+|---|---|
+| `NEXT_PUBLIC_SITE_URL` | the public URL, e.g. `https://myriad.example` |
 
-The sitemap, robots, canonical link, Open Graph tags, JSON-LD and the manifest all derive from these.
+The sitemap, robots, canonical link, Open Graph tags, JSON-LD and the manifest all derive from it. Serving under a
+subpath instead of a domain root needs `NEXT_PUBLIC_BASE_PATH` too, e.g. `/myriad`.
+
+```bash
+docker build --build-arg NEXT_PUBLIC_SITE_URL=https://myriad.example -t myriad-website . && docker run -p 8080:80 myriad-website
+```
 
 ## Where things are
 
