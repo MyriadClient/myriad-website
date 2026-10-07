@@ -1,36 +1,37 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Myriad website
 
-## Getting Started
+The homepage for [Myriad](https://github.com/fyzz-dev/myriad): Next.js, Tailwind and [Motion](https://motion.dev),
+exported as a static site.
 
-First, run the development server:
+There are no screenshots or videos. The hero is a hand-built motion graphic of the menu (`src/components/MenuDemo.tsx`),
+driven by a timeline of scenes; the same component, with `play={false}`, is what the Themes section recolours. The
+feature illustrations in `src/components/Vignettes.tsx` play once when scrolled into view. Everything honours
+`prefers-reduced-motion` by rendering its final frame.
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev      # http://localhost:3000
+npm run build    # static site in out/
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Deploying
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`.github/workflows/pages.yml` builds and publishes `out/` to GitHub Pages on every push. Two environment variables set
+the canonical URL and the path the site is served under; both are in the workflow and can be put in `.env.local` for a
+local build:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Project page | Custom domain |
+|---|---|---|
+| `NEXT_PUBLIC_SITE_URL` | `https://fyzz-dev.github.io/myriad-website` | `https://your.domain` |
+| `NEXT_PUBLIC_BASE_PATH` | `/myriad-website` | unset |
 
-## Learn More
+The sitemap, robots, canonical link, Open Graph tags, JSON-LD and the manifest all derive from these.
 
-To learn more about Next.js, take a look at the following resources:
+## Where things are
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Path | What |
+|---|---|
+| `src/lib/site.ts` | Name, description, version, links. Bump `version` with each Myriad release. |
+| `src/lib/themes.ts` | The palettes the demo can wear: the three presets and the Neon Blueprint user theme. |
+| `src/app/page.tsx` | The page: hero, features, themes, addons, install, keys. All copy lives here. |
+| `src/app/opengraph-image.tsx` | The social card, drawn in code. |

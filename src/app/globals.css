@@ -1,26 +1,94 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0f1117;
+  --bg-raised: #141720;
+  --line: #242836;
+  --line-strong: #323748;
+  --text: #e8eaf2;
+  --text-dim: #8d93a8;
+  --mint: #86d4ad;
+  --mint-deep: #4fa884;
+  --lavender: #9d97e3;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-bg: var(--bg);
+  --color-raised: var(--bg-raised);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-dim: var(--text-dim);
+  --color-mint: var(--mint);
+  --color-mint-deep: var(--mint-deep);
+  --color-lavender: var(--lavender);
+  --font-sans: var(--font-plex), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), var(--font-plex), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-feature-settings: "ss01", "cv05";
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  padding: 0.15em 0.45em;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--bg-raised);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* The menu demo: all sizes in container-query units so it scales with its box. */
+.menu {
+  container-type: inline-size;
+  --u: 1cqw;
+  --m-rounding: 0.9cqw;
+  --m-gap: 0.9cqw;
+  --m-font: var(--font-sans);
+  color: var(--m-text);
+  font-family: var(--m-font);
+  transition: background-color 0.6s ease, color 0.6s ease;
+}
+
+.menu .theme-color {
+  transition: background-color 0.6s ease, border-color 0.6s ease, color 0.6s ease,
+    border-radius 0.6s ease, box-shadow 0.6s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
