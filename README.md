@@ -38,3 +38,7 @@ docker build --build-arg NEXT_PUBLIC_SITE_URL=https://myriad.example -t myriad-w
 | `src/lib/themes.ts` | The palettes the demo can wear: the three presets and the Neon Blueprint user theme. |
 | `src/app/page.tsx` | The page: hero, features, themes, addons, install, keys. All copy lives here. |
 | `src/app/opengraph-image.tsx` | The social card, drawn in code. |
+
+When adding a dependency, regenerate the lockfile from scratch (`rm -rf node_modules package-lock.json && npm install`)
+rather than letting `npm install <pkg>` patch it. Patched lockfiles here have failed `npm ci` on other npm versions
+because of the optional wasm packages Tailwind and Next pull in.
