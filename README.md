@@ -16,8 +16,8 @@ npm run build    # static site in out/
 
 ## Deploying
 
-The `Dockerfile` builds the export and serves it with nginx on port 80. In Coolify, add the repository as a Dockerfile
-application and set one build variable:
+Two ways, both fine for Coolify. With the Nixpacks build pack, `npm run build` then `npm start` serves `out/` with
+`serve` on `$PORT`. With the Dockerfile build pack, nginx serves it on port 80. Either way set one build variable:
 
 | Variable | Value |
 |---|---|
