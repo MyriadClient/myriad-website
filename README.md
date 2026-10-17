@@ -1,6 +1,6 @@
 # Myriad website
 
-The homepage for [Myriad](https://github.com/fyzz-dev/myriad): Next.js, Tailwind and [Motion](https://motion.dev),
+The homepage for [Myriad](https://github.com/MyriadClient/myriad-core): Next.js, Tailwind and [Motion](https://motion.dev),
 exported as a static site.
 
 There are no screenshots or videos. The hero is a hand-built motion graphic of the menu (`src/components/MenuDemo.tsx`),
@@ -27,7 +27,7 @@ The sitemap, robots, canonical link, Open Graph tags, JSON-LD and the manifest a
 subpath instead of a domain root needs `NEXT_PUBLIC_BASE_PATH` too, e.g. `/myriad`.
 
 The download button shows the latest release at the time of the build. Myriad's release workflow calls the Coolify
-deploy webhook (the `WEBSITE_DEPLOY_HOOK` secret on fyzz-dev/myriad) so the site rebuilds after each tag.
+deploy webhook (the `WEBSITE_DEPLOY_HOOK` secret on MyriadClient/myriad-core) so the site rebuilds after each tag.
 
 ```bash
 docker build --build-arg NEXT_PUBLIC_SITE_URL=https://myriad.example -t myriad-website . && docker run -p 8080:80 myriad-website

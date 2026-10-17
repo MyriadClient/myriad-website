@@ -102,7 +102,7 @@ export default async function Home() {
     offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
     downloadUrl: release.url,
     codeRepository: site.github,
-    author: { "@type": "Person", name: site.author, url: "https://github.com/fyzz-dev" },
+    author: { "@type": "Organization", name: site.author, url: site.org },
   };
 
   return (
@@ -295,6 +295,7 @@ export default async function Home() {
             <span>Myriad is public domain under CC0. Not affiliated with Mojang or Microsoft.</span>
           </p>
           <ul className="flex flex-wrap gap-5">
+            <li><a className="hover:text-ink" href={site.org}>GitHub</a></li>
             <li><a className="hover:text-ink" href={site.github}>Source</a></li>
             <li><a className="hover:text-ink" href={site.releases}>Releases</a></li>
             <li><a className="hover:text-ink" href={site.issues}>Issues</a></li>

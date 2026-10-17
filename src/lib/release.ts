@@ -15,7 +15,7 @@ export async function latestRelease(): Promise<Release> {
       "User-Agent": "myriad-website-build",
     };
     if (process.env.GITHUB_TOKEN) headers.Authorization = `Bearer ${process.env.GITHUB_TOKEN}`;
-    const res = await fetch("https://api.github.com/repos/fyzz-dev/myriad/releases/latest", { headers });
+    const res = await fetch("https://api.github.com/repos/MyriadClient/myriad-core/releases/latest", { headers });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = (await res.json()) as { tag_name?: string; html_url?: string };
     if (!data.tag_name) throw new Error("no tag_name in response");

@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     "addon API",
     "open source Minecraft client",
   ],
-  authors: [{ name: site.author, url: "https://github.com/fyzz-dev" }],
+  authors: [{ name: site.author, url: site.org }],
   creator: site.author,
   category: "technology",
   alternates: { canonical: "/" },
