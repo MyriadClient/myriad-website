@@ -50,21 +50,25 @@ const addons = [
     name: "Myriad Essentials",
     body: "The stock modules: Offhand, Kill Aura, Elytra Fly, Packet Mine, Scaffold, ESP, Nametags and the rest, with the HUD elements. Versioned on its own; remove it and Myriad boots with an empty module list.",
     href: site.essentials,
+    icon: "essentials",
   },
   {
     name: "Myriad Boze",
     body: "Every module of the Boze client in Myriad's menu, with Boze installed alongside. Settings, keybinds and on/off state stay in sync both ways. Boze keeps its config; Myriad is a second front end.",
     href: site.boze,
+    icon: "boze",
   },
   {
     name: "Myriad Omarchy",
     body: "A theme that follows your Omarchy system theme. Switch themes on the desktop and the menu follows.",
     href: site.omarchy,
+    icon: "omarchy",
   },
   {
     name: "Addon template",
     body: "A repository to start your own from, with the build, a module, a setting and a test already wired to the public API.",
     href: site.template,
+    icon: "template",
   },
 ];
 
@@ -131,9 +135,14 @@ export default async function Home() {
         </nav>
       </header>
 
-      <main id="top" className="flex-1">
+      <main id="top" className="flex-1 overflow-x-clip">
         {/* Hero */}
-        <section className="mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pt-24">
+        <section className="relative mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pt-24">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 -top-14 -z-10 h-[34rem] w-screen -translate-x-1/2"
+            style={{ background: "radial-gradient(ellipse 55% 60% at 35% 0%, rgba(127,216,174,0.12), transparent 70%)" }}
+          />
           <div className="max-w-3xl">
             <h1 className="text-[2.6rem] font-semibold leading-[1.02] sm:text-6xl">
               A Minecraft client built like a desktop, not a click-GUI.
@@ -208,9 +217,20 @@ export default async function Home() {
             </div>
             <dl className="divide-y divide-line border-y border-line">
               {addons.map((a) => (
-                <div key={a.name} className="grid gap-2 py-5 sm:grid-cols-[11rem_1fr] sm:gap-6">
+                <div key={a.name} className="grid gap-2 py-5 sm:grid-cols-[13rem_1fr] sm:gap-6">
                   <dt>
-                    <a href={a.href} className="font-medium text-ink underline-offset-4 hover:text-mint hover:underline">
+                    <a
+                      href={a.href}
+                      className="flex items-center gap-3 font-medium text-ink underline-offset-4 hover:text-mint hover:underline"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- static export, no image optimizer */}
+                      <img
+                        src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/addons/${a.icon}.png`}
+                        alt=""
+                        width={28}
+                        height={28}
+                        className="h-7 w-7 shrink-0 rounded-md"
+                      />
                       {a.name}
                     </a>
                   </dt>

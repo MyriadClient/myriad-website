@@ -1,4 +1,5 @@
 import { ImageResponse } from "next/og";
+import { logoFirst, logoSecond, logoStroke } from "@/lib/logo";
 import { site } from "@/lib/site";
 
 export const dynamic = "force-static";
@@ -6,8 +7,7 @@ export const alt = `${site.name}: an addon-first Minecraft utility client with a
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const mint = "#86d4ad";
-const lavender = "#9d97e3";
+const mint = "#7fd8ae";
 
 /** Hand-drawn card: the logo, the name, and a sketch of tiled windows. No screenshot. */
 export default function OpenGraphImage() {
@@ -21,14 +21,14 @@ export default function OpenGraphImage() {
         width: w,
         height: h,
         borderRadius: 12,
-        background: "#1f2232",
-        border: `2px solid ${active ? lavender : "#2c3043"}`,
+        background: "#161917",
+        border: `2px solid ${active ? mint : "#2a2f2c"}`,
         display: "flex",
         flexDirection: "column",
         overflow: "hidden",
       }}
     >
-      <div style={{ height: 30, background: "#1a1d2b", display: "flex" }} />
+      <div style={{ height: 30, background: "#121413", display: "flex" }} />
       <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: 10 }}>
         {[0.8, 0.55, 0.7].map((f, i) => (
           <div
@@ -37,7 +37,7 @@ export default function OpenGraphImage() {
               height: 22,
               width: `${f * 100}%`,
               borderRadius: 6,
-              background: i === 0 && active ? "rgba(157,151,227,0.45)" : "#272b3d",
+              background: i === 0 && active ? "rgba(127,216,174,0.4)" : "#222624",
               display: "flex",
             }}
           />
@@ -53,8 +53,8 @@ export default function OpenGraphImage() {
           width: "100%",
           height: "100%",
           display: "flex",
-          background: "#0f1117",
-          color: "#e8eaf2",
+          background: "#0c0c0c",
+          color: "#e9eeeb",
           fontFamily: "sans-serif",
           padding: 72,
           position: "relative",
@@ -62,16 +62,16 @@ export default function OpenGraphImage() {
       >
         <div style={{ display: "flex", flexDirection: "column", width: 620, justifyContent: "center" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
-            <svg width="64" height="64" viewBox="0 0 256 256" fill="none" stroke={mint} strokeWidth="18">
-              <rect x="47" y="47" width="105" height="105" rx="22" />
-              <rect x="104" y="104" width="105" height="105" rx="22" />
+            <svg width="64" height="64" viewBox="0 0 256 256" fill="none" stroke={mint} strokeWidth={logoStroke}>
+              <path d={logoFirst} />
+              <path d={logoSecond} />
             </svg>
             <div style={{ fontSize: 56, fontWeight: 600, letterSpacing: -1.5 }}>Myriad</div>
           </div>
           <div style={{ marginTop: 36, fontSize: 40, lineHeight: 1.15, fontWeight: 500, letterSpacing: -1 }}>
             A Minecraft client built like a desktop, not a click-GUI.
           </div>
-          <div style={{ marginTop: 28, fontSize: 22, color: "#8d93a8", lineHeight: 1.4 }}>
+          <div style={{ marginTop: 28, fontSize: 22, color: "#8c9690", lineHeight: 1.4 }}>
             {`Tiling menu modelled on Hyprland. Every module is an addon. Free and open source for Minecraft ${site.minecraft}.`}
           </div>
         </div>

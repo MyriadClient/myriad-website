@@ -8,6 +8,7 @@ import {
   useInView,
   useReducedMotion,
 } from "motion/react";
+import { logoFirst, logoSecond, logoStroke } from "@/lib/logo";
 import { themeVars, type MenuTheme } from "@/lib/themes";
 
 /* ---------- Scene model ---------- */
@@ -461,9 +462,9 @@ type IconProps = { className?: string; style?: React.CSSProperties };
 
 export function Logo({ className, style }: IconProps) {
   return (
-    <svg viewBox="0 0 256 256" fill="none" stroke="currentColor" strokeWidth="18" className={className} style={{ color: "var(--m-accent, var(--mint))", ...style }} aria-hidden>
-      <rect x="47" y="47" width="105" height="105" rx="22" />
-      <rect x="104" y="104" width="105" height="105" rx="22" />
+    <svg viewBox="0 0 256 256" fill="none" stroke="currentColor" strokeWidth={logoStroke} className={className} style={{ color: "var(--m-accent, var(--mint))", ...style }} aria-hidden>
+      <path d={logoFirst} />
+      <path d={logoSecond} />
     </svg>
   );
 }

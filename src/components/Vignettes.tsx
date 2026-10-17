@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "motion/react";
+import { logoFirst, logoFirstCut, logoSecond, logoStroke } from "@/lib/logo";
 
 /*
  * Small one-shot illustrations for the feature list. Each plays once when scrolled into view
@@ -56,7 +57,7 @@ export function TilingVignette() {
             viewport={once}
             transition={{ duration: 0.6 * (4 - i), delay: 0.3 + i * 0.6, ease }}
           >
-            <div className={`h-full w-full rounded-[5px] border ${i === 3 ? "border-lavender" : "border-line-strong"} bg-bg`} />
+            <div className={`h-full w-full rounded-[5px] border ${i === 3 ? "border-mint" : "border-line-strong"} bg-bg`} />
           </motion.div>
         ))}
       </div>
@@ -90,7 +91,7 @@ export function LauncherVignette() {
         </span>
       </div>
       <motion.div
-        className="flex h-8 items-center justify-between rounded-md border-l-2 border-lavender bg-lavender/15 px-3 text-sm text-ink"
+        className="flex h-8 items-center justify-between rounded-md border-l-2 border-mint bg-mint/15 px-3 text-sm text-ink"
         initial={reduce ? { opacity: 1 } : { opacity: 0, y: -4 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={once}
@@ -106,8 +107,8 @@ export function LauncherVignette() {
 /** One window, re-coloured through the presets. */
 export function ThemeVignette() {
   const reduce = useReducedMotion();
-  const bgs = ["#1f2232", "#1a1b26", "#282828", "#0a1220", "#1f2232"];
-  const accents = ["#9d97e3", "#7aa2f7", "#fabd2f", "#39ff14", "#9d97e3"];
+  const bgs = ["#151716", "#1a1b26", "#282828", "#0a1220", "#151716"];
+  const accents = ["#7fd8ae", "#7aa2f7", "#fabd2f", "#39ff14", "#7fd8ae"];
   const radii = [6, 6, 4, 0, 6];
   return (
     <Frame className="flex items-center justify-center">
@@ -183,23 +184,29 @@ export function ProfilerVignette() {
     ["Scaffold", 0.0],
     ["Some addon", 0.62],
   ];
+  // The bars start with no width, so they never count as in view themselves: the frame's content starts them.
   return (
-    <Frame className="flex flex-col justify-center gap-1.5 px-5">
-      {rows.map(([name, v], i) => (
-        <div key={name} className="flex items-center gap-3 text-[11px] leading-none text-dim">
-          <span className="w-16 truncate">{name}</span>
-          <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
-            <motion.div
-              className={`absolute inset-y-0 left-0 rounded-full ${v > 0.3 ? "bg-lavender" : "bg-mint/70"}`}
-              style={{ width: `${Math.max(v * 100, 1)}%`, transformOrigin: "left" }}
-              initial={reduce ? { scaleX: 1 } : { scaleX: 0 }}
-              whileInView={{ scaleX: 1 }}
-              viewport={once}
-              transition={{ duration: 0.7, delay: 0.3 + i * 0.1, ease }}
-            />
+    <Frame>
+      <motion.div
+        className="flex h-full flex-col justify-center gap-1.5 px-5"
+        initial={reduce ? "shown" : "hidden"}
+        whileInView="shown"
+        viewport={once}
+      >
+        {rows.map(([name, v], i) => (
+          <div key={name} className="flex items-center gap-3 text-[11px] leading-none text-dim">
+            <span className="w-16 truncate">{name}</span>
+            <div className="relative h-1.5 flex-1 overflow-hidden rounded-full bg-bg">
+              <motion.div
+                className={`absolute inset-y-0 left-0 rounded-full ${v > 0.3 ? "bg-mint" : "bg-mint-deep/70"}`}
+                style={{ width: `${Math.max(v * 100, 1)}%`, transformOrigin: "left" }}
+                variants={{ hidden: { scaleX: 0 }, shown: { scaleX: 1 } }}
+                transition={{ duration: 0.7, delay: 0.3 + i * 0.1, ease }}
+              />
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </motion.div>
     </Frame>
   );
 }
@@ -211,31 +218,27 @@ export function AddonVignette() {
   return (
     <Frame className="flex items-center justify-center">
       <motion.svg
-        viewBox="0 0 256 200"
+        viewBox="0 28 256 200"
         className="h-20 w-auto"
         fill="none"
-        strokeWidth="14"
-        strokeLinejoin="round"
+        strokeWidth={logoStroke}
         initial={reduce ? "shown" : "hidden"}
         whileInView="shown"
         viewport={once}
       >
-        <rect x="47" y="20" width="105" height="105" rx="22" className="stroke-mint" />
-        <motion.rect
-          y="77"
-          width="105"
-          height="105"
-          rx="22"
-          className="stroke-lavender"
-          variants={{ hidden: { attrX: 200, opacity: 0 }, shown: { attrX: 104, opacity: 1 } }}
-          transition={{ type: "spring", stiffness: 160, damping: 22, delay: 0.5 }}
-        />
-        {/* the mint square's bottom edge passes in front of the lavender one's left edge, as in the icon */}
+        <path d={logoFirst} className="stroke-mint" />
+        {/* the first square stays whole until the second docks and its left edge passes in front */}
         <motion.path
-          d="M90 125 H118"
+          d={logoFirstCut}
           className="stroke-mint"
-          variants={{ hidden: { opacity: 0 }, shown: { opacity: 1 } }}
-          transition={{ duration: 0.2, delay: 1 }}
+          variants={{ hidden: { opacity: 1 }, shown: { opacity: 0 } }}
+          transition={{ duration: 0.15, delay: 0.75 }}
+        />
+        <motion.path
+          d={logoSecond}
+          className="stroke-mint"
+          variants={{ hidden: { x: 96, opacity: 0 }, shown: { x: 0, opacity: 1 } }}
+          transition={{ type: "spring", stiffness: 160, damping: 22, delay: 0.5 }}
         />
       </motion.svg>
     </Frame>

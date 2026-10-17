@@ -1,15 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --bg: #0f1117;
-  --bg-raised: #141720;
-  --line: #242836;
-  --line-strong: #323748;
-  --text: #e8eaf2;
-  --text-dim: #8d93a8;
-  --mint: #86d4ad;
+  /* The logo's colours: its near-black and its mint, with neutral greys between. */
+  --bg: #0c0c0c;
+  --bg-raised: #131514;
+  --line: #222624;
+  --line-strong: #303633;
+  --text: #e9eeeb;
+  --text-dim: #8c9690;
+  --mint: #7fd8ae;
   --mint-deep: #4fa884;
-  --lavender: #9d97e3;
 }
 
 @theme inline {
@@ -21,7 +21,6 @@
   --color-dim: var(--text-dim);
   --color-mint: var(--mint);
   --color-mint-deep: var(--mint-deep);
-  --color-lavender: var(--lavender);
   --font-sans: var(--font-plex), system-ui, sans-serif;
   --font-display: var(--font-bricolage), var(--font-plex), system-ui, sans-serif;
   --font-mono: var(--font-plex-mono), ui-monospace, monospace;
