@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/config/:code", "destination": "/config/index.html" }
+  ]
+}
