@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import { codeFromLocation, type Look, type Share, type ShareModule, type SettingRow } from "@/lib/share";
+import { codeFromLocation, safeColor, safeLook, type Look, type Share, type ShareModule, type SettingRow } from "@/lib/share";
 
 type State =
   | { kind: "loading" }
@@ -74,7 +74,7 @@ function Notice({ title, children }: { title: string; children?: React.ReactNode
 }
 
 function ShareView({ code, share }: { code: string; share: Share }) {
-  const look = { ...MYRIAD, ...(share.theme?.view ?? share.look ?? {}) };
+  const look = { ...MYRIAD, ...safeLook(share.theme?.view ?? share.look) };
   const [onlyChanged, setOnlyChanged] = useState(true);
   const windows = useMemo(() => groupIntoWindows(share.modules), [share.modules]);
   const vars = {
@@ -212,7 +212,7 @@ function groupIntoWindows(modules: ShareModule[]): WindowGroup[] {
     const category = m.view?.category?.name ?? "Modules";
     const addonName = m.view?.addonName ?? m.id.split(":")[0]!;
     const key = `${category}·${addonName}`;
-    if (!groups.has(key)) groups.set(key, { key, title: category, addonName, color: m.view?.category?.color, modules: [] });
+    if (!groups.has(key)) groups.set(key, { key, title: category, addonName, color: safeColor(m.view?.category?.color), modules: [] });
     groups.get(key)!.modules.push(m);
   }
   return [...groups.values()];
@@ -314,8 +314,8 @@ function Value({ row }: { row: SettingRow }) {
     case "color":
       return (
         <span className="flex items-center gap-1.5 font-mono text-xs" style={{ color: "var(--s-dim)" }}>
-          <span className="h-3.5 w-3.5 rounded" style={{ background: row.color, border: "1px solid var(--s-border)" }} />
-          {row.color?.slice(0, 7)}
+          <span className="h-3.5 w-3.5 rounded" style={{ background: safeColor(row.color), border: "1px solid var(--s-border)" }} />
+          {safeColor(row.color)?.slice(0, 7)}
         </span>
       );
     case "keybind":

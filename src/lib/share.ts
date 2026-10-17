@@ -59,3 +59,22 @@ export function codeFromLocation(location: Location): string | null {
   if (fromPath) return fromPath;
   return CODE.exec(new URLSearchParams(location.search).get("code") ?? "")?.[0] ?? null;
 }
+
+const HEX = /^#(?:[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/;
+
+/** A colour from a share, only if it's plain hex: anything else could make the browser load something. */
+export function safeColor(value: unknown): string | undefined {
+  return typeof value === "string" && HEX.test(value) ? value : undefined;
+}
+
+/** A share's look with only hex colours and a sane rounding. */
+export function safeLook(look: Look | undefined): Look {
+  const out: Look = {};
+  if (!look) return out;
+  for (const key of ["accent", "secondary", "window", "title", "surface", "text", "textDim", "border"] as const) {
+    const c = safeColor(look[key]);
+    if (c) out[key] = c;
+  }
+  if (typeof look.rounding === "number" && Number.isFinite(look.rounding)) out.rounding = Math.min(20, Math.max(0, look.rounding));
+  return out;
+}
