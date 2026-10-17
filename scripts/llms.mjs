@@ -59,7 +59,7 @@ function markdown(body) {
       .replace(/<\/Callout>/, "")
       .replace(/<Cards\.Card title="([^"]+)" href="([^"]+)"[^>]*\/>/, (_, t, h) => `- [${t}](${SITE}${h})`)
       .replace(/<Cards\.Card title="([^"]+)" href="([^"]+)"[^>]*>/, (_, t, h) => `- [${t}](${SITE}${h}):`)
-      .replace(/<\/?(Cards|Cards\.Card|Steps|Tabs|Tabs\.Tab)(\s[^>]*)?>/g, "")
+      .replace(/<\/?(Cards|Cards\.Card|Steps|Tabs|Tabs\.Tab|div)(\s[^>]*)?>/g, "")
       .replace(/<kbd>([^<]*)<\/kbd>/g, "`$1`")
       .replace(/\{"([^"]*)"\}/g, "$1")
       .replace(/\]\((\/docs[^)]*)\)/g, (_, p) => `](${SITE}${p})`);

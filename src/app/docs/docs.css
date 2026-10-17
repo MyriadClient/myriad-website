@@ -57,3 +57,12 @@ kbd {
   background: #131514;
   white-space: nowrap;
 }
+
+/* Text in a card (Nextra's cards expect an image there): padded to line up with the card's title below it. */
+.docs-card-text {
+  margin: 0;
+  padding: 1rem 1rem 0;
+  color: #8c9690;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
