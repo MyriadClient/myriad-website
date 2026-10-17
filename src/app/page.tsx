@@ -73,13 +73,13 @@ const addons = [
 ];
 
 const shortcuts: [string, string][] = [
-  ["mod+Space", "Launcher"],
+  ["mod+1..9", "Open the menu on a workspace, or switch to it"],
+  ["mod+Space", "Launcher, in game too"],
   ["mod+Return", "Console"],
   ["mod+W", "Close window"],
   ["mod+T", "Toggle floating"],
   ["mod+F", "Full screen"],
   ["mod+L", "Cycle layout: Dwindle, Columns, Master"],
-  ["mod+1..9", "Switch workspace"],
   ["mod+Shift+1..9", "Move window to workspace"],
   ["mod+S", "Toggle the HUD workspace"],
   ["mod+Arrows", "Focus in that direction"],
@@ -278,7 +278,8 @@ export default async function Home() {
                 <li className="flex gap-5">
                   <span className="mt-0.5 font-mono text-sm text-mint">3</span>
                   <p className="text-dim">
-                    In game, press <kbd>Right Shift</kbd>. The menu opens on the title screen too.
+                    In game or on the title screen, press <kbd>Alt+1</kbd> to open the menu, or <kbd>Alt+Space</kbd> for the
+                    launcher. The keys are also under Myriad in Minecraft&rsquo;s Controls.
                   </p>
                 </li>
               </ol>
@@ -293,7 +294,8 @@ export default async function Home() {
               <h2 className="text-3xl font-semibold sm:text-4xl">Keys you already know</h2>
               <p className="mt-4 text-[15px] leading-relaxed text-dim">
                 Default shortcuts follow Omarchy&rsquo;s tiling bindings. The mod key stands in for Super and
-                defaults to Alt. Change it in Theme, under Preferences.
+                defaults to Alt. Change it in Theme, under Preferences, or in Minecraft&rsquo;s Controls. The first
+                two work in game without the menu open.
               </p>
             </div>
             <ul className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
