@@ -1,0 +1,74 @@
+---
+title: "Sharing your config"
+description: "Share modules, control panels and your theme as a short code, view shares on the website, and take one in."
+---
+
+import { Callout, Steps } from "nextra/components";
+
+# Sharing your config
+
+Share your setup as a short code like `myriad_JS3k4d`. Anyone can look at it on the website, or take it into their
+own Myriad in a click: as their settings, or as a control panel to try without losing theirs.
+
+A share can hold any mix of:
+
+- single modules, whole windows (an addon's category), or every module of an addon;
+- control panels;
+- your theme (its colours and style; not your personal preferences);
+- keybinds, if you choose to include them (they're left out unless you do).
+
+## Share
+
+<Steps>
+### Open the Share window
+
+From the launcher: type `share`.
+
+### Pick what goes in
+
+Click a window's card to include all of it, or right-click to unfold it and pick single modules. Switch on control
+panels, the theme, and keybinds if you want them.
+
+### Share it
+
+Give it a title and press **Share**. The code is copied for you. Send it, or its link:
+`https://myriadclient.dev/config/myriad_JS3k4d`.
+</Steps>
+
+From chat: `.share module <module>`, `.share addon <addon>`, `.share panel <control panel>`, `.share theme`.
+
+## What's never shared
+
+Some settings hold things that are yours alone: a Discord webhook link, coordinates, a file on your computer, the
+commands of a macro (which could include a password). Addons mark these as **private**, and a share never contains
+their values. Others see that the setting exists, never what it's set to. Taking a share in leaves your own private
+settings as they are.
+
+## Look at one on the website
+
+Open a share's link: the website shows its modules with their settings, drawn like the menu, in the sharer's colours.
+Private settings show as hidden. Nothing to install to look.
+
+## Take one in
+
+In the Share window, paste a code (or a link) under **Take one in** and press **Look**. It says what's in it, and
+whether it needs an addon you don't have. Then:
+
+- **Try as control panel**: makes a control panel of its modules and settings and turns it on. Your own settings are
+  untouched underneath: turn the panel off and you're back to yours. The safest way to try someone's setup.
+- **Use these settings**: its settings become yours, for the modules in it (private settings excepted), and its
+  modules are turned on or off as they were shared. Its control panels and theme are added too.
+
+From chat: `.share try <code>` and `.share import <code>`.
+
+Modules from addons you don't have are skipped, and Myriad lists them.
+
+## Your shares
+
+The bottom of the Share window lists what you've shared from this computer: copy a code again, or **Delete** a share
+(it's gone from the website too). `.share` lists them in chat and `.share delete <code>` deletes one. Only the computer
+that shared something can delete it.
+
+<Callout type="info">
+  Shares are public to anyone with the code. Don't put anything in a title you wouldn't post.
+</Callout>

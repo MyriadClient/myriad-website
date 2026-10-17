@@ -1,0 +1,21 @@
+---
+title: "What addons changed"
+description: "See which addons change how Myriad itself works, and turn any of it off."
+---
+
+# What addons changed
+
+Besides adding modules, an addon can change how parts of Myriad work: how rotations turn, where blocks are placed,
+when inventory clicks go out, how highlights look. Some replace a whole part (an addon might bring its own rotations),
+some only for their own modules, some only on one server.
+
+The **Hooks** window (from the launcher) shows all of it:
+
+- **Services**: the parts an addon took over, and which is in use for everyone right now.
+- **Hooks**: single decisions addons make instead of Myriad, and when (for a module, a server).
+
+Each is a card. **Click one to turn it off**; click again to turn it back on. If one of them ever breaks (throws an
+error), Myriad turns it off by itself until you restart, and the card says *failed*.
+
+From chat: `.hooks` lists them, `.hooks off <name>` / `.hooks on <name>` switch one, and `.hooks why <module>` says
+which of them affect a module.

@@ -1,0 +1,34 @@
+---
+title: "Control panel presets"
+description: "Ship ready-made control panels with your addon, with typed settings for your own modules."
+---
+
+# Control panel presets
+
+A [control panel](/docs/use/control-panels) switches a set of modules together, each with settings it lays over the
+module's own while it's on. Your addon can ship ready-made ones; players find them in their Control Panels, can edit
+them (their edits are kept on top), delete them, and reset them back to yours.
+
+```java
+// in initialize, after registering the modules it names:
+Tunnel tunnel = new Tunnel();
+AutoTool autoTool = new AutoTool();
+ctx.registerModules(tunnel, autoTool, holeEsp);
+
+ctx.registerControlPanel(ControlPreset.builder("Digging")
+    .module(tunnel, m -> m.set(tunnel.width, 3).set(tunnel.height, 3))   // typed: checked by the compiler
+    .module(autoTool)
+    .module("myriad-essentials:packet_mine", m -> m.set("mode", "Fast")) // another addon's module: by id, as .set takes it
+    .keybind(Keybind.key(GLFW.GLFW_KEY_G))
+    .build());
+```
+
+- `module(Module)` and `module(Module, settings -> ...)` take your own modules, registered already. Settings are typed:
+  `m.set(tunnel.width, 3)` takes an `IntSetting` and an `int`. For that the setting has to be reachable: make it
+  `public final` on the module.
+- `module(String id)` and `module(String id, settings -> ...)` take any module by id, installed or not, with settings
+  written as `.set` takes them (`m.set("key", "value")`).
+- `keybind(...)` is its default bind (none unless given).
+
+The panel's id is `<your mod id>:<name in snake_case>`. `Myriad.controls()` lists, switches and creates control
+panels at runtime: `all()`, `byName(name)`, `get(id)`, `create(name)`, `panel.setActive(true)`.

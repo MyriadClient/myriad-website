@@ -1,0 +1,84 @@
+---
+title: "Compatibility and versions"
+description: "The API contract, versioning, supporting several Myriad versions, optional integrations and mixins into other mods."
+---
+
+import { Callout } from "nextra/components";
+
+# Compatibility and versions
+
+An addon built against one version of Myriad keeps working on the next. What that takes:
+
+## The contract
+
+- **`dev.myriadclient.api` is the API.** Everything in `dev.myriadclient.impl` is internal and changes without notice.
+  Myriad's own addons fail their build if they touch it; yours should never import it.
+- **Services change underneath, not at the surface.** How `placement()` clicks or `breaking()` times a break changes to
+  keep up with servers and anti-cheats; your calls stay the same.
+- **Options come from presets.** `Placement.Options`, `Breaking.Options`, `Rotations.Options`, `Building.Options` are
+  immutable classes: start from `forServer()`, `DEFAULT`, `STRICT`… and change what you need with `with...`. New
+  options then start from the preset's value without breaking your code.
+- **`@ApiStatus.NonExtendable` interfaces** (every service, `AddonContext`, `Canvas`, `Window`, `Hooks`, ...) are
+  implemented by Myriad only and gain methods in minor releases: don't implement them. To bring your own service, use
+  its [`Forwarding` class](/docs/develop/hooks#replacing-a-service). Interfaces you implement (`MyriadAddon`,
+  `Layout`, `Blueprint`, `Replacement`, `HookHandler`) only gain `default` methods.
+- **`@ApiStatus.Internal`** marks what's public for Myriad's own use (event constructors, lifecycle calls). Don't call it.
+- **Removals are announced**: `@Deprecated` for at least one minor release first, with the replacement in the javadoc.
+
+## Versions
+
+Myriad follows semantic versioning for the API: while the major version is 0, a **minor** release may change the API
+(with deprecations first), a **patch** release never does. Each repository's `CHANGELOG.md` says what changed.
+
+Declare the oldest Myriad you support in `fabric.mod.json`:
+
+```json
+"depends": { "myriad": ">=0.3.0" }
+```
+
+To use something newer while still supporting older versions:
+
+```java
+if (Myriad.isAtLeast("0.4.0")) {
+    useTheNewThing();
+}
+```
+
+Keep code that names a newer API class in a class of its own, called only after the check, so older versions never
+load it.
+
+## Optional integrations
+
+For another mod (Baritone, Litematica) or another addon you don't depend on:
+
+```java
+@Override
+public void postInitialize(AddonContext ctx) {
+    if (FabricLoader.getInstance().isModLoaded("litematica")) LitematicaBridge.register(ctx);
+}
+```
+
+`compileOnly` the other mod, and keep every class that touches it behind the `isModLoaded` check. For Baritone,
+`util.Baritone` already does this: every call is a no-op without it.
+
+Don't depend on Essentials: players can remove it. Everything general it used to keep to itself is in the core API.
+
+## Mixins into other mods
+
+Set the plugin in your mixin config and put mixins into another mod under `compat.<mod id>`; they apply only when that
+mod is installed (`compat.no_<mod id>` only when it isn't):
+
+```json filename="my-addon.mixins.json"
+{
+  "required": true,
+  "package": "com.example.addon.mixin",
+  "plugin": "dev.myriadclient.api.mixin.CompatMixinPlugin",
+  "compatibilityLevel": "JAVA_25",
+  "client": ["MinecraftMixin", "compat.sodium.SodiumWorldRendererMixin"]
+}
+```
+
+<Callout type="info">
+  Run the dev client with `myriad.auditMixins` on: every mixin applies at start, so a wrong target fails at once
+  instead of the first time its class loads.
+</Callout>

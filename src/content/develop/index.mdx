@@ -1,0 +1,97 @@
+---
+title: "Developers"
+description: "Build addons for Myriad. What an addon is, what the API gives you, and a complete first addon."
+---
+
+import { Callout, Cards } from "nextra/components";
+
+# Developers
+
+A Myriad **addon** is an ordinary Fabric mod with a `myriad` entrypoint. Everything players see in Myriad, including
+the stock modules, comes from addons built on the same public API (`dev.myriadclient.api`). Myriad core itself is the
+menu, the settings system, the services and the glue.
+
+What the API gives you:
+
+- **Modules** with typed **settings**, binds, hold mode and HUD info, saved per profile.
+- An **event bus** for ticks, packets, input, rendering, the world and the UI.
+- **Services** so addons share one implementation of hard things: rotations (with move fix), inventory and silent
+  swaps, placement, breaking (vanilla, packet and Grim-timed), building from blueprints, containers, tasks over ticks,
+  the packet budget, elytra flight.
+- **Windows and HUD elements** drawn with an SDF canvas, a widget toolkit, and title-bar controls.
+- **World rendering**: immediate shapes, GPU meshes, per-chunk caches, shader highlights.
+- **Hooks**: replace a service with your own, or change one decision in Myriad or another addon.
+- **Control panel presets** and **shared configs**.
+
+## A complete addon
+
+```java filename="src/main/java/com/example/addon/MyAddon.java"
+package com.example.addon;
+
+import dev.myriadclient.api.addon.AddonContext;
+import dev.myriadclient.api.addon.MyriadAddon;
+
+public final class MyAddon implements MyriadAddon {
+    @Override
+    public void initialize(AddonContext ctx) {
+        ctx.registerModules(new Greeter());
+    }
+}
+```
+
+```java filename="src/main/java/com/example/addon/Greeter.java"
+package com.example.addon;
+
+import dev.myriadclient.api.event.Subscribe;
+import dev.myriadclient.api.event.events.WorldEvent;
+import dev.myriadclient.api.module.Categories;
+import dev.myriadclient.api.module.Module;
+import dev.myriadclient.api.setting.StringSetting;
+
+public final class Greeter extends Module {
+    private final StringSetting message = sgGeneral.string("Message")
+        .description("Shown when you join a world.")
+        .defaultValue("Welcome back!")
+        .build();
+
+    public Greeter() {
+        super(Categories.MISC, "Greeter", "Greets you when you join a world.");
+    }
+
+    @Subscribe
+    private void onJoin(WorldEvent.Join e) {
+        info(message.get());   // a chat line tagged [Myriad]
+    }
+}
+```
+
+```json filename="src/main/resources/fabric.mod.json"
+{
+  "schemaVersion": 1,
+  "id": "my-addon",
+  "version": "${version}",
+  "name": "My Addon",
+  "environment": "client",
+  "entrypoints": { "myriad": ["com.example.addon.MyAddon"] },
+  "depends": { "myriad": ">=0.3.0", "minecraft": "~26.2" }
+}
+```
+
+That's an addon: the module shows in the menu under *Misc · My Addon*, has a Message setting, a keybind, hold mode, and
+its on/off state and settings save with the player's profile.
+
+<Callout type="info">
+  Start from the [addon template](https://github.com/MyriadClient/myriad-addon-template), and read the
+  [example addon](https://github.com/MyriadClient/myriad-core/tree/master/example-addon) for every pattern in use.
+</Callout>
+
+## Where to go
+
+<Cards num={3}>
+  <Cards.Card title="Setting up" href="/docs/develop/setup" arrow />
+  <Cards.Card title="Modules" href="/docs/develop/modules" arrow />
+  <Cards.Card title="Settings" href="/docs/develop/settings" arrow />
+  <Cards.Card title="Services" href="/docs/develop/services" arrow />
+  <Cards.Card title="Hooks" href="/docs/develop/hooks" arrow />
+  <Cards.Card title="For AI agents" href="/docs/develop/agents" arrow />
+</Cards>

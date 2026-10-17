@@ -1,0 +1,56 @@
+---
+title: "Modules and settings"
+description: "Turning modules on and off, binding keys, hold mode, and the kinds of settings modules have."
+---
+
+import { Callout } from "nextra/components";
+
+# Modules and settings
+
+A **module** is one feature: Free Look, Kill Aura, Auto Eat. Addons provide them. Each sits in a category window in
+the menu.
+
+## On and off
+
+Click a module to turn it on or off. A tinted bar on the left of its row means it's on. From chat, `.toggle <module>`
+does the same (`.toggle free_look on`).
+
+When a module turns on or off, a line in chat says so. Turn that off per module with its **Chat Feedback** setting.
+
+## Settings
+
+Right-click a module, or click the arrow at the end of its row, to unfold its settings. Settings come in groups; the
+first is open, later ones start folded.
+
+| Kind | Looks like |
+|---|---|
+| On/off | a switch |
+| A number | a slider (click the value to type one) |
+| A choice | a dropdown |
+| A colour | a swatch: a fixed colour, a rainbow, or one of the theme's colours (so it changes with the theme) |
+| A key | a bind button: click, then press a key or mouse button |
+| A list | blocks, items, entities, modules or text, with a picker |
+| A position | `x y z`, with a **Here** button |
+| A file | a path, with the system file picker |
+
+Hover a setting to see what it does. Some settings appear only when they matter: a module's *Range* might only show
+while its *Mode* uses a range.
+
+`.set <module> <setting> <value>` changes a setting from chat, and `.set <module>` lists them. `.reset <module>` puts
+every setting back to its default.
+
+## Keybinds
+
+Every module has a **Keybind** (in its *Module* group, at the bottom of its settings): press it in game to turn the
+module on or off. `.bind <module> <key>` does it from chat.
+
+- **Hold**: on while the key is held, off when you let go. Good for Zoom or Free Look.
+- **Show In List**: whether the Module List HUD element shows it.
+
+The **Keybinds** window (<kbd>Alt</kbd>+<kbd>K</kbd>) lists every bind in one place: modules, the menu's own keys, and
+global actions.
+
+<Callout type="info">
+  A setting with a coloured tag beside its value is being set by something else for now, like a control panel. See
+  [Setting layers](/docs/use/setting-layers).
+</Callout>

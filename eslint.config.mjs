@@ -5,6 +5,11 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Nextra's _meta.ts files export their menu order as a plain object.
+  {
+    files: ["src/content/**/_meta.ts"],
+    rules: { "import/no-anonymous-default-export": "off" },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

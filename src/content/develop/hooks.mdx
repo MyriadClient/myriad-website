@@ -1,0 +1,321 @@
+---
+title: "Hooks"
+description: "Change how Myriad (or another addon) works: replace a whole service, or handle one decision, for everyone, your own modules, or one server."
+---
+
+import { Callout, Tabs } from "nextra/components";
+
+# Hooks
+
+Modules add features. **Hooks** change how existing ones work, without changing their code. They're how an addon
+brings its own rotations, makes Kill Aura pick targets differently, or makes Elytra Swap behave differently on one
+server, and how Myriad stays open to ideas (and bypasses) its authors don't have.
+
+There are two levels:
+
+| | What it is | You write |
+|---|---|---|
+| **Service replacement** | Take over a whole core service: rotations, inventory, placement or breaking. | a class extending the service's `Forwarding` class |
+| **Hook handler** | Give the answer to one decision inside a service or module: how a rotation turns, where a placement clicks, which entity Kill Aura attacks. | a lambda |
+
+Both are registered with a builder on your `AddonContext`, both say **when** they apply with a `Match` (a module, an
+addon, a server, an anti-cheat profile), and both show in the player's **Hooks** window, where any of them can be
+turned off.
+
+## Which tool
+
+Before reaching for a hook, check it's the right tool:
+
+| You want to… | Use |
+|---|---|
+| react to something, or adjust it alongside everyone else (cancel a packet, add a tooltip line) | an [event](/docs/develop/events) |
+| make another module's **setting** take a value while your code needs it | a [layered override](/docs/develop/settings#layered-values) |
+| give **the** answer to a decision Myriad or an addon makes, where the most specific answer should win | a **hook handler** |
+| bring your **own implementation** of rotations, inventory, placement or breaking | a **service replacement** |
+| let **other addons** change a decision in **your** module | **declare a hook** |
+
+Events are broadcast: everyone sees them, in priority order, and there's no single answer. Hooks are asked: there's
+one chain of contributions, most specific first, and one answer comes back.
+
+<Callout type="warning">
+  Don't use a hook to do what a setting or an override already does, and don't declare hooks for every method of your
+  module. A hook is for a decision someone else has a real reason to make differently, per module or per server.
+</Callout>
+
+## Match: when it applies
+
+```java
+// Every call (the default).
+Match.always()
+// Calls for one module, by id; or for instances of a class.
+Match.caller("myriad-essentials:recast")
+Match.caller(MyAura.class)
+// Calls for any module of one addon.
+Match.addon("my-addon")
+// Only while that anti-cheat profile is in effect; only on that server (and its subdomains).
+Match.always().on(AntiCheat.Profile.GRIM)
+Match.always().server("6b6t.org")
+// Combined.
+Match.caller("myriad-essentials:recast").server("2b2t.org").on(AntiCheat.Profile.GRIM)
+```
+
+The **caller** is the object a call is for: usually the module asking (the `owner` passed to a service, or the
+`caller` passed to `Hook.call`). It's matched by its id when it has one (`Module`s do, and so do Elytra Fly's types:
+`myriad-essentials:recast`), by its class, or by the addon its id or class belongs to.
+
+When several contributions match, the **most specific runs first**:
+
+| Part | Weight |
+|---|---|
+| a caller (id or class) | 8 |
+| an addon | 4 |
+| a server | 2 |
+| a profile | 1 |
+
+Equally specific ones run in the order their addons loaded.
+
+## Replacing a service
+
+A replacement takes over `Myriad.rotations()`, `inventory()`, `placement()` or `breaking()`. Extend the service's
+`Forwarding` class: it hands every call you don't override to the service it wraps (core's), so you write only what you
+do differently, and methods later versions add keep working.
+
+```java
+public final class HumanisedRotations extends Rotations.Forwarding {
+    private final Random random = new Random();
+
+    public HumanisedRotations(Rotations core) {
+        super(core);
+    }
+
+    @Override
+    public void request(Object owner, float yaw, float pitch, int priority, Options options, Runnable afterSent) {
+        // Change what the caller asked for, then hand it on to core, which still arbitrates between everyone.
+        float jitter = (float) random.nextGaussian() * 0.3f;
+        super.request(owner, yaw + jitter, Float.isNaN(pitch) ? pitch : pitch + jitter / 2, priority,
+            options.withTurnSpeed(Math.max(options.turnSpeed(), 25)), afterSent);
+    }
+}
+```
+
+```java
+// in initialize:
+ctx.replace(Service.ROTATIONS)
+    .named("Humanised rotations")                        // what the player sees in the Hooks window
+    .when(Match.addon(ctx.namespace()).on(AntiCheat.Profile.GRIM))
+    .with(HumanisedRotations::new);                      // gets core's, returns yours
+```
+
+### For whom: everyone, or your own modules
+
+- **Without a caller in the `Match`** (`Match.always()`, or only a server/profile), the replacement is **for
+  everyone**: every module of every addon, and core's own services, use it.
+- **With a caller or an addon** (`Match.addon("my-addon")`), it's **only for those callers**. Your modules use yours,
+  while Essentials and everyone else keep core's (or the one for everyone). Nothing conflicts.
+
+`Myriad.rotations()` and the others route each call to the right implementation. Calls that say who they're for (the
+methods taking an `owner`: `request`, `place`, `breakBlock`, `hold`, `borrow`, ...) go to the implementation for that
+owner. Calls that don't (`serverYaw()`, `serverSlot()`, `safeToClick()`, ...) go to the one for everyone.
+
+<Callout type="warning">
+  There's still one player, one movement packet and one selected slot. A replacement **scoped to some callers**
+  should change what they ask for and hand it on (`super.request(...)`) to core's, which arbitrates between everyone.
+  Only a replacement **for everyone** should take over sending things itself; two that both send rotations would fight
+  over the packet.
+</Callout>
+
+### Taking over completely
+
+A replacement for everyone can do everything itself. It's subscribed to the event bus while it's in use (its
+`@Subscribe` methods run only then) and hears `activated()` and `deactivated()`:
+
+```java
+public final class MyRotations extends Rotations.Forwarding {
+    private float yaw = Float.NaN, pitch = Float.NaN;
+
+    public MyRotations(Rotations core) {
+        super(core);
+    }
+
+    @Override
+    public void request(Object owner, float yaw, float pitch, int priority, Options options, Runnable afterSent) {
+        this.yaw = yaw;          // your own arbitration, smoothing, timing...
+        this.pitch = pitch;
+    }
+
+    @Subscribe(priority = Priority.LOWEST)            // after core's own (LOW), so what you write goes out
+    private void onMovement(MovementPacketsEvent e) {
+        if (!Float.isNaN(yaw)) e.yaw = yaw;
+        if (!Float.isNaN(pitch)) e.pitch = pitch;
+        yaw = pitch = Float.NaN;
+    }
+
+    @Override
+    public float serverYaw() { ... }                  // answer what you now own
+
+    @Override
+    public void deactivated() {                       // the player turned it off, or left the server it matched
+        yaw = pitch = Float.NaN;
+    }
+}
+```
+
+The factory runs once, the first time the replacement is needed; the instance is kept. A replacement whose
+`Match` names a server starts when the player joins it and stops when they leave.
+
+## Handling a hook
+
+A hook is one decision. You get a `HookCall` with the input, who it's for, and where, and return the answer, or ask the
+next handler with `proceed()`.
+
+```java
+ctx.hook(Rotations.TURN)
+    .named("Eased turns")
+    .when(Match.addon(ctx.namespace()))
+    .handle(call -> {
+        Rotations.Turn t = call.input();               // from, to, speed (0 = snap), yaw or pitch
+        if (t.speed() <= 0) return call.proceed();     // snapping: leave it to the next handler / core
+        float delta = t.yaw() ? Mth.wrapDegrees(t.to() - t.from()) : t.to() - t.from();
+        return t.from() + delta * 0.35f;               // ease a third of the way each tick
+    });
+```
+
+| `HookCall` | |
+|---|---|
+| `input()` | what the hook was called with (an immutable record) |
+| `caller()` / `callerAddon()` / `owner()` | who the call is for: its id, its addon, the object |
+| `profile()`, `server()` | the anti-cheat profile in effect, the server's host |
+| `proceed()` | the next handler's answer (a less specific one, or in the end the default) |
+| `proceed(input)` | the same, with a different input |
+
+Handlers stack: a general one and a caller-specific one both run, the specific one first, each able to `proceed()` to
+the other. Return without calling `proceed()` to take over the decision.
+
+### Core's hooks
+
+| Hook | Input → answer | Caller |
+|---|---|---|
+| `Rotations.TURN` | `Turn(from, to, speed, yaw)` → the angle to send this tick | the request's owner |
+| `Placement.AIM` | `Target(pos, options)` → the `BlockHitResult` to click, or null for nowhere | the placement's owner |
+| `Inventory.CLICK_READY` | `ClickMoment(sprinting, keys, sneaking)` → whether an inventory click may go out now | none |
+| `HighlightEvent.ENTITY_HIGHLIGHT` | `EntityHighlight(entity, style, color)` → how it's highlighted (null style: not at all) | none |
+
+<Tabs items={["Placement aim", "Click timing", "Highlights"]}>
+<Tabs.Tab>
+```java
+// Never click the top face on 6b6t (say its anti-cheat dislikes it): fall back to core's choice otherwise.
+ctx.hook(Placement.AIM)
+    .named("No top faces")
+    .when(Match.always().server("6b6t.org"))
+    .handle(call -> {
+        BlockHitResult hit = call.proceed();
+        return hit != null && hit.getDirection() == Direction.UP ? null : hit;
+    });
+```
+</Tabs.Tab>
+<Tabs.Tab>
+```java
+// A server that allows clicks while sprinting (but not with keys held).
+ctx.hook(Inventory.CLICK_READY)
+    .named("Sprint clicks")
+    .when(Match.always().server("example.net"))
+    .handle(call -> !call.input().keys());
+```
+</Tabs.Tab>
+<Tabs.Tab>
+```java
+// Friends in green, whatever module highlighted them; keep the alpha (it fades highlights in and out).
+ctx.hook(HighlightEvent.ENTITY_HIGHLIGHT).named("Friends in green").handle(call -> {
+    HighlightEvent.EntityHighlight h = call.proceed();
+    boolean friend = h.style() != null && h.entity() instanceof Player p && Myriad.friends().isFriend(p);
+    int green = SettingColor.role(SettingColor.Mode.GREEN).argb() & 0xFFFFFF;
+    return friend ? new HighlightEvent.EntityHighlight(h.entity(), h.style(), h.color() & 0xFF000000 | green) : h;
+});
+```
+</Tabs.Tab>
+</Tabs>
+
+## Declaring your own hook
+
+When your module makes a decision other addons have a reason to make differently, declare a hook for it. Other
+addons then [compile against your addon](#hooking-another-addon) and handle it.
+
+```java
+public class AutoFarm extends Module {
+    /** What a harvest decision knows. Immutable, everything a handler needs. */
+    public record Crop(BlockPos pos, BlockState state, int age, int maxAge) {}
+
+    /** Whether to harvest a crop now. Default: when it's fully grown. Caller: Auto Farm. */
+    public static final Hook<Crop, Boolean> HARVEST = Hook.of("my-addon:harvest", "Harvest",
+        "Whether Auto Farm harvests a crop now.");
+
+    private boolean shouldHarvest(BlockPos pos, BlockState state, int age, int maxAge) {
+        return HARVEST.call(this, new Crop(pos, state, age, maxAge), c -> c.age() >= c.maxAge());
+    }
+}
+```
+
+- `Hook.of(id, name, description)`: the id is in your namespace; name and description show in the Hooks window.
+- `call(caller, input, fallback)`: `caller` is who it's for (pass `this`); `fallback` is your default, and what the
+  last handler's `proceed()` gets.
+- Declare hooks as `public static final` constants in a public class, so other addons can compile against them.
+- Make the input a **record** with everything a handler needs, so you can add fields without breaking handlers.
+- Give the callers that matter **ids**: a module has one; a helper object can implement `Identified`, the way Elytra
+  Fly's types do, so `Match.caller("my-addon:fast_mode")` can target it.
+
+### Performance
+
+An unhooked hook costs a map lookup: `call` runs your fallback straight away. When something handles it, the chain for
+each caller and place is worked out once and cached. To skip building an expensive input when nothing listens:
+
+```java
+if (!HARVEST.hooked()) return age >= maxAge;   // no record, no list, nothing
+```
+
+Hooks called on the render thread every frame (like the highlight hook) must be quick, in your handlers too.
+
+## Hooking another addon
+
+To handle a hook declared by another addon (or Essentials), compile against it and register only when it's installed.
+Keep the code that touches its classes in a class of its own, so it never loads without the addon:
+
+```groovy filename="build.gradle"
+dependencies {
+    compileOnly "dev.myriadclient:myriad-essentials:${project.essentials_version}"
+}
+```
+
+```java
+// MyAddon.initialize:
+if (FabricLoader.getInstance().isModLoaded("myriad-essentials")) EssentialsHooks.register(ctx);
+
+// EssentialsHooks.java: the only class that touches Essentials.
+final class EssentialsHooks {
+    static void register(AddonContext ctx) {
+        ctx.hook(ElytraSwap.BEHAVIOUR)
+            .named("Recast keeps its elytra on 6b6t")
+            .when(Match.caller("myriad-essentials:recast").server("6b6t.org"))
+            .handle(call -> call.input().withSwaps(false));
+    }
+}
+```
+
+Essentials' hooks are listed in [Building on Essentials](/docs/develop/essentials).
+
+## When things go wrong
+
+- A handler or replacement that **throws** is turned off for the session, the error is logged against your addon, the
+  player gets a notification, and the call goes on to the next handler (or core's own). One broken hook never breaks
+  the game.
+- The player can **turn off** any contribution in the Hooks window, or with `.hooks off <name>`.
+- `.hooks` lists what's in effect, and `.hooks why <module>` shows which hooks and replacements a module's calls go
+  through, in order. Use them while you test.
+
+## Checklist
+
+- Is it a decision (one answer), not a reaction? Otherwise use an event.
+- Is the `Match` as narrow as it can be? Prefer your own addon or caller to everyone.
+- Does a scoped replacement hand on to core rather than sending things itself?
+- Does your handler `proceed()` when it has nothing to say?
+- Is it cheap on hot paths, and does your declared hook check `hooked()` before building costly input?
+- Is the `named(...)` label something a player understands in the Hooks window?

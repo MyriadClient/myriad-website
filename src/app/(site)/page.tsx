@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { MenuDemo, Logo } from "@/components/MenuDemo";
 import { ThemesShowcase } from "@/components/Themes";
 import {
@@ -125,6 +126,7 @@ export default async function Home() {
             <li><a className="hover:text-ink" href="#addons">Addons</a></li>
             <li><a className="hover:text-ink" href="#install">Install</a></li>
             <li><a className="hover:text-ink" href="#keys">Keys</a></li>
+            <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
           </ul>
           <a
             href={site.github}
@@ -321,7 +323,8 @@ export default async function Home() {
             <li><a className="hover:text-ink" href={site.github}>Source</a></li>
             <li><a className="hover:text-ink" href={site.releases}>Releases</a></li>
             <li><a className="hover:text-ink" href={site.issues}>Issues</a></li>
-            <li><a className="hover:text-ink" href={site.template}>Write an addon</a></li>
+            <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
+            <li><Link className="hover:text-ink" href="/docs/develop">Write an addon</Link></li>
           </ul>
         </div>
       </footer>

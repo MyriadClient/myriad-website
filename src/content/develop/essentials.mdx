@@ -1,0 +1,61 @@
+---
+title: "Building on Essentials"
+description: "Essentials' hooks, its modules' ids, and how to change its behaviour from your addon without depending on it."
+---
+
+import { Callout } from "nextra/components";
+
+# Building on Essentials
+
+[Myriad Essentials](https://github.com/MyriadClient/myriad-essentials) is the stock module set, and it's written as a
+reference: everything goes through the public API, the way your addon should. Read its source for real modules,
+services, hooks and control panel presets in use.
+
+You can change how some of its modules decide things with [hooks](/docs/develop/hooks). Compile against it
+(`compileOnly "dev.myriadclient:myriad-essentials:<version>"`, from Myriad's maven) and register only when it's
+installed, as in [Hooking another addon](/docs/develop/hooks#hooking-another-addon).
+
+## Its hooks
+
+| Hook | Input → answer | Caller |
+|---|---|---|
+| `ElytraSwap.BEHAVIOUR` | `Behaviour(swaps, equipBeforeStart)` → how Elytra Swap works for a flight | the flight: `myriad-essentials:recast`, `:altitude`, `:control`, or Elytra Swap itself (flying yourself) |
+| `LockRotation.HEADING` | `Heading(locked, camera)` → the yaw a flight flies while the heading is locked | the flight |
+| `KillAura.TARGET` | `Candidates(inReach, reach)` → the entity Kill Aura attacks (null: none) | Kill Aura |
+| `Offhand.FORCE_TOTEM` | `Danger(health, lowHealth, gliding, lethal)` → whether to force a totem now | Offhand |
+
+```java
+final class EssentialsHooks {
+    static void register(AddonContext ctx, FocusTracker focus) {
+        // Kill Aura goes for the player you marked, while it's in reach.
+        ctx.hook(KillAura.TARGET).named("Focus target").handle(call ->
+            focus.target() != null && call.input().inReach().contains(focus.target()) ? focus.target() : call.proceed());
+
+        // On 6b6t (NoCheatPlus), Altitude doesn't need to wait for the elytra before each glide start.
+        ctx.hook(ElytraSwap.BEHAVIOUR)
+            .named("Altitude starts at once on 6b6t")
+            .when(Match.caller("myriad-essentials:altitude").server("6b6t.org"))
+            .handle(call -> call.input().withEquipBeforeStart(false));
+
+        // Control snaps a locked heading to the nearest 45°.
+        ctx.hook(LockRotation.HEADING)
+            .named("Snap to axes")
+            .when(Match.caller("myriad-essentials:control"))
+            .handle(call -> Math.round(call.input().locked() / 45f) * 45f);
+
+        // Force a totem whenever you're below half health, whatever Offhand's settings say.
+        ctx.hook(Offhand.FORCE_TOTEM).named("Half health").handle(call -> call.input().health() <= 10 || call.proceed());
+    }
+}
+```
+
+## Using its modules
+
+Look modules up by id (`Myriad.modules().get(MyriadId.of("myriad-essentials", "elytra_fly"))`) rather than by class
+when you don't compile against it. Its control panel presets (Highway, Cruise) show how to combine modules with
+[typed settings](/docs/develop/control-panels).
+
+<Callout type="info">
+  Elytra Fly's types (Recast, Altitude, Control) aren't modules, but have ids so hooks can match them:
+  `myriad-essentials:recast` and so on.
+</Callout>

@@ -1,0 +1,69 @@
+---
+title: "Control panels"
+description: "Turn a set of modules on together with one key, each with settings just for that job."
+---
+
+import { Callout, Steps } from "nextra/components";
+
+# Control panels
+
+A **control panel** is a set of modules you turn on and off together, each with the settings it should have for one
+job. One key (or the switch in its title bar) turns them all on, set up the way you saved them. Turning it off turns
+them back off and gives you your own settings back.
+
+Some ideas:
+
+- **Highway**: Elytra Fly flying Recast, Elytra Swap keeping the elytra, Auto Eat.
+- **Base building**: Scaffold, Air Place, Auto Tool, with a slower Scaffold than you normally use.
+- **Mining trip**: Packet Mine, Auto Tool, Storage at a short range.
+
+## Make one
+
+<Steps>
+### Create it
+
+In the launcher, type a name and pick **New control panel: …**. Or open the **Control Panels** window and use the
+field at the bottom.
+
+### Add modules
+
+Its window opens. Open its **Settings** section and pick the modules under **Modules**.
+
+### Save settings for it (optional)
+
+Each module is listed as a card. Unfold one and change its settings the way this panel should have them, then press
+**Save**. A badge on the card shows how many settings it saves. **Clear** forgets them.
+
+### Give it a key
+
+In **Settings**, set a **Keybind**. Turn on **Hold** to have it on only while you hold the key.
+</Steps>
+
+## What happens when it's on
+
+- Each of its modules turns on.
+- The settings it saved **lie over** the module's own. Your own settings aren't changed: they're still there underneath.
+  In the module's settings, the panel's values show with the panel's name in a tag.
+- If you change one of those settings while the panel is on, you're changing **the panel's** value, not yours.
+- Turning the panel off turns off only the modules it turned on (one that was already on stays on), and the panel's
+  settings come off, so your own show again.
+
+So you can try a setup without losing yours. See [Setting layers](/docs/use/setting-layers) for how this works.
+
+## Ready-made panels
+
+Addons can come with control panels. Essentials has **Highway** and **Cruise**. You can change them like your own;
+**Reset** in a panel's settings brings back the addon's version, and a deleted one comes back with the button in the
+Control Panels window's title bar.
+
+## From chat
+
+| Command | |
+|---|---|
+| `.control` | list them |
+| `.control on <name>` / `off` / `toggle` | turn one on or off |
+
+<Callout type="info">
+  Control panels belong to your [profile](/docs/use/profiles), like modules do. To give one to someone else,
+  [share it](/docs/use/sharing).
+</Callout>

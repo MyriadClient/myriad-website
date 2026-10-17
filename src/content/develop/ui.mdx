@@ -1,0 +1,134 @@
+---
+title: "Windows, HUD and widgets"
+description: "Panels for the menu, HUD elements, the widget toolkit, title-bar controls, bar widgets and themes."
+---
+
+import { Callout } from "nextra/components";
+
+# Windows, HUD and widgets
+
+Everything in the menu is a **panel** inside a window. Panels draw on a `Canvas`: SDF rounded rectangles, gradient
+borders, shadows, frosted backdrops and TrueType text, in the player's theme. Icons are glyphs from the bundled Nerd
+Font (`""`).
+
+## A window built from widgets
+
+Most windows extend `WidgetPanel` and build their content from widgets. Call `rebuild()` when the structure changes.
+
+```java
+public final class WaypointsPanel extends WidgetPanel {
+    private final WaypointStore waypoints;
+    private String name = "";
+
+    public WaypointsPanel(WaypointStore waypoints) {
+        this.waypoints = waypoints;
+    }
+
+    @Override
+    public String title() {
+        return "Waypoints";
+    }
+
+    @Override
+    protected void build(VBox content) {
+        waypoints.all().forEach((n, pos) -> {
+            HBox row = new HBox(4);
+            row.addWeighted(new Label(n + "  " + pos.toShortString()), 1);
+            row.addFixed(new Button("Remove", () -> { waypoints.remove(n); rebuild(); }), 50);
+            content.add(row);
+        });
+        HBox add = new HBox(4);
+        add.addWeighted(new TextField(() -> name).placeholder("Name").onChange(s -> name = s), 1);
+        add.addFixed(new Button("Add here", () -> {
+            if (mc.player != null) waypoints.put(name, mc.player.blockPosition());
+            rebuild();
+        }).accent(), 60);
+        content.add(add);
+    }
+}
+```
+
+```java
+// in initialize:
+PanelType window = ctx.registerPanel("Waypoints", "", () -> new WaypointsPanel(waypoints));
+Myriad.ui().openPanel(window);   // from a key action, a command, a module
+```
+
+Widgets: `Label` (`.dim()`, `.bold()`), `Button` (`.accent()`), `Toggle`, `Slider`, `Dropdown`, `TextField`
+(`.placeholder`, `.onChange`, `.onSubmit`), `ColorPicker`, `KeybindButton`, `RegistryPicker`, `StringListEditor`,
+`Collapsible`, `HBox`/`VBox` (`addWeighted`, `addFixed`), `ScrollView`, `Spacer`, and `SettingsView.build(settings)`,
+which lays out a whole `Settings` like a module's.
+
+For full control, extend `Panel` and implement `render(canvas, width, height, mouseX, mouseY)` and the input methods
+(`mouseClicked`, `keyPressed`, ...).
+
+| Panel method | |
+|---|---|
+| `title()`, `subtitle()`, `icon()`, `tooltip()` | what the title bar and hover show |
+| `titleControls()` | controls in the title bar (below) |
+| `preferredSize(canvas)` | the size a floating window opens at |
+| `tick()`, `onOpen()`, `onClose()` | lifecycle |
+| `save(json)`, `load(json)` | state kept with the window between sessions |
+| `settings` | a panel's own settings, saved with the window, shown on right-click |
+
+## Title-bar controls
+
+A window can put a switch or icon buttons in its title bar, beside float and close. Make them once:
+
+```java
+private final List<TitleControl> controls = List.of(
+    TitleControl.toggle(() -> store.syncing(), store::setSyncing, () -> "Sync with the server"),
+    TitleControl.button(() -> "", store::refresh, () -> "Refresh").visible(() -> store.syncing())
+);
+
+@Override
+public List<TitleControl> titleControls() {
+    return controls;
+}
+```
+
+## HUD elements
+
+A HUD element is a panel drawn over the game on the HUD workspace. For lines of text, extend `TextHudPanel`: sizing,
+alignment, scale and the standard colour options come with it.
+
+```java
+public final class PlayerCountHud extends TextHudPanel {
+    public PlayerCountHud() {
+        super("Player Count", "", HudStyle.Mode.TEXT);
+    }
+
+    @Override
+    protected void lines(Lines out) {
+        int players = preview() ? 1 : mc.getConnection() == null ? 0 : mc.getConnection().getOnlinePlayers().size();
+        out.add("Players", String.valueOf(players));
+    }
+}
+```
+
+```java
+ctx.registerHud("Player Count", "", PlayerCountHud::new);                       // added from the HUD workspace
+ctx.registerHud("Watermark", "", Watermark::new, PanelType.Anchor.TOP_LEFT, 0, 0); // placed on a fresh install
+```
+
+`preview()` is true while there's no world (arranging the HUD from the title screen): show sample values. For
+drawing of your own, extend `HudPanel` and use `HudStyle` and `ItemHud`.
+
+## The bar and themes
+
+- **Bar widgets** extend `BarWidget` (a side, an order, `width(canvas, height)`, `render(...)`, `mouseClicked(...)`).
+  Register with `ctx.registerBarWidget(...)`.
+- **Themes**: `ctx.registerTheme(new Theme(ctx.id("sunset"), "Sunset", t -> { t.accent.set(SettingColor.of(0xFFF5A97F)); }))`.
+  Unset values come from Myriad's default. `ThemePalette` builds one from a terminal palette.
+- **Colours** in your panels and modules should come from the theme: `Myriad.ui().theme().accent.argb()`, and for
+  settings, `SettingColor.role(SettingColor.Mode.ACCENT)`.
+
+## Drawing in vanilla screens
+
+`Myriad.ui().draw(guiGraphics, canvas -> ...)` draws with the canvas inside any vanilla screen or tooltip. In a
+`Render2DEvent` handler, use `event.canvas()`.
+
+<Callout type="info">
+  `Myriad.ui()` is the desktop: `openPanel`, `find`, `windows()`, `confirm(title, message, label, onConfirm, onCancel)`
+  for a yes/no dialog, `theme()`, `applyTheme(...)`.
+</Callout>

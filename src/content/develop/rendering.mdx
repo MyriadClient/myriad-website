@@ -1,0 +1,100 @@
+---
+title: "Drawing in the world"
+description: "Immediate shapes, GPU meshes, per-chunk caches, shader highlights with custom fills, and labels."
+---
+
+# Drawing in the world
+
+Three ways to draw shapes in the world, one vocabulary (`ShapeBuilder`: `box`, `blockShape`, `side`, `line`, `quad`,
+`circle`, in world coordinates). Pick by how often the shapes change:
+
+| Changes | Use | Cost per frame |
+|---|---|---|
+| every frame (entities, the crosshair target) | `event.shapes()` in a `Render3DEvent` handler | rebuilds and uploads every shape |
+| now and then (a path, a plan, a selection) | a `WorldMesh`, rebuilt when it changes | one draw call |
+| per chunk (ores, storage, holes) | a `ChunkCache` with a mesher | one draw per visible chunk |
+
+## Every frame
+
+```java
+@Subscribe(inGame = true)
+private void onRender(Render3DEvent e) {
+    if (target == null) return;
+    AABB box = Entities.lerpedBox(target, e.tickDelta());
+    Renderer3D.box(box, ColorUtil.withAlpha(color.get().argb(), 40), color.get().argb(), Renderer3D.ShapeMode.BOTH, false);
+}
+```
+
+## Per chunk
+
+```java
+private final ChunkCache<long[]> found = ChunkCache.of(this, chunk -> {   // runs when a chunk loads or changes
+        LongArrayList out = new LongArrayList();
+        BlockScan.forEach(chunk, s -> s.is(Blocks.ANCIENT_DEBRIS), (pos, s) -> out.add(pos.asLong()));
+        return out.isEmpty() ? null : out.toLongArray();
+    })
+    .range(range::get)                                                    // chunks around the player
+    .mesh((positions, mesh) -> {                                          // kept on the GPU until the chunk changes
+        for (long p : positions) mesh.blockShape(BlockPos.of(p), fill.argb(), line.argb(), ShapeMode.BOTH, true);
+    })
+    .build();
+```
+
+The cache runs while its module is on and frees everything when it turns off. Chunks are worked through within a time
+budget each tick, nearest first (`.async()` moves long scans to the worker pool), and a chunk is recomputed only when a
+block in it changes (`.neighbours()` also when the chunk beside it changes). Keep the compute function to facts about
+the world and turn settings into looks in the mesher: a colour change then only needs `remeshAll()`; call
+`invalidateAll()` when a setting changes what is found. `BlockScan` skips every 16×16×16 section whose palette can't
+hold a match, so a search for a rare block reads almost nothing.
+
+## Highlights
+
+Highlights are outlines traced by a shader around the exact silhouette of what's highlighted (an entity with its
+armour and held items, or a set of boxes), with an optional glow, fill and gradient, through walls or not.
+
+```java
+private final HighlightSettings look = new HighlightSettings(settings.group("Outline"));   // the standard options
+
+@Subscribe(inGame = true)
+private void onHighlight(HighlightEvent.Entity e) {          // each entity as it's prepared for drawing
+    if (e.entity() instanceof Player) e.highlight(look.style(), 0xFFFF5555);
+}
+
+@Subscribe(inGame = true)
+private void onHighlightShapes(HighlightEvent.Shapes e) {    // once a frame: boxes and block shapes
+    for (BlockPos pos : chests) e.block(pos, look.style(), 0xFFFFCC00);
+}
+```
+
+`HighlightStyle` is immutable: `HighlightStyle.OUTLINE.withGlow(6).withFill(HighlightStyle.Fill.DOTS)`. Lengths are
+in GUI pixels. The first listener to highlight an entity wins; touching silhouettes of the same look share one outline.
+Highlighting costs nothing while nothing listens.
+
+**Your own fill** is a fragment shader in your assets, importing Myriad's composite and defining `customFill`:
+
+```java
+public static final HighlightStyle.Fill STRIPES = HighlightStyle.Fill.custom(Identifier.fromNamespaceAndPath("my-addon", "fill/stripes"));
+```
+
+```glsl filename="assets/my-addon/shaders/fill/stripes.fsh"
+#version 330
+#moj_import <myriad:highlight_fill.glsl>
+
+vec4 customFill(HighlightFill f) {
+    float stripe = step(0.5, fract((f.local.x + f.local.y) / f.spacing));
+    return vec4(f.color.rgb, f.color.a * f.opacity * stripe);
+}
+```
+
+Create custom fills as `static final` fields of your addon class, so they exist before the game compiles shaders.
+
+## Labels
+
+`WorldLabel` puts text and item icons on world positions. For your own, project with `Projection.toScreen(pos)` in a
+`Render2DEvent` handler and draw on `event.canvas()`.
+
+## The standard looks
+
+`BoxStyle` (outline, fill, opacity, width, through walls) and `EntityGroups` (players, friends, monsters, crystals,
+pearls, … each with a theme colour) give ESP-like modules the same options as the stock ones. `FadeMap` fades
+highlights in and out.

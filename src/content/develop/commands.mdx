@@ -1,0 +1,67 @@
+---
+title: "Commands"
+description: "Chat commands with Brigadier, Myriad's argument types, and replying."
+---
+
+# Commands
+
+A command extends `Command` and builds its syntax with [Brigadier](https://github.com/Mojang/brigadier), the library
+Minecraft's own commands use. It autocompletes in chat and in the Console window, and runs with Myriad's prefix (`.`).
+
+```java
+public final class WaypointCommand extends Command {
+    private final WaypointStore waypoints;
+
+    public WaypointCommand(WaypointStore waypoints) {
+        super("waypoint", "Adds, removes and lists waypoints.", "wp");   // name, description, aliases
+        this.waypoints = waypoints;
+    }
+
+    @Override
+    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> b) {
+        b.executes(c -> {                                                 // .waypoint
+            waypoints.all().forEach((name, pos) -> info(Component.literal(name + " ").append(Texts.coords(pos))));
+            return SINGLE_SUCCESS;
+        });
+        b.then(literal("add").then(argument("name", StringArgumentType.word())
+            .then(argument("pos", Arguments.blockPos()).executes(c -> {      // .waypoint add home ~ ~ ~
+                BlockPos pos = c.getArgument("pos", BlockPos.class);
+                waypoints.put(StringArgumentType.getString(c, "name"), pos);
+                return SINGLE_SUCCESS;
+            }))));
+        b.then(literal("remove").then(argument("name", Arguments.suggesting(waypoints::names)).executes(c -> {
+            if (!waypoints.remove(StringArgumentType.getString(c, "name"))) {
+                error("No waypoint by that name");
+                return 0;
+            }
+            return SINGLE_SUCCESS;
+        })));
+    }
+}
+```
+
+Register it with `ctx.registerCommand(new WaypointCommand(waypoints))`.
+
+## Arguments
+
+Brigadier's own (`StringArgumentType`, `IntegerArgumentType`, ...) plus Myriad's in `Arguments`:
+
+| | |
+|---|---|
+| `Arguments.blockPos()` | `x y z`, with `~` for your position |
+| `Arguments.item()`, `block()`, `entityType()`, `registry(registry, what)` | registry entries, autocompleted |
+| `Arguments.enumValue(MyEnum.class)` | an enum constant |
+| `Arguments.duration()` | `500ms`, `20t`, `10s`, `1m30s`, `2h`, as milliseconds (a bare number is seconds) |
+| `Arguments.choice(() -> list)` | one of a list (refuses anything else) |
+| `Arguments.suggesting(() -> list)` | anything, suggesting from a list |
+| `Arguments.module()` | a module by name or id |
+| `Arguments.player()` | a player in the tab list |
+
+## Replying
+
+`info(text)` and `error(text)` (strings or `Component`s) send a chat line tagged with Myriad's prefix. `Texts` makes
+clickable chat: `Texts.command(label, ".toggle esp")`, `Texts.copy(label, value)`, `Texts.coords(pos)`,
+`Texts.hover(text, tooltip)`. `Myriad.chat(text, id)` sends a line that replaces the previous one with the same id
+(progress, status).
+
+Run another command from code with `Myriad.runCommand(".toggle esp on")`.

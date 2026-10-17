@@ -1,0 +1,110 @@
+---
+title: "Shared configs"
+description: "Keep private settings out of shares with protect(), and build, publish and apply shares from code."
+---
+
+import { Callout } from "nextra/components";
+
+# Shared configs
+
+Players [share their setup](/docs/use/sharing) as a code like `myriad_JS3k4d`: modules with their settings, control
+panels, the theme. As an addon author, you have one job: **mark private settings**. The API also lets you build and
+take in shares from code.
+
+## Private settings: `protect()`
+
+Any setting whose value is private to the player has to be protected. Its value then never leaves their computer in a
+share: the share (and the website) only says the setting exists. Taking a share in never changes it either.
+
+```java
+private final StringSetting webhook = sgGeneral.string("Webhook")
+    .description("Discord webhook for finds.")
+    .protect()
+    .build();
+private final IntSetting centerX = sgGeneral.intSetting("Center X").range(-30_000_000, 30_000_000)
+    .protect()                                     // coordinates in plain numbers: protect them too
+    .build();
+```
+
+Protect anything that is, or could be:
+
+- a URL with a token in it (webhooks, API keys), a password, an account name;
+- coordinates, a server address, a player's name the player chose to track;
+- a file path (it can name the player's home folder);
+- free text the player types that could hold any of these.
+
+`BlockPosSetting` and `FileSetting` are protected unless you call `.protect(false)`. Myriad's macro commands are
+protected. **When in doubt, protect it**: a player can always share a value by hand, but a leaked one can't be taken
+back.
+
+<Callout type="warning">
+  Protection is decided by your code, not the player. Shares are public to anyone with the code.
+</Callout>
+
+## Building a share
+
+`Myriad.shares().builder()` puts one together, from any mix of things:
+
+```java
+ConfigShare share = Myriad.shares().builder()
+    .title("Highway setup")
+    .module(elytraFly)                                     // one module
+    .addonCategory("myriad-essentials", Categories.MOVEMENT) // one of the menu's windows
+    .addon("my-addon")                                     // every module of an addon
+    .controlPanel(highway)                                 // a control panel, with what it saves
+    .theme()                                               // the active theme's look
+    .binds(false)                                          // keybinds stay out unless true
+    .build();
+```
+
+Then:
+
+```java
+Myriad.shares().publish(share).thenAccept(p -> Async.onRenderThread(() ->
+    Myriad.notifications().info("Shared", p.code() + " (" + p.url() + ")")));
+
+Myriad.shares().fetch("myriad_JS3k4d").thenAccept(s -> Async.onRenderThread(() -> {
+    ConfigShares.Applied result = Myriad.shares().apply(s, ConfigShares.Apply.AS_CONTROL_PANEL);
+    if (!result.missing().isEmpty()) Myriad.notifications().warn("Missing", String.join(", ", result.missing()));
+}));
+```
+
+| | |
+|---|---|
+| `publish(share)` | uploads it; the code arrives with the future. Kept, with the key that deletes it, in `published()` |
+| `fetch(codeOrLink)` | downloads a share |
+| `apply(share, Apply.REPLACE)` | its settings become the player's (protected ones excepted), modules on or off as shared |
+| `apply(share, Apply.AS_CONTROL_PANEL)` | a new control panel of its modules and settings, layered over the player's |
+| `unpublish(code)` | deletes a share published from this computer |
+| `ConfigShares.isCode(text)` | whether text is a share code |
+
+Futures complete off the render thread: hop back with `Async.onRenderThread` before touching the game.
+
+## The format
+
+A share is JSON (`ConfigShare.FORMAT` 1). Each module carries its settings (only values that differ from the
+defaults, no protected ones) and a `view`: how it looked in the sharer's menu (name, category with icon and colour,
+each setting's kind and shown value), so the website can draw it without knowing your addon.
+
+```json
+{
+  "format": 1,
+  "title": "Highway setup",
+  "made": { "core": "0.3.4", "minecraft": "26.2" },
+  "addons": [{ "id": "myriad-essentials", "name": "Myriad Essentials", "version": "0.3.2" }],
+  "modules": [{
+    "id": "myriad-essentials:elytra_fly",
+    "enabled": true,
+    "settings": { "general": { "type": "Recast" } },
+    "view": { "name": "Elytra Fly", "category": { "name": "Movement", "icon": "", "color": "#89B4FAFF" },
+              "groups": [{ "name": "General", "settings": [
+                { "name": "Type", "kind": "choice", "shown": "Recast", "options": ["Recast", "Altitude"] },
+                { "name": "Webhook", "kind": "text", "protected": true } ] }] }
+  }],
+  "controlPanels": [{ "name": "Highway", "members": ["myriad-essentials:elytra_fly"], "settings": { } }],
+  "theme": { "name": "Myriad", "settings": { } }
+}
+```
+
+Shares live on Myriad's API (`https://api.myriadclient.dev/v1/configs`), which also refuses to store a value for any
+setting marked protected, and the website shows them at `https://myriadclient.dev/config/<code>`.

@@ -1,0 +1,59 @@
+---
+title: "Storage and config"
+description: "Your addon's own files, versioned data that upgrades itself, and how Myriad saves profiles."
+---
+
+# Storage and config
+
+Settings save themselves with the player's profile. For anything else your addon keeps (waypoints, a list of finds, a
+cache), use **your own folder**: `ctx.storage()`, at `.minecraft/myriad/addons/<your mod id>/`.
+
+```java
+public final class WaypointStore {
+    private static final String FILE = "waypoints.json";
+    private static final int VERSION = 2;
+    private final AddonStorage storage;
+    private final Map<String, BlockPos> waypoints = new LinkedHashMap<>();
+
+    public WaypointStore(AddonStorage storage) {
+        this.storage = storage;
+    }
+
+    public void load() {
+        storage.readJson(FILE, VERSION, WaypointStore::upgrade).ifPresent(json -> {
+            for (var e : json.getAsJsonObject().entrySet()) waypoints.put(e.getKey(), BlockPos.of(e.getValue().getAsLong()));
+        });
+    }
+
+    public void save() {
+        JsonObject o = new JsonObject();
+        waypoints.forEach((name, pos) -> o.addProperty(name, pos.asLong()));
+        storage.writeJson(FILE, o, VERSION);
+    }
+
+    /** Older data, one version step at a time. */
+    private static JsonElement upgrade(int from, JsonElement data) {
+        if (from == 1) { /* version 1 kept a list: turn it into a map */ }
+        return data;
+    }
+}
+```
+
+| `AddonStorage` | |
+|---|---|
+| `readJson(name)`, `writeJson(name, json)` | plain JSON files |
+| `writeJson(name, json, version)`, `readJson(name, version, upgrade)` | versioned: older data is brought up to date step by step on read |
+| `directory()` | the folder, for files of your own format |
+
+Writes are atomic (a crash mid-write can't corrupt the file), and the first write each session keeps a `.bak`.
+
+## How Myriad saves
+
+- Module settings and states, control panels and the menu layout belong to the active **profile**
+  (`profiles/<name>/`). Your module's settings switch with it, for free.
+- Only values that differ from the defaults are saved, so a better default in an update reaches everyone who never
+  changed it.
+- Saved settings a module doesn't know (from a newer or older version) are kept on save; entries of addons that aren't
+  installed are kept too.
+- `Myriad.config()` is the config manager: `activeProfile()`, `profiles()`, `switchProfile(name)`, `markDirty()`
+  (save soon), `saveNow()`.

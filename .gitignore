@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Made from src/content by scripts/llms.mjs on every build
+/public/llms.txt
+/public/llms-full.txt
+/public/docs/
+/public/docs.md

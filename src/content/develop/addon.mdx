@@ -1,0 +1,86 @@
+---
+title: "The addon and its context"
+description: "MyriadAddon's phases and everything AddonContext registers."
+---
+
+import { Callout } from "nextra/components";
+
+# The addon and its context
+
+Your entrypoint implements `MyriadAddon`. Myriad calls its phases for every addon in turn:
+
+| Phase | When | Use it for |
+|---|---|---|
+| `registerCategories(ctx)` | first, for every addon | your own categories, so other addons can use them too |
+| `initialize(ctx)` | then, for every addon | everything else: modules, commands, windows, hooks |
+| (config load) | | Myriad loads the player's profile: your modules' settings and states come in |
+| `postInitialize(ctx)` | last | looking for optional integrations (other mods, other addons) |
+
+If any phase throws, your addon is marked **failed**, everything it registered is removed, and the game carries on.
+The Addons window shows the error.
+
+```java
+public final class MyAddon implements MyriadAddon {
+    private Category automation;
+
+    @Override
+    public void registerCategories(AddonContext ctx) {
+        automation = ctx.registerCategory("Automation", "", SettingColor.role(SettingColor.Mode.CYAN));
+    }
+
+    @Override
+    public void initialize(AddonContext ctx) {
+        // Shared state: made here, passed to whatever needs it. Not in static fields.
+        WaypointStore waypoints = new WaypointStore(ctx.storage());
+        waypoints.load();
+
+        ctx.registerModules(new Waypoints(waypoints), new AutoFarm(automation));   // menu order
+        ctx.registerCommand(new WaypointCommand(waypoints));
+        PanelType window = ctx.registerPanel("Waypoints", "", () -> new WaypointsPanel(waypoints));
+        ctx.registerHud("Nearest Waypoint", "", () -> new NearestWaypointHud(waypoints));
+        ctx.registerKeyAction("Open Waypoints", Keybind.NONE, () -> Myriad.ui().openPanel(window));
+        ctx.events().subscribe(new SessionStats());                                // always-on listener
+    }
+
+    @Override
+    public void postInitialize(AddonContext ctx) {
+        if (FabricLoader.getInstance().isModLoaded("baritone")) ctx.logger().info("Baritone found");
+    }
+}
+```
+
+## What the context registers
+
+| Method | Registers |
+|---|---|
+| `registerModules(Module...)` | [modules](/docs/develop/modules), in menu order |
+| `registerCategory(name, icon, color)` | a category (in `registerCategories`) |
+| `registerCommand(Command)` | a [chat command](/docs/develop/commands) |
+| `registerPanel(name, icon, factory)` / `registerPanel(PanelType)` | a [window](/docs/develop/ui) |
+| `registerHud(name, icon, factory[, anchor, x, y])` | a [HUD element](/docs/develop/ui#hud-elements) |
+| `registerBarWidget(BarWidget)` | something in the menu's top bar |
+| `registerLayout(Layout)` | a workspace layout |
+| `registerTheme(Theme)` | a theme preset |
+| `registerKeyAction(name, defaultBind, action)` | a global key, rebindable in the Keybinds window |
+| `registerControlPanel(ControlPreset)` | a [ready-made control panel](/docs/develop/control-panels) |
+| `hook(Hook)` / `replace(Service)` | a [hook or service replacement](/docs/develop/hooks) |
+| `settings(name)` | settings of the addon itself, shown in the Addons window, saved per profile |
+| `settingWidgets()` | the editor for a [custom setting type](/docs/develop/settings#your-own-setting-types) |
+| `events()` | the event bus (listeners you subscribe through it are attributed to your addon) |
+| `storage()` | your [own folder](/docs/develop/storage) for saved data |
+| `logger()`, `namespace()`, `id(path)` | your logger, your mod id, and an id in your namespace |
+
+Everything registered through the context is owned by your addon: shown with its name in the menu, and removed if it
+fails.
+
+## Registering later
+
+An addon that bridges another mod may only be able to register its modules once that mod is up. That's allowed: the
+menu picks them up the next time it opens. Those modules missed the config load, so they should mirror state kept
+elsewhere: return `true` from `Module.isMirror()` and Myriad neither saves them nor toggles them on their keybind, and
+`setEnabledSilently(...)` follows the other side without chat feedback.
+
+<Callout type="info">
+  Reach Myriad from anywhere with the static `Myriad` class: `Myriad.modules()`, `Myriad.rotations()`,
+  `Myriad.ui()`, `Myriad.notifications()`… `Myriad.isReady()` says whether it has started.
+</Callout>

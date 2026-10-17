@@ -1,0 +1,35 @@
+---
+title: "Myriad docs"
+description: "How to use Myriad, the addon-first Minecraft utility client, and how to build addons for it."
+---
+
+import { Cards } from "nextra/components";
+
+# Myriad docs
+
+Myriad is a free, open-source utility client for Minecraft {"26.2"} on Fabric. Its menu is a tiling window manager,
+every module comes from an addon, and the stock modules pass Grim on 2b2t.
+
+These docs have two halves.
+
+<Cards num={2}>
+  <Cards.Card title="Using Myriad" href="/docs/use" arrow>
+    Installing, the menu and its keys, modules and settings, control panels, macros, themes, sharing your setup. No
+    programming needed.
+  </Cards.Card>
+  <Cards.Card title="Developers" href="/docs/develop" arrow>
+    Writing addons: modules, settings, events, the menu, rendering, the services, hooks, shared configs, publishing.
+    With complete, working code.
+  </Cards.Card>
+</Cards>
+
+## For AI agents
+
+Everything here is also available as plain Markdown for language models:
+
+- [`/llms.txt`](/llms.txt): an index of every page, with a one-line summary each.
+- [`/llms-full.txt`](/llms-full.txt): the whole documentation in one file.
+- Any page as Markdown: add `.md` to its address, for example [`/docs/develop/hooks.md`](/docs/develop/hooks.md).
+
+Start an agent on [Developers → For AI agents](/docs/develop/agents), which says how to read these docs and the rules
+an addon has to follow.

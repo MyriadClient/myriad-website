@@ -1,0 +1,117 @@
+---
+title: "For AI agents"
+description: "How an AI agent should read these docs and the rules it must follow to write a correct Myriad addon."
+---
+
+# For AI agents
+
+This page is for language models (and the people pointing them here). It says where to find everything and the rules
+a Myriad addon has to follow. Read it first.
+
+## Reading these docs
+
+- [`/llms.txt`](/llms.txt) lists every page with a summary. [`/llms-full.txt`](/llms-full.txt) is all of them in one
+  file. Every page is also plain Markdown at its address plus `.md`: `/docs/develop/hooks.md`.
+- The API's javadoc ships with `dev.myriadclient:myriad` (`-sources.jar` and `-javadoc.jar` on
+  `https://maven.myriadclient.dev/releases`). Every public class and method is documented: read it when these pages
+  don't cover a detail.
+- Working code to copy patterns from: the [addon template](https://github.com/MyriadClient/myriad-addon-template),
+  the [example addon](https://github.com/MyriadClient/myriad-core/tree/master/example-addon), and
+  [Essentials](https://github.com/MyriadClient/myriad-essentials).
+
+## What to build, in order
+
+1. Start from the template; rename the mod id, package and main class ([Setting up](/docs/develop/setup)).
+2. Write modules: [Modules](/docs/develop/modules), [Settings](/docs/develop/settings), [Events](/docs/develop/events).
+3. Act through [Services](/docs/develop/services), never raw packets, when a service covers it.
+4. Add windows and HUD elements if needed ([UI](/docs/develop/ui)), commands ([Commands](/docs/develop/commands)).
+5. Only if the task is to change how Myriad or another addon decides something: [Hooks](/docs/develop/hooks).
+6. Build with `./gradlew build`; test with the dev client and `selftest` ([Testing](/docs/develop/testing)).
+
+## Rules
+
+These are not style preferences. An addon that breaks them breaks for players.
+
+1. **Only import `dev.myriadclient.api.*`.** Never `dev.myriadclient.impl.*`: it's internal and changes every release.
+2. **Never implement an interface marked `@ApiStatus.NonExtendable`** (services, `AddonContext`, `Window`, `Canvas`,
+   `Hooks`…). To replace a service, extend its `Forwarding` class.
+3. **Register everything in `MyriadAddon.initialize`** through the `AddonContext`. Categories in `registerCategories`.
+   Optional integrations in `postInitialize`.
+4. **No static instances or static state.** Shared state is an object made in `initialize` and passed to
+   constructors. Reach a module with `Modules.active(MyModule.class)` (null while off).
+5. **Act in `TickEvent.Pre`** (clicks, placing, breaking, attacking, slot switches), or through a service that does.
+6. **Rotate through `Myriad.rotations()`**, switch slots through `Myriad.inventory()`, place through
+   `Myriad.placement()`, break through `Myriad.breaking()`. Pass `this` (the module) as the owner.
+7. **Use `Options.forServer()`** for services' options. Don't add a "Strict"/"Grim" setting.
+8. **Settings come from groups** (`sgGeneral.bool("Name")...build()`), with a `description`. Colours default to theme
+   roles (`SettingColor.role(SettingColor.Mode.ACCENT)`).
+9. **`.protect()` every private setting**: URLs with tokens, webhooks, passwords, coordinates, server addresses, file
+   paths, free text that could hold them.
+10. **Never write another module's settings to change its behaviour.** Lay an override
+    (`setting.override(this, Setting.Layer.MODULE, "Label", value)`) and `release(this)` when done.
+11. **Don't depend on Essentials** at runtime. To use its hooks, `compileOnly` it and register behind
+    `FabricLoader.getInstance().isModLoaded("myriad-essentials")`, in a separate class.
+12. **Mixins stay thin**: they call a method on the module, which checks `Modules.active(...)`. Prefix handler names
+    with the mod id. Prefer an event when one exists.
+13. **Hooks are for decisions**: use `ctx.hook(...)` only to answer a decision; call `call.proceed()` when you have no
+    answer; scope with the narrowest `Match`. A replacement scoped to your addon hands calls on with `super`.
+14. **Ticks are cheap, frames are not**: keep render handlers light; cache per tick (`TickCached`) or per chunk
+    (`ChunkCache`).
+15. **Keep the jar's `fabric.mod.json` correct**: `entrypoints.myriad`, `depends.myriad` (the oldest supported),
+    `environment: client`, `contact.sources` for updates.
+
+## Common mistakes
+
+| Mistake | Instead |
+|---|---|
+| `mc.player.connection.send(new ServerboundMovePlayerPacket.Rot(...))` | `Myriad.rotations().request(this, yaw, pitch, priority)` |
+| `mc.player.getInventory().selected = slot` | `Myriad.inventory().select(slot)` or `silentSwap(slot, action)` |
+| a `static MyModule INSTANCE` | `Modules.active(MyModule.class)` |
+| `otherModule.someSetting.set(x)` then setting it back | `someSetting.override(this, Setting.Layer.MODULE, "Mine", x)` / `release(this)` |
+| a webhook `StringSetting` without `.protect()` | add `.protect()` |
+| attacking in `TickEvent.Post` or a render handler | attack in `TickEvent.Pre` |
+| a hook handler that returns a value without `proceed()` "just in case" | `proceed()` unless you mean to take over |
+| `Match.always()` for a replacement meant for your modules | `Match.addon(ctx.namespace())` |
+
+## A complete, correct module
+
+```java
+package com.example.addon.modules;
+
+import dev.myriadclient.api.Myriad;
+import dev.myriadclient.api.combat.TargetSettings;
+import dev.myriadclient.api.combat.Targets;
+import dev.myriadclient.api.event.Subscribe;
+import dev.myriadclient.api.event.events.TickEvent;
+import dev.myriadclient.api.module.Categories;
+import dev.myriadclient.api.module.Module;
+import dev.myriadclient.api.service.Rotations;
+import dev.myriadclient.api.setting.DoubleSetting;
+import dev.myriadclient.api.util.Interactions;
+import net.minecraft.world.entity.Entity;
+
+/** Faces the nearest target in range and hits it when the attack is charged. */
+public final class SimpleAura extends Module {
+    private final DoubleSetting range = sgGeneral.doubleSetting("Range")
+        .description("How far to reach for a target.")
+        .defaultValue(3.0).range(1, 6).decimals(1)
+        .build();
+    private final TargetSettings targets = new TargetSettings(settings, Targets.Type.PLAYERS, Targets.Type.HOSTILES);
+
+    public SimpleAura() {
+        super(Categories.COMBAT, "Simple Aura", "Hits the nearest target in range.");
+    }
+
+    @Subscribe(inGame = true)
+    private void onTick(TickEvent.Pre e) {
+        Entity target = targets.best(range.get());
+        if (target == null) return;
+        float[] aim = Myriad.rotations().anglesTo(target.getBoundingBox().getCenter());
+        Myriad.rotations().request(this, aim[0], aim[1], Rotations.PRIORITY_NORMAL, Rotations.Options.forServer(), null);
+        // Hit once the server faces it and the attack is charged (Interactions.attack also swings).
+        if (Myriad.inventory().attackCharge() >= 1 && Myriad.rotations().isFacing(aim[0], aim[1], 15)) {
+            Interactions.attack(target, true);
+        }
+    }
+}
+```

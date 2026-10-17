@@ -1,0 +1,31 @@
+---
+title: "Performance"
+description: "Keep your addon cheap: work per tick, draw per frame, cache per chunk, and measure with the Profiler."
+---
+
+# Performance
+
+Myriad is built so a module costs nothing until it does something, and the **Profiler** window (or `.profiler on`)
+shows what each module, service and listener costs, in milliseconds per second. To keep an addon cheap:
+
+- **Work per tick, draw per frame.** A render handler runs a few hundred times a second; the world changes twenty. Put
+  what you find (targets, colours, paths) in a `TickCached` and read it from the render handler.
+
+  ```java
+  private final TickCached<List<Entity>> targets = TickCached.of(() -> targetSettings.query().range(range.get()).list());
+
+  @Subscribe(inGame = true)
+  private void onRender(Render3DEvent e) {
+      for (Entity t : targets.get()) draw(e, t);   // worked out once per tick, however many frames read it
+  }
+  ```
+
+- **Per chunk, not per tick.** Anything about blocks goes in a `ChunkCache` (redone only when a block in the chunk
+  changes) with a mesher, so a frame is one draw per chunk. See [Drawing](/docs/develop/rendering#per-chunk).
+- **Say what you listen for.** `@Subscribe(inGame = true)`, `packets = {...}` on packet handlers, and no handler at all
+  for something you need now and then (`Myriad.events().listen` returns a `Subscription` to drop).
+- **Cache what the game recomputes.** `Threats.worst()`, `Inventory.attackCharge()` and friend lookups are cached per
+  tick already; `Targets.query().list()` isn't.
+- **Hooks**: check `hooked()` before building an expensive input for a hook you declare; keep render-thread handlers
+  quick.
+- **Measure.** Anything over a millisecond per second in a tick handler, or a few in a render handler, is worth a look.

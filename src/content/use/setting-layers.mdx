@@ -1,0 +1,40 @@
+---
+title: "Setting layers"
+description: "How control panels and modules can set a setting for a while without changing yours."
+---
+
+import { Callout } from "nextra/components";
+
+# Setting layers
+
+Every setting has **your value**: the one you set, and the only one Myriad saves. On top of it, other things can lay a
+value **for a while**, and take it off again when they're done. Your value is never touched.
+
+Think of it as layers, the top one being the one in effect:
+
+| Layer | Who sets it | Example |
+|---|---|---|
+| A module | another module that needs a setting a certain way while it works | a flight addon that needs Velocity off while it flies |
+| A control panel | a [control panel](/docs/use/control-panels) that's on | *Highway* sets Elytra Fly's Type to Recast |
+| A server | (coming) settings for one server | |
+| **You** | you | the value you set |
+
+When a layer comes off, whatever is under it shows again. That's why turning a control panel off puts your settings
+back: nothing was overwritten, so there's nothing to put back. It's also why a crash or a disconnect can never leave
+your settings changed.
+
+## Seeing it
+
+A setting with a layer on it shows a small tag with **who set it** beside its value. Hover it to see that your own
+value comes back afterwards.
+
+## Changing a layered setting
+
+If a control panel is on and you change one of its settings, you're tuning **the panel**: it saves the new value for
+next time, and yours stays as it was. The same goes for `.set`, which says so ("Width set to 4 (for Digging)").
+
+A setting set by a module (not a panel) can't be changed while that module is using it.
+
+<Callout type="info">
+  Only your own values are saved, and only your own values go into [shared configs](/docs/use/sharing).
+</Callout>

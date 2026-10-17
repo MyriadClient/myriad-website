@@ -1,0 +1,86 @@
+---
+title: "The menu"
+description: "Workspaces, windows, layouts and the keys that drive Myriad's tiling menu."
+---
+
+import { Callout } from "nextra/components";
+
+# The menu
+
+Myriad's menu works like a tiling window manager (it's modelled on [Hyprland](https://hyprland.org) and
+[Omarchy](https://omarchy.org)). Instead of one big screen of buttons, you get **windows** arranged on **workspaces**,
+and you decide what goes where.
+
+## Workspaces
+
+There are nine workspaces, plus one for the HUD. Switch with <kbd>Alt</kbd>+<kbd>1</kbd> … <kbd>9</kbd>, or click the
+numbers in the bar at the top. Use them however suits you: a combat workspace, a building workspace, one for an addon
+you use on one server.
+
+The bar shows workspaces 1–4 always, and 5–9 while they have windows. The icon after the numbers is the
+[HUD workspace](/docs/use/hud).
+
+## Windows
+
+Most windows are **category windows**: one addon's modules in one category, titled like *Render · Essentials*.
+Addons share the standard categories (Combat, Movement, Render, Player, World, Misc), so their windows sit together.
+Other windows are tools: Theme, Keybinds, Profiles, Control Panels, Share, the Console, the Profiler and so on. Open
+any of them from the [launcher](/docs/use/launcher).
+
+A window can be:
+
+- **Tiled**: it takes a share of the workspace, and the others make room. Drag the gaps between windows to resize them.
+- **Floating**: it sits on top where you put it. Drag it by its title bar.
+- **Full screen**: it fills the workspace.
+
+The buttons at the right of a title bar float or close the window. Some windows add their own controls there, like a
+control panel's on/off switch.
+
+**Merging**: drag a window by its title bar onto another window's title bar and they become one window, with each
+addon as a section. The icon on a section's header moves it back out.
+
+When you install an addon, its windows open beside the windows of the same categories if there's room, or on a
+workspace of their own. A notification says where. Windows you've arranged are never moved, and a window you close
+stays closed (the launcher reopens it).
+
+## Layouts
+
+Each workspace has a layout:
+
+- **Dwindle** (the default): each new window splits the focused one, so a workspace grows into a grid.
+- **Columns**: one column per window, side by side, with each module's settings unfolding inline. When they don't all
+  fit, the row scrolls sideways.
+
+<kbd>Alt</kbd>+<kbd>L</kbd> switches the workspace's layout.
+
+## Keys
+
+The mod key stands in for Super (Hyprland keeps Super for itself). It's <kbd>Alt</kbd> by default; change it in
+**Theme → Preferences**.
+
+| Keys | Action |
+|---|---|
+| <kbd>mod</kbd>+<kbd>Space</kbd> | launcher |
+| <kbd>mod</kbd>+<kbd>1</kbd>…<kbd>9</kbd> / <kbd>mod</kbd>+<kbd>Shift</kbd>+<kbd>1</kbd>…<kbd>9</kbd> | switch workspace / move the window there |
+| <kbd>mod</kbd>+<kbd>W</kbd> / <kbd>mod</kbd>+<kbd>T</kbd> / <kbd>mod</kbd>+<kbd>F</kbd> | close / float or tile / full screen |
+| <kbd>mod</kbd>+<kbd>J</kbd> / <kbd>mod</kbd>+<kbd>L</kbd> | change the split / change the layout |
+| <kbd>mod</kbd>+<kbd>Tab</kbd> / <kbd>mod</kbd>+<kbd>Shift</kbd>+<kbd>Tab</kbd> / <kbd>mod</kbd>+<kbd>Ctrl</kbd>+<kbd>Tab</kbd> | next / previous / last workspace |
+| <kbd>mod</kbd>+<kbd>S</kbd> / <kbd>mod</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd> | the HUD workspace / move the window to the HUD |
+| <kbd>mod</kbd>+arrows / <kbd>mod</kbd>+<kbd>Shift</kbd>+arrows | focus / swap with the window that way |
+| <kbd>mod</kbd>+<kbd>-</kbd> / <kbd>mod</kbd>+<kbd>=</kbd> | shrink / grow the window |
+| <kbd>mod</kbd>+<kbd>Return</kbd> / <kbd>mod</kbd>+<kbd>K</kbd> | console / keybinds |
+| <kbd>mod</kbd>+<kbd>Shift</kbd>+<kbd>Space</kbd> / <kbd>mod</kbd>+<kbd>Shift</kbd>+<kbd>Backspace</kbd> | hide the bar / remove the gaps |
+| <kbd>mod</kbd>+drag with the left / right mouse button | move / resize |
+
+Every one of these can be changed in the **Keybinds** window (<kbd>mod</kbd>+<kbd>K</kbd>).
+
+## Without a mouse
+
+Inside a window, <kbd>j</kbd>/<kbd>k</kbd> (or the arrow keys) move the selection, <kbd>h</kbd>/<kbd>l</kbd> change a
+value or fold a section, <kbd>Enter</kbd> or <kbd>Space</kbd> activate, <kbd>o</kbd> unfolds a module's settings,
+<kbd>/</kbd> jumps to the filter, and <kbd>Esc</kbd> leaves a text field or closes the menu.
+
+<Callout type="info">
+  Using Omarchy? Hyprland takes <kbd>Alt</kbd>+<kbd>Tab</kbd> for itself: use <kbd>mod</kbd>+scroll to change
+  workspace, or pick another mod key.
+</Callout>

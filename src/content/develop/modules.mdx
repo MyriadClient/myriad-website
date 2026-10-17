@@ -1,0 +1,136 @@
+---
+title: "Modules"
+description: "Writing modules: lifecycle, events while enabled, HUD info, conflicts, renaming and migrating settings."
+---
+
+import { Callout } from "nextra/components";
+
+# Modules
+
+A module extends `Module` and passes its category, name and description to the constructor.
+
+```java
+public final class Sprint extends Module {
+    private final BoolSetting omni = sgGeneral.bool("Omnidirectional")
+        .description("Sprint in every direction, not only forward.")
+        .build();
+
+    public Sprint() {
+        super(Categories.MOVEMENT, "Sprint", "Sprints for you.");
+    }
+
+    @Subscribe(inGame = true)
+    private void onTick(TickEvent.Pre e) {
+        if (omni.get() || mc.player.input.keyPresses.forward()) mc.player.setSprinting(true);
+    }
+
+    @Override
+    protected void onDisable() {
+        if (inGame()) mc.player.setSprinting(false);
+    }
+}
+```
+
+- The module's **id** is its namespace (your mod id) and its name in snake case: `my-addon:sprint`.
+- `mc` is the game client. `inGame()` is true with a world and a player.
+- `sgGeneral` is the first settings group; make more with `settings.group("Name")`. See [Settings](/docs/develop/settings).
+- Every module also has a **Module** group with `keybind`, `holdMode`, `visibleInList` and `chatFeedback`.
+
+## Lifecycle
+
+| | |
+|---|---|
+| `onEnable()` / `onDisable()` | turned on / off (also when a profile loads with it on) |
+| `@Subscribe` methods | the module is subscribed to the event bus **only while on**, so its handlers run only then |
+| `whileEnabled(start, stop)` | run `start` now if on and on every enable, `stop` on every disable: for helpers you start and stop |
+| `isEnabled()`, `toggle()`, `enable()`, `disable()`, `setEnabled(b)` | state |
+
+Do the work in event handlers. Don't keep timers or threads of your own: use [Tasks](/docs/develop/services#tasks),
+which are cancelled when the module turns off.
+
+## Talking to the player
+
+| | |
+|---|---|
+| `info(msg)`, `warn(msg)`, `error(msg)` | a chat line tagged with Myriad's prefix |
+| `hudInfo()` | text beside the module in the Module List (its mode, a count); null for none |
+| `Myriad.notifications().info(title, msg)` | a toast |
+
+## Reaching a module
+
+From a mixin, another module or another addon:
+
+```java
+Sprint sprint = Modules.active(Sprint.class);   // the module while it's on, else null
+if (sprint != null) { ... }
+
+boolean on = Modules.isActive(Sprint.class);
+Sprint any = Modules.get(Sprint.class);          // on or off (null if not registered)
+
+// A module from an addon you don't compile against:
+Myriad.modules().get(MyriadId.of("other-addon", "their_module")).ifPresent(Module::toggle);
+```
+
+Don't keep a static `INSTANCE`: `Modules.active` is the way, and it's null before Myriad starts.
+
+## Mixins
+
+Keep mixins thin: the logic goes in a method on the module, which starts with `Modules.active(...)`, and the mixin
+calls it.
+
+```java
+@Mixin(Minecraft.class)
+public abstract class MinecraftMixin {
+    @Inject(method = "createTitle", at = @At("RETURN"), cancellable = true)
+    private void myAddon$windowTitle(CallbackInfoReturnable<String> cir) {   // prefix handlers with your mod id
+        WindowTitle m = Modules.active(WindowTitle.class);
+        if (m != null) cir.setReturnValue(m.title.get());
+    }
+}
+```
+
+Prefer an [event](/docs/develop/events) to a mixin whenever one exists. For mixins into other mods, see
+[Compatibility](/docs/develop/compatibility#mixins-into-other-mods).
+
+## Two modules that can't both be on
+
+```java
+public Freecam() {
+    super(Categories.RENDER, "Freecam", "Fly the camera around.");
+    conflictsWith(FreeLook.class);   // turning this on turns Free Look off
+}
+```
+
+## Renaming a module or its settings
+
+Players' saved settings follow a rename if you say how:
+
+```java
+public Tunnel() {
+    super(Categories.WORLD, "Tunnel", "Digs a tunnel the way you face.");
+    formerNames("Tunnel Miner");          // saved under these before: settings, bind and state carry over
+}
+
+@Override
+public int settingsVersion() {
+    return 2;                             // bump when you rename, move or change the meaning of settings
+}
+
+@Override
+protected void migrateSettings(int fromVersion, SavedSettings saved) {
+    if (fromVersion == 1) {
+        saved.rename("General", "Size", "Width");
+        saved.map("General", "Mode", v -> v.getAsString().equals("Fast") ? new JsonPrimitive("Quick") : v);
+    }
+}
+```
+
+`migrateSettings` runs once per version step, before old settings load. `SavedSettings` has `get`, `set`, `remove`,
+`rename`, `move` (to another group or setting) and `map`. Saved settings only hold values that differ from the
+defaults, so a missing value means "default". Settings a module doesn't know are kept on save, so going back to an
+older version loses nothing.
+
+<Callout type="info">
+  Make a setting when the player will want to change it, or when it changes what the module does. Something that
+  would be on almost all the time should simply be on.
+</Callout>

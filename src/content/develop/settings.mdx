@@ -1,0 +1,182 @@
+---
+title: "Settings"
+description: "Every setting type, the builder, groups, visibility, private settings, layered overrides and custom types."
+---
+
+import { Callout } from "nextra/components";
+
+# Settings
+
+Settings are typed fields on a module, built with a fluent builder from a **group**. They're saved with the player's
+profile (only values that differ from the default), edited in the menu and with `.set`, and shared in
+[shared configs](/docs/develop/sharing).
+
+```java
+public final class Nuker extends Module {
+    private final DoubleSetting range = sgGeneral.doubleSetting("Range")
+        .description("How far to break blocks.")
+        .defaultValue(4.5)
+        .range(0, 6)                 // the hard limits
+        .decimals(1)
+        .build();
+    private final EnumSetting<Mode> mode = sgGeneral.enumSetting("Mode", Mode.ALL).build();
+    private final RegistryListSetting<Block> blocks = sgGeneral.blocks("Blocks")
+        .defaultValue(Blocks.STONE, Blocks.DEEPSLATE)
+        .visible(() -> mode.get() == Mode.LIST)   // shown only when it matters
+        .build();
+
+    private final SettingGroup sgRender = settings.group("Render");   // later groups start folded
+    private final ColorSetting color = sgRender.color("Color")
+        .defaultValue(SettingColor.role(SettingColor.Mode.RED))       // follows the theme
+        .build();
+
+    public enum Mode { ALL, LIST }
+    ...
+}
+```
+
+Read a value with `get()`. Settings are fields like any other: keep them `private final`, or `public final` when
+another class (a mixin, a [control panel preset](/docs/develop/control-panels)) needs them.
+
+## Every type
+
+| Builder (on a group) | Type | Value |
+|---|---|---|
+| `bool(name)` | `BoolSetting` | `boolean` |
+| `intSetting(name)` | `IntSetting` | `int`; `.range(min, max)`, `.sliderRange(min, max)` |
+| `doubleSetting(name)` | `DoubleSetting` | `double`; `.range`, `.sliderRange`, `.decimals(n)`; `getFloat()` |
+| `enumSetting(name, default)` | `EnumSetting<E>` | an enum constant (shown title-cased) |
+| `choice(name, () -> options)` | `ChoiceSetting` | one of a list worked out at runtime |
+| `string(name)` | `StringSetting` | text |
+| `stringList(name)` | `StringListSetting` | lines of text |
+| `color(name)` | `ColorSetting` | a `SettingColor`: fixed, rainbow, or a theme role; `.argb()` |
+| `keybind(name)` | `KeybindSetting` | a key or mouse button; `wasPressed(event)` |
+| `action(name, runnable)` | `ActionSetting` | a button |
+| `blocks`, `items`, `entityTypes`, `statusEffects`, `registryList(name, registry)` | `RegistryListSetting<T>` | a set of registry entries, with a picker |
+| `item(name, default)`, `block(name, default)`, `sound(name, default)`, `registry(name, registry, default)` | `RegistrySetting<T>` | one registry entry |
+| `enumSet(name, Enum.class)` | `EnumSetSetting<E>` | any number of an enum's constants |
+| `intList(name)` | `IntListSetting` | whole numbers |
+| `modules(name)` | `ModuleListSetting` | other modules ("pause while these are on") |
+| `blockPos(name)` | `BlockPosSetting` | a position, with a **Here** button |
+| `file(name)` | `FileSetting` | a path, with the system file picker |
+
+Every builder has `.description(text)`, `.defaultValue(v)`, `.visible(() -> bool)`, `.onChanged(v -> ...)` and
+`.protect()`, then `.build()`, which adds the setting to the group.
+
+## Reacting to changes
+
+```java
+private final IntSetting radius = sgGeneral.intSetting("Radius").defaultValue(32).range(1, 128)
+    .onChanged(r -> cache.invalidateAll())      // one setting
+    .build();
+
+public MyModule() {
+    super(...);
+    settings.onAnyChanged(s -> rebuildPlan());  // any of this module's settings
+}
+```
+
+## Private settings: `protect()`
+
+A setting that holds something private to the player (a webhook URL, a server address, a password, coordinates) must
+be marked **protected**. Its value then never goes into a shared config: shares say the setting is there, never what
+it's set to, and taking a share in leaves the player's own value alone.
+
+```java
+private final StringSetting webhook = sgGeneral.string("Webhook")
+    .description("Your Discord webhook URL.")
+    .protect()
+    .build();
+```
+
+`BlockPosSetting` and `FileSetting` are protected already (`.protect(false)` for a position that's a public place).
+When in doubt, protect it. See [Shared configs](/docs/develop/sharing).
+
+## A bind inside a module
+
+A `KeybindSetting` that does something while the module is on (a "sub bind"):
+
+```java
+private final KeybindSetting pearl = sgGeneral.keybind("Pearl Key").build();
+
+@Subscribe
+private void onKey(KeyEvent e) {
+    if (pearl.wasPressed(e)) throwPearl();
+}
+```
+
+## Layered values
+
+A setting has the player's value (the only one saved) and, on top, **overrides** that code lays for as long as it
+needs them. `get()` is the value in effect; `playerValue()` the player's own. This is how control panels work, and how
+your code should borrow another module's setting instead of changing it and putting it back.
+
+```java
+BoolSetting knockback = (BoolSetting) velocity.settings.get("knockback").orElseThrow();   // by key, as .set takes it
+
+// While flying: lay "off" over whatever the player set. The UI shows it tagged "My Flight".
+knockback.override(this, Setting.Layer.MODULE, "My Flight", false);
+
+// Landed: take it off. The player's value shows again; nothing to restore.
+knockback.release(this);
+// or every override this owner laid on a module's settings:
+velocity.settings.releaseAll(this);
+```
+
+Layers, lowest first: `SERVER`, `CONTROL_PANEL`, `MODULE`. The highest wins; on ties, the latest. Pass an `editor` to
+`override(owner, layer, label, value, editor)` to receive edits the player makes while your override is on top
+(control panels save them); without one, edits go to the player's value.
+
+Never write another module's setting with `set(...)` to make it behave: lay an override. Writing changes what the
+player saved; an override can't leak.
+
+## Settings of the addon itself
+
+Options that belong to the addon rather than a module (units, a prefix) come from `ctx.settings("Name")`: a `Settings`
+shown under the addon in the Addons window and saved with the profile.
+
+```java
+AddonSettings units = ctx.settings("Units");
+EnumSetting<Unit> distance = units.group("General").enumSetting("Distance", Unit.BLOCKS).build();
+```
+
+## Your own setting types
+
+Extend `Setting<T>` and register an editor widget for it:
+
+```java
+public class RangeSetting extends Setting<RangeSetting.Range> {
+    public record Range(double min, double max) {}
+    private final double lower, upper;
+
+    public RangeSetting(String name, String description, Range defaultValue, double lower, double upper) {
+        super(name, description, defaultValue, (Supplier<Boolean>) null);
+        this.lower = lower;
+        this.upper = upper;
+    }
+
+    @Override protected Range validate(Range v) { ... }          // clamp and order
+    @Override public JsonElement toJson() { ... }                 // the player's value
+    @Override public void fromJson(JsonElement json) { ... }
+    @Override public boolean parse(String input) { ... }         // what .set takes
+    @Override public String valueString() { ... }                // how it's shown
+}
+```
+
+```java
+// in initialize:
+ctx.settingWidgets().register(RangeSetting.class, s -> {
+    HBox row = new HBox(3);
+    row.add(new Slider(() -> s.get().min(), v -> s.set(new RangeSetting.Range(v, s.get().max())), s.lower(), s.upper(), 1));
+    row.add(new Slider(() -> s.get().max(), v -> s.set(new RangeSetting.Range(s.get().min(), v)), s.lower(), s.upper(), 1));
+    return row;
+}, false);
+
+// in a module:
+private final RangeSetting delay = sgGeneral.add(new RangeSetting("Delay", "A min-max pair.", new RangeSetting.Range(1, 3), 0, 10));
+```
+
+<Callout type="info">
+  In a custom type, read `get()` for what it does and `value` (the player's own) in `toJson`, `parse` and
+  `valueString`, so overrides work.
+</Callout>

@@ -1,0 +1,47 @@
+---
+title: "Testing"
+description: "The dev client, the scripted dev console, selftest, fake players, and checking against Grim."
+---
+
+# Testing
+
+## The dev client
+
+`./gradlew runClient` starts Minecraft with Myriad, Essentials and your addon. [Setting up](/docs/develop/setup#the-dev-client)
+lists the system properties that open the menu, go straight into a world, take screenshots and audit mixins.
+
+## The dev console
+
+With `myriad.devConsole` set, the client reads commands from that file, one per line, and logs each as it runs. A
+script (or an agent) can drive the game without a keyboard:
+
+| Line | |
+|---|---|
+| `.toggle my_module on`, `/gamemode creative` | Myriad and server commands |
+| `hold forward,sprint 40`, `release` | hold movement keys for ticks |
+| `look <yaw> <pitch>`, `select <1-9>`, `attack`, `use` | aim and act |
+| `wait <ticks>`, `status` | wait; log position, motion, rotation, health, held item, FPS |
+| `screenshot <name>` | a screenshot into `run/screenshots/<name>.png` |
+| `menu open`, `workspace <n>`, `panel <id>`, `launcher [query]`, `settings <module>` | drive the menu |
+| `mouse <button> press\|release\|click`, `scroll <notches>`, `key <key> [mods]`, `type <text>` | real input |
+| `selftest` | turn every module on and off, reporting any that throw |
+| `echo <text>` | a marker in the log, to know a script got there |
+
+## In game
+
+- `.fakeplayer add <name>` spawns a client-side dummy player to test combat and render features against.
+- `.hooks` and `.hooks why <module>` show which hooks and replacements are in effect.
+- `.profiler on` shows what your module costs.
+- `.diagnostics` copies versions and settings for a bug report.
+
+## Unit tests
+
+Settings, blueprints, maths and your own logic can be tested with JUnit without starting the game; anything that needs
+a world needs the dev client.
+
+## Against Grim
+
+Essentials keeps a local Grim server and a suite in `tools/grim-test/` of
+[its repository](https://github.com/MyriadClient/myriad-essentials): `./setup.sh` downloads Paper, Grim and
+ViaVersion, `./start.sh` starts it, and `./suite` runs scripted scenarios through the dev console and fails any that
+Grim flags. Copy the approach to check a module of yours before anyone tries it on 2b2t.

@@ -46,3 +46,16 @@ docker build --build-arg NEXT_PUBLIC_SITE_URL=https://myriad.example -t myriad-w
 When adding a dependency, regenerate the lockfile from scratch (`rm -rf node_modules package-lock.json && npm install`)
 rather than letting `npm install <pkg>` patch it. Patched lockfiles here have failed `npm ci` on other npm versions
 because of the optional wasm packages Tailwind and Next pull in.
+
+## Docs, shared configs and llms.txt
+
+- **Docs** (`/docs`): [Nextra](https://nextra.site) 4 in its own root layout (`src/app/docs`), pages in
+  `src/content` (MDX, ordered by each folder's `_meta.ts`): *Using Myriad* for players, *Developers* for addon
+  authors. Search is [Pagefind](https://pagefind.app), indexed after `next build`. Nextra needs zod 4.1 (pinned with
+  `overrides`; zod 4.6 rejects its layout's props).
+- **For language models**: `scripts/llms.mjs` runs before every build and writes `public/llms.txt` (an index),
+  `public/llms-full.txt` (every page) and each page as Markdown at its address plus `.md` (`/docs/develop/hooks.md`).
+  These are generated: edit `src/content`.
+- **Shared configs** (`/config/<code>`): one static page (`src/app/(site)/config`) that reads the code from the
+  address and draws the share from Myriad's API (`NEXT_PUBLIC_API_URL`, default `https://api.myriadclient.dev`).
+  nginx serves it for every `/config/myriad_XXXXXX`; with `next dev`, use `/config/?code=myriad_XXXXXX`.

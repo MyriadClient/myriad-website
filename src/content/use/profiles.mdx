@@ -1,0 +1,33 @@
+---
+title: "Profiles"
+description: "Keep separate setups per server or play style, and where Myriad keeps its files."
+---
+
+# Profiles
+
+A **profile** is a whole setup: which modules are on, their settings and binds, your control panels, and how the menu
+is laid out. Keep one per server, or per play style, and switch between them.
+
+Open the **Profiles** window from the launcher, or use `.profile`:
+
+| Command | |
+|---|---|
+| `.profile` | list profiles |
+| `.profile load <name>` | switch (made from your current setup if it doesn't exist) |
+| `.profile save <name>` | copy the current setup to a new profile |
+| `.profile delete <name>` | delete one |
+
+Friends, global keys and your theme preferences aren't part of a profile: they're the same everywhere.
+
+## Your files
+
+Everything lives in `.minecraft/myriad/`:
+
+- `profiles/<name>/`: a profile (modules, the menu layout, control panels).
+- `themes/`: your themes.
+- `myriad.json`: global options and key actions. `friends.json`: friends.
+- `addons/<addon>/`: what each addon saves for itself.
+
+Myriad saves a moment after anything changes, writes every file safely (a crash mid-save can't break it), and keeps a
+`.bak` of each from the start of the session. Settings of an addon you've removed are kept, so adding it back loses
+nothing. `.reload` reads the profile from disk again, if you've edited it by hand.

@@ -1,0 +1,33 @@
+---
+title: "Macros"
+description: "Modules you make that run commands, chat or server commands on a key."
+---
+
+# Macros
+
+A **macro** is a module you make that runs commands. Being a module, it has a keybind, works in the launcher, and can
+go in control panels.
+
+## Make one
+
+In the launcher, type a name and pick **New macro: …**, or run `.macro new <name>`. It appears in the **Macros**
+category. Open its settings and fill in **Commands**, one per line:
+
+| Line | Does |
+|---|---|
+| `.toggle esp` | a Myriad command |
+| `/home` | a server command |
+| `wait 20` | waits 20 ticks (one second) |
+| `hello!` | sends it as chat |
+
+## Modes
+
+- **Run**: each press runs Commands once, top to bottom.
+- **Toggle**: turning it on runs Commands; turning it off runs **Off Commands**.
+
+## From chat
+
+`.macro` lists them, `.macro run <name>` runs one, `.macro new <name>` makes one, `.macro delete <name>` deletes one
+(also the **Delete Macro** button in its settings).
+
+A macro's commands are never put in a [shared config](/docs/use/sharing): they could hold a password or where you are.

@@ -1,0 +1,33 @@
+---
+title: "Publishing"
+description: "Release your addon on GitHub so Myriad can update it, with an icon and the right fabric.mod.json."
+---
+
+# Publishing
+
+## Releases Myriad can update
+
+Myriad updates addons from their **GitHub releases**, from the Addons window. For yours to be found:
+
+1. `contact.sources` in `fabric.mod.json` is your repository: `https://github.com/you/my-addon`.
+2. Release with a tag `v<version>` (`v1.2.0`) and attach the jar.
+3. The jar is recognised by its name (the installed jar's name with the new version) or by being the release's only jar
+   besides `-sources` and `-javadoc`.
+
+Releasing from elsewhere: `"custom": { "myriad": { "updates": "owner/repo" } }` in `fabric.mod.json`.
+`"updates": false` turns updating off.
+
+The template has a GitHub workflow that builds on every push and releases on a `v*` tag.
+
+## Your addon in the menu
+
+- `name`, `description`, `authors` and `icon` (`assets/<mod id>/icon.png`, square) show in the Addons window.
+- `contact.homepage`, `sources` and `issues` become links there.
+- Your categories' windows are titled with your addon's name.
+
+## Before you release
+
+- Bump the version, and add a CHANGELOG entry.
+- `depends.myriad` is the oldest Myriad you've tested with.
+- Private settings are [protected](/docs/develop/sharing).
+- The dev client's `selftest` passes, and `myriad.auditMixins` finds nothing.

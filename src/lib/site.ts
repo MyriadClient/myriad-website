@@ -17,4 +17,6 @@ export const site = {
   template: "https://github.com/MyriadClient/myriad-addon-template",
   issues: "https://github.com/MyriadClient/myriad-core/issues",
   author: "Myriad",
+  /** Myriad's web API (shared configs). */
+  api: (process.env.NEXT_PUBLIC_API_URL ?? "https://api.myriadclient.dev").replace(/\/$/, ""),
 } as const;

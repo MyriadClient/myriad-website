@@ -1,0 +1,93 @@
+---
+title: "Events"
+description: "The event bus, @Subscribe options, priorities, cancelling, and every core event."
+---
+
+import { Callout } from "nextra/components";
+
+# Events
+
+Myriad posts events for everything that happens: ticks, packets, input, rendering, the world, the UI. Handle one by
+annotating a method with `@Subscribe`. A module's handlers run only while it's on.
+
+```java
+@Subscribe(inGame = true)                             // skipped unless there's a world and a player
+private void onTick(TickEvent.Pre e) { ... }
+
+@Subscribe(priority = Priority.HIGH)                  // higher runs first; any int works
+private void onChat(ChatReceiveEvent e) {
+    if (e.message().getString().contains("spam")) e.cancel();
+}
+
+@Subscribe(packets = ClientboundSetTimePacket.class)  // only for these packets: far cheaper than instanceof
+private void onTime(PacketEvent.Receive e) { ... }
+```
+
+| `@Subscribe` option | |
+|---|---|
+| `priority` | order among handlers (`Priority.HIGHEST` 200 … `LOWEST` -200; `BEFORE_ACTIONS` runs before services act) |
+| `inGame` | skip the handler unless a world and player exist |
+| `packets` | on a `PacketEvent` handler: only these packet classes |
+| `receiveCancelled` | still receive the event after another handler cancelled it |
+
+A handler for a supertype receives its subtypes too. A handler that keeps throwing is logged against its addon and
+then turned off, so one broken addon can't break the game.
+
+## Outside modules
+
+```java
+// Any object's @Subscribe methods, until you unsubscribe it:
+ctx.events().subscribe(sessionStats);
+
+// One handler, as a lambda; keep the Subscription to drop it:
+Subscription sub = Myriad.events().listen(WorldEvent.Join.class, e -> joinedAt = System.currentTimeMillis());
+sub.unsubscribe();
+```
+
+## Timing
+
+Act (click, place, break, attack, switch slots) in `TickEvent.Pre`, before the player moves, as vanilla does. Grim
+flags actions sent after the tick's movement packet; Myriad holds any that come later until the start of the next
+tick, so they're safe but a tick late. The [services](/docs/develop/services) act at the right time on their own.
+
+## Core events
+
+| Event | |
+|---|---|
+| `TickEvent.Pre`, `TickEvent.Post` | every client tick (20 a second), before and after the player |
+| `Render2DEvent` | the HUD frame; `canvas()` draws in GUI pixels |
+| `Render3DEvent` | the world frame; `shapes()` draws boxes and lines (see [Drawing](/docs/develop/rendering)) |
+| `PacketEvent.Send`, `PacketEvent.Receive` | every packet, bundles split; cancel or `setPacket` to replace |
+| `MovementPacketsEvent` | the movement packet about to go out: rewrite position, rotation, on-ground |
+| `PlayerMoveEvent` | this tick's movement: change speed, fly |
+| `InputEvent` | the movement keys for this tick: press or release them |
+| `MouseLookEvent` | turning the camera: scale or cancel it |
+| `CollisionShapeEvent` | what a block collides as: walk on water, avoid cactus |
+| `TeleportEvent` | the server set your position (a teleport, a rubberband) |
+| `HealthEvent` | your health and food from the server, with the damage taken |
+| `AttackEvent` | before an attack goes out (cancellable) |
+| `InteractEvent.Block`, `.Item`, `.EntityTarget` | right-clicks (cancellable) |
+| `ItemUseEvent.Finished`, `.Stopped` | eating, drinking, drawing a bow |
+| `BlockBreakEvent.Start`, `.Progress`, `BlockBrokenEvent` | mining |
+| `BlockUpdateEvent` | the server changed a block (old and new state) |
+| `ChunkEvent.Loaded`, `.Unloaded` | chunks |
+| `EntityEvent.Added`, `.Removed`, `.TotemPopped`, `.Died` | entities |
+| `ContainerEvent.Opened`, `.Loaded`, `.SlotUpdated`, `.Closed` | containers (chests, your inventory) |
+| `ContainerScreenEvent.SlotDrawn`, `.Tooltip`, `.Click` | icons on slots, previews, taking over clicks |
+| `ItemTooltipEvent` | add tooltip lines |
+| `ChatReceiveEvent`, `ChatSendEvent` | chat in and out (cancel, change); `parsed()` says who and whether it's a whisper |
+| `BlockRenderEvent` | leave a block out of the chunk mesh (X-ray) |
+| `EntityRenderEvent.Visible`, `.Nametag`, `.Model` | hide an entity, replace its name tag, draw its model again |
+| `HighlightEvent.Entity`, `.Shapes` | shader outlines and glows (see [Highlights](/docs/develop/rendering#highlights)) |
+| `GlideEvent` | an elytra glide's movement this tick |
+| `CameraEvent`, `PlaySoundEvent` | the camera; cancel any sound |
+| `KeyEvent`, `MouseButtonEvent`, `MouseScrollEvent`, `CharEvent` | input |
+| `ScreenOpenEvent` | a screen about to open: replace or cancel it |
+| `WorldEvent.Join`, `.Leave`, `DisconnectEvent` | joining and leaving |
+| `ModuleToggleEvent` | any module turned on or off |
+| `WindowResizeEvent`, `GameReadyEvent`, `ShutdownEvent` | the game window and lifecycle |
+
+<Callout type="info">
+  Event objects are made by Myriad (their constructors are `@ApiStatus.Internal`). Some are reused for every call
+  (`HighlightEvent.Entity` is): don't keep one past your handler.
+</Callout>

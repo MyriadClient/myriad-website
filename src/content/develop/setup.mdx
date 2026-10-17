@@ -1,0 +1,123 @@
+---
+title: "Setting up"
+description: "Create an addon project from the template, run the dev client, and build your jar."
+---
+
+import { Steps, Callout } from "nextra/components";
+
+# Setting up
+
+You need JDK 25 and Git. Gradle comes with the project (`./gradlew`).
+
+<Steps>
+### Create the project
+
+Use the [addon template](https://github.com/MyriadClient/myriad-addon-template) (GitHub's **Use this template**), or
+clone it.
+
+### Rename it
+
+- the mod id `my-addon` in `src/main/resources/fabric.mod.json`, in `settings.gradle`, and in the mixin config's file
+  name (`my-addon.mixins.json`);
+- the package `com.example.addon` and the class `MyAddon`;
+- `maven_group` and `archives_base_name` in `gradle.properties`.
+
+### Run it
+
+```bash
+./gradlew runClient
+```
+
+Minecraft starts with Myriad, Essentials and your addon, the menu open.
+
+### Build it
+
+```bash
+./gradlew build
+```
+
+The jar is in `build/libs/`.
+</Steps>
+
+## The build
+
+```groovy filename="build.gradle (the parts that matter)"
+repositories {
+    exclusiveContent {
+        forRepositories(maven {
+            name = "Myriad"
+            url = "https://maven.myriadclient.dev/releases"
+        })
+        filter { includeGroup "dev.myriadclient" }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    implementation "dev.myriadclient:myriad:${project.myriad_version}"
+    // Only in the dev client, to test next to the stock modules. Don't use its classes: players can remove it.
+    localRuntime "dev.myriadclient:myriad-essentials:${project.essentials_version}"
+}
+```
+
+Myriad's artifacts (`dev.myriadclient:myriad`, with sources and javadoc, and `dev.myriadclient:myriad-essentials`) are
+on `https://maven.myriadclient.dev/releases`. Your IDE shows the javadoc of every API class: it's written to be read.
+
+To build against Myriad changes that aren't released yet: run `./gradlew publishToMavenLocal` in a Myriad checkout and
+add `mavenLocal()` to `forRepositories(...)`.
+
+## `fabric.mod.json`
+
+```json
+{
+  "schemaVersion": 1,
+  "id": "my-addon",
+  "version": "${version}",
+  "name": "My Addon",
+  "description": "What it does, in one line.",
+  "authors": ["You"],
+  "icon": "assets/my-addon/icon.png",
+  "contact": {
+    "sources": "https://github.com/you/my-addon",
+    "issues": "https://github.com/you/my-addon/issues"
+  },
+  "environment": "client",
+  "entrypoints": { "myriad": ["com.example.addon.MyAddon"] },
+  "mixins": ["my-addon.mixins.json"],
+  "depends": { "myriad": ">=0.3.0", "minecraft": "~26.2" }
+}
+```
+
+- `entrypoints.myriad` is your [`MyriadAddon`](/docs/develop/addon).
+- `contact.sources` pointing at your GitHub repository lets Myriad [update your addon](/docs/develop/publishing).
+- `depends.myriad` is the oldest Myriad you support (see [Compatibility](/docs/develop/compatibility)).
+
+## The dev client
+
+The template's `loom.runs.client` sets Myriad's dev options as system properties. Add the ones you want:
+
+```groovy filename="build.gradle"
+loom {
+    runs {
+        client {
+            property("myriad.openDesktop", "true")                 // the menu open on start
+            property("myriad.devConsole", "run/myriad-dev-inbox")  // scripted steps (below)
+            property("myriad.auditMixins", "true")                 // apply every mixin at start, so a bad target fails at once
+            property("myriad.screenshotEvery", "10")               // a screenshot every 10 s into run/screenshots
+            programArgs("--quickPlaySingleplayer", "New World")    // straight into a world
+        }
+    }
+}
+```
+
+The **dev console** reads commands from the inbox file (one per line) and logs what happens: Myriad commands,
+`hold forward,sprint 20`, `look <yaw> <pitch>`, `wait <ticks>`, `screenshot <name>`, `menu open`, `panel <id>`, and
+`selftest` (turns every module on and off and reports any that throw). See [Testing](/docs/develop/testing).
+
+<Callout type="warning">
+  Only use `dev.myriadclient.api`. Anything in `dev.myriadclient.impl` is internal and changes without notice; an
+  addon that touches it breaks on the next release.
+</Callout>

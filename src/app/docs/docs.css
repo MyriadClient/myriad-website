@@ -1,0 +1,59 @@
+/* The docs in the site's look: its fonts, near-black and mint. Nextra's theme does the rest. */
+html {
+  --nextra-content-width: 1280px;
+}
+
+body,
+.nextra-content {
+  font-family: var(--font-plex), system-ui, sans-serif;
+}
+
+.nextra-content h1,
+.nextra-content h2,
+.nextra-content h3 {
+  font-family: var(--font-bricolage), var(--font-plex), system-ui, sans-serif;
+  letter-spacing: -0.015em;
+}
+
+code,
+pre,
+kbd {
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
+}
+
+.dark {
+  --x-color-gray-100: #e9eeeb;
+}
+
+.docs-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-bricolage), system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.docs-logo-dim {
+  color: #8c9690;
+  font-weight: 400;
+}
+
+.docs-footer {
+  color: #8c9690;
+  font-size: 0.875rem;
+}
+
+.docs-footer a {
+  color: #7fd8ae;
+}
+
+kbd {
+  font-size: 0.8em;
+  padding: 0.12em 0.42em;
+  border: 1px solid #303633;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #131514;
+  white-space: nowrap;
+}

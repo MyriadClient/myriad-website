@@ -1,0 +1,165 @@
+---
+title: "Services"
+description: "Rotations, inventory, placement, breaking, building, containers, tasks, the packet budget, anti-cheat and elytra flight."
+---
+
+import { Callout } from "nextra/components";
+
+# Services
+
+Services are one shared implementation of the hard things, so addons don't fight over the same state (two modules
+both rotating, both switching slots) and don't each get anti-cheat details wrong. Use them instead of sending packets
+yourself. Their internals keep up with servers and anti-cheats from release to release; the calls stay the same.
+
+Every service is on `Myriad` (`Myriad.rotations()`, …). Calls that act on the player take an **owner** (your module):
+what it asked for is dropped when it turns off, and [hooks](/docs/develop/hooks) can tell callers apart.
+
+## Options and the anti-cheat profile
+
+Services that act take an immutable `Options`. Start from a preset and change what you need:
+
+```java
+Placement.Options opts = Placement.Options.forServer().withRange(5).withSwing(false);
+```
+
+`forServer()` follows the player's [anti-cheat profile](/docs/use/anti-cheat): careful where the server simulates the
+player (Grim), quick where it doesn't. Don't add a "Strict" setting to your module: use `forServer()`, or ask
+`Myriad.antiCheat().isStrict()`.
+
+## Rotations
+
+Per-tick rotation requests, arbitrated per axis (pass `Float.NaN` for an axis you don't need), the highest priority
+winning. The camera isn't moved; the rotation goes to the server.
+
+```java
+@Subscribe(inGame = true)
+private void onTick(TickEvent.Pre e) {          // request in Pre so move fix covers this tick's movement
+    Myriad.rotations().lookAt(this, target.getEyePosition(), Rotations.PRIORITY_HIGH,
+        Rotations.Options.forServer().withTurnSpeed(turnSpeed.get()));
+}
+```
+
+- `Options.withTurnSpeed(degreesPerTick)` turns gradually and eases back afterwards; `withMoveFix(true)` walks along
+  the sent yaw (what Grim expects).
+- `request(owner, yaw, pitch, priority, options, afterSent)`: `afterSent` runs once the rotation has gone out, the
+  moment to act with it.
+- `serverYaw()`, `serverPitch()`, `isRotating()`, `rotationForAction()` (the rotation this tick's packet will carry).
+
+## Inventory
+
+| | |
+|---|---|
+| `select(slot)`, `silentSwap(slot, action)` | switch the held slot; or do something with another slot for one action, invisibly |
+| `hold(owner, slot, ticks)` / `holdWeakly` / `release(owner)` | hold a slot on the server for a while (mining runs at its speed) |
+| `findInHotbar(pred)`, `findInInventory(pred)`, `bestInHotbar(score)`, `count(pred)` | find items |
+| `moveToHotbar`, `ensureInHotbar(pred, preferred)`, `pullToHotbar`, `borrow(owner, index, replaceable)` / `giveBack` | bring items to hand |
+| `move`, `merge`, `swapWithOffhand`, `quickMove`, `drop` | inventory clicks |
+| `safeToClick()`, `prepareClick()` | Grim cancels inventory clicks while you move: check, or release your keys for a tick |
+| `spare(owner, pred)` | ask other modules to leave some items alone (worn-out tools) |
+| `attackCharge()`, `serverItem()`, `serverSlot()` | what the server thinks you hold |
+
+```java
+int sword = Myriad.inventory().findInHotbar(ItemInfo::isWeapon);
+if (sword >= 0) Myriad.inventory().silentSwap(sword, () -> Interactions.attack(target, true));
+```
+
+## Placement
+
+```java
+Placement.Attempt a = Myriad.placement().place(this, pos, slot, Placement.Options.forServer());
+if (!a.sent()) warn("Can't place there: " + a.check());   // OUT_OF_RANGE, ENTITY_IN_WAY, NOT_VISIBLE, ...
+a.result().thenAccept(placed -> { if (!placed) retryLater(pos); });   // once the server kept or refused it
+```
+
+Neighbour clicks, silent swap, visible faces first, rotation through `rotations()` when the options rotate.
+`check(pos, options)` says why not without trying. `clickTargets(pos)` and `place(owner, hit, slot, options)` for when
+the clicked face matters (stairs, logs, slabs).
+
+## Breaking
+
+```java
+Breaking.Attempt a = Myriad.breaking().breakBlock(this, pos, priority, Breaking.Options.forServer());
+```
+
+Queues by priority across modules, picks and holds the fastest tool on the server, batches instant breaks, shows the
+crack, rotates if asked. Modes: `VANILLA` (like the attack button), `PACKET` (finishes the moment the server allows),
+`FAST` and `FAST_GRIM` (2b2t-style decoy starts), with `withDoubleBreak` to mine a second block meanwhile.
+`progress(pos)`, `isPending(pos)`, `cancel(owner)`.
+
+## Building
+
+Describe a shape as a `Blueprint` of `Target`s; `building()` breaks and places what's in reach each tick in a working
+order.
+
+```java
+Blueprint wall = Blueprint.box(from, to, Target.block(Blocks.OBSIDIAN));
+Build build = Myriad.building().start(this, wall, Building.Options.forServer().withKeepUp(true));
+build.finished().thenAccept(done -> info(done ? "Built" : "Stopped"));
+```
+
+`Target.air()`, `solid()`, `block(b)`, `anyOf(...)`, `state(blockState)` (orientation included). `Blueprint.of(map)`,
+`box`, `dynamic(supplier)`. `Build.steps()` says what's happening at each position or why it's stuck (`NO_ITEM`,
+`FLUID`, `WRONG_ANGLE`, ...); `keepUp` maintains the shape (surround).
+
+## Containers
+
+```java
+Myriad.containers().open(chestPos, 40).thenAccept(view -> {
+    int slot = view.find(s -> s.is(Items.GOLDEN_APPLE));
+    if (slot >= 0) view.quickMove(slot);
+    Myriad.containers().close();
+});
+```
+
+## Tasks
+
+Work over ticks, cancelled when the owner (your module) turns off:
+
+```java
+Myriad.tasks().later(this, 20, () -> info("A second later"));
+Myriad.tasks().every(this, 5, this::scan);
+Myriad.tasks().sequence(this)
+    .run(this::openChest)
+    .waitUntil(() -> Myriad.containers().current().isPresent(), 40)
+    .await(() -> Myriad.inventory().refresh(), 40)   // a CompletableFuture to wait for
+    .require(this::hasRoom, "Inventory full")
+    .retry(2)
+    .onFail(t -> warn(t.getMessage()))
+    .start();
+```
+
+## The rest
+
+| | |
+|---|---|
+| `Myriad.limits()` | the shared packet budget: `canSend(kind, n)`, and `urgent(action)` for must-happen actions (totems) |
+| `Myriad.antiCheat()` | `profile()`, `isStrict()`, what Auto detected |
+| `Myriad.tickSpeed()` | client tick speed per owner (`set(owner, multiplier)`), multiplied together, cleared on disable |
+| `Myriad.server()` | TPS, ping, address, `isLagging(ms)`, `rubberbandedWithin(ms)`, `reconnect()` |
+| `Myriad.elytra()` | the elytra engine: `noDurability(owner)`, `chestSwap()`, `glideHold()`, `addPilot(...)`; `GlideEvent` |
+| `Myriad.friends()` | `isFriend(player)` |
+| `Myriad.controls()` | control panels: list, switch, create |
+| `Myriad.shares()` | [shared configs](/docs/develop/sharing) |
+| `Myriad.hooks()` | [hooks](/docs/develop/hooks) in effect |
+
+## Helpers
+
+Static helpers so addons don't each re-derive the same things (all under `dev.myriadclient.api`):
+
+| | |
+|---|---|
+| `combat.Targets`, `combat.TargetSettings` | finding entities with shared rules (hostile, friends, invisible, walls), sorted |
+| `combat.Damage`, `combat.Threats`, `combat.Crystals`, `combat.Trajectory` | explosion and melee damage, what could kill you, crystal spots, projectile paths |
+| `world.Holes`, `world.ChunkCache`, `world.BlockScan` | holes and surrounds; per-chunk work; fast block search |
+| `util.Entities`, `util.BlockInfo`, `util.ItemInfo` | facts about entities, blocks and items |
+| `util.Reach`, `util.Interactions`, `util.Packets`, `util.Mining`, `util.Movement` | reach and line of sight; attacking, using, swinging; sending packets; mining speed; movement keys and speed |
+| `util.Positions`, `util.MathUtil`, `util.Slots` | spheres and boxes of positions; angles and vectors; slot indexes |
+| `util.Timer`, `util.RateCounter`, `util.Format`, `util.Texts`, `util.Ticks`, `util.TickCached` | timing and formatting; a value worked out once per tick |
+| `util.Async`, `util.Http` | the worker pool (and back to the render thread); GET/POST/DELETE with JSON |
+| `util.Baritone` | drive Baritone when it's installed, without depending on it |
+| `util.FakePlayers` | client-side dummy players for testing |
+
+<Callout type="info">
+  Service interfaces are `@ApiStatus.NonExtendable`: don't implement them. To bring your own rotations, inventory,
+  placement or breaking, [replace the service](/docs/develop/hooks#replacing-a-service) through its `Forwarding` class.
+</Callout>
