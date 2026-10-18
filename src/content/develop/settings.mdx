@@ -105,6 +105,14 @@ private void onKey(KeyEvent e) {
 }
 ```
 
+`wasPressed` ignores presses while a screen is open. A bind with modifiers needs them held; a bind without any matches
+whatever is held, so the player can sneak and press it. Sub binds don't take part in the closest-match rule that
+module and control panel binds follow (a press runs only the binds with the most modifiers that match it).
+
+`Keybind.parse` reads a bind the way the menu writes it, which is handy for commands of your own: `Keybind.parse("ctrl+t")`,
+`"mouse5"`, `"rmb"`, `"none"` (`Keybind.NONE`); null if it isn't a bind. `Keybind.key(GLFW.GLFW_KEY_T, GLFW.GLFW_MOD_CONTROL)`
+builds one in code.
+
 ## Layered values
 
 A setting has the player's value (the only one saved) and, on top, **overrides** that code lays for as long as it

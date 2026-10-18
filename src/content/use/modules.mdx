@@ -42,7 +42,14 @@ every setting back to its default.
 ## Keybinds
 
 Every module has a **Keybind** (in its *Module* group, at the bottom of its settings): press it in game to turn the
-module on or off. `.bind <module> <key>` does it from chat.
+module on or off. Hold <kbd>Ctrl</kbd>, <kbd>Alt</kbd>, <kbd>Shift</kbd> or <kbd>Super</kbd> while you press the key to
+bind a combination like <kbd>Ctrl</kbd>+<kbd>T</kbd>. Mouse buttons work too. `.bind <module> <key>` does it from chat:
+`.bind tunnel t`, `.bind hole_esp ctrl+t`, `.bind zoom mouse5`, `.bind tunnel none` to unbind.
+
+A key press runs only the closest match. With one module on <kbd>T</kbd> and another on <kbd>Ctrl</kbd>+<kbd>T</kbd>,
+<kbd>Ctrl</kbd>+<kbd>T</kbd> runs only the second. A combination nothing is bound to falls back to the plain key:
+<kbd>Shift</kbd>+<kbd>T</kbd> still runs the <kbd>T</kbd> bind, so you can sneak and toggle at once. Two things bound
+to the very same keys both run. This goes for every Myriad bind: modules, control panels, macros and global actions like Open Menu.
 
 - **Hold**: on while the key is held, off when you let go. Good for Zoom or Free Look.
 - **Show In List**: whether the Module List HUD element shows it.
