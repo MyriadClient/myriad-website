@@ -33,6 +33,9 @@ public final class Sprint extends Module {
 
 - The module's **id** is its namespace (your mod id) and its name in snake case: `my-addon:sprint`.
 - `mc` is the game client. `inGame()` is true with a world and a player.
+- A handler with `@Subscribe(inGame = true)` only runs in a world, so it needs no `mc.player == null` check.
+  `Client.player()`, `level()`, `connection()` and `interaction()` return the game's, never null: outside a world
+  they throw, naming the method that asked, so a missing `inGame` shows up as a clear error instead of a null.
 - `sgGeneral` is the first settings group; make more with `settings.group("Name")`. See [Settings](/docs/develop/settings).
 - Every module also has a **Module** group with `keybind`, `holdMode`, `visibleInList` and `chatFeedback`.
 

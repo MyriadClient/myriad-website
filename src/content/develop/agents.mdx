@@ -70,6 +70,7 @@ These are not style preferences. An addon that breaks them breaks for players.
 | `otherModule.someSetting.set(x)` then setting it back | `someSetting.override(this, Setting.Layer.MODULE, "Mine", x)` / `release(this)` |
 | a webhook `StringSetting` without `.protect()` | add `.protect()` |
 | attacking in `TickEvent.Post` or a render handler | attack in `TickEvent.Pre` |
+| `if (mc.player == null) return;` at the top of a handler | `@Subscribe(inGame = true)`; `Client.player()` where null can't be |
 | a hook handler that returns a value without `proceed()` "just in case" | `proceed()` unless you mean to take over |
 | `Match.always()` for a replacement meant for your modules | `Match.addon(ctx.namespace())` |
 
