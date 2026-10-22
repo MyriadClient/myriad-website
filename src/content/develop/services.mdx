@@ -22,9 +22,35 @@ Services that act take an immutable `Options`. Start from a preset and change wh
 Placement.Options opts = Placement.Options.forServer().withRange(5).withSwing(false);
 ```
 
-`forServer()` follows the player's [anti-cheat profile](/docs/use/anti-cheat): careful where the server simulates the
-player (Grim), quick where it doesn't. Don't add a "Strict" setting to your module: use `forServer()`, or ask
-`Myriad.antiCheat().isStrict()`.
+`forServer()` follows the player's [anti-cheat profile](/docs/use/anti-cheat): careful where the server checks,
+quick where it doesn't. Don't add a "Strict" setting to your module: use `forServer()`, or ask the profile what the
+server checks:
+
+```java
+AntiCheat.Profile p = AntiCheat.inEffect();   // works before Myriad has started too (then Grim: be careful)
+if (p.simulatesGlide()) return;                 // this flight would be set back here
+```
+
+| `AntiCheat.Profile` answer | Means | What follows from it |
+|---|---|---|
+| `simulatesMovement()` | the anti-cheat runs your movement and compares (Grim) | `Rotations.Options.forServer()` uses the move fix; `isStrict()` |
+| `checksLookOnActions()` | every click is checked against the rotation the server last got | placements turn first; a building places one block a tick |
+| `visibleFacesOnly()` | placements must click a face you can see | `Placement.Options.forServer()` picks visible faces |
+| `clicksOnlyWhileStill()` | inventory clicks are refused while you move or sprint | `Inventory.safeToClick()` waits for a still moment |
+| `simulatesGlide()` | the elytra glide is simulated | non-vanilla flight is set back; No Durability swaps a chestplate on |
+| `breakTiming()` | `SERVER` (the vanilla 70% rule) or `CHECKED` (timed from the start, as Grim does) | `Breaking.Options.forServer()` is `FAST` or `PACKET` |
+| `interactionBudget()` | uses, placements and attacks per 300 ms | the packet budget for `INTERACT` (9: Paper drops the tenth) |
+
+Myriad has `VANILLA`, `GRIM` and `NCP`. An addon for a server that checks things its own way registers a profile
+and, if it can tell the server, answers the `AntiCheat.DETECT` hook so Auto picks it:
+
+```java
+AntiCheat.Profile mine = AntiCheat.Profile.GRIM.named("my-addon:my_server", "My server").withSimulatesGlide(false);
+ctx.registerAntiCheatProfile(mine);
+ctx.hook(AntiCheat.DETECT)
+    .named("My server")
+    .handle(call -> "play.myserver.net".equals(call.input().host()) ? mine : call.proceed());
+```
 
 ## Rotations
 
@@ -133,7 +159,7 @@ Myriad.tasks().sequence(this)
 | | |
 |---|---|
 | `Myriad.limits()` | the shared packet budget: `canSend(kind, n)`, and `urgent(action)` for must-happen actions (totems) |
-| `Myriad.antiCheat()` | `profile()`, `isStrict()`, what Auto detected |
+| `Myriad.antiCheat()` | `profile()` and its answers, `detected()`, `choice()`/`choose(profile)`, `profiles()` |
 | `Myriad.tickSpeed()` | client tick speed per owner (`set(owner, multiplier)`), multiplied together, cleared on disable |
 | `Myriad.server()` | TPS, ping, address, `isLagging(ms)`, `rubberbandedWithin(ms)`, `reconnect()` |
 | `Myriad.elytra()` | the elytra engine: `noDurability(owner)`, `chestSwap()`, `glideHold()`, `addPilot(...)`; `GlideEvent` |

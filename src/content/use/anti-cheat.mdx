@@ -1,21 +1,25 @@
 ---
 title: "Anti-cheat profile"
-description: "How Myriad's modules adapt to servers running Grim (like 2b2t) or only vanilla checks."
+description: "How Myriad's modules adapt to what the server checks: Grim (like 2b2t), NoCheatPlus (like 6b6t), or only vanilla checks."
 ---
 
 # Anti-cheat profile
 
-Servers check different things. On one running **Grim** (2b2t, for one), Myriad's modules rotate before acting, click
-only faces you can see, move along the direction they send, mine when Grim allows, and click in your inventory only
-while you stand still. On a server with only Minecraft's own checks, they act as fast as it lets them.
+Servers check different things, and the profile says what this one checks. On one running **Grim** (2b2t, for one),
+Myriad's modules rotate before acting, click only faces you can see, move along the direction they send, mine when
+Grim allows, and click in your inventory only while you stand still. On a server with only Minecraft's own checks
+(**Vanilla**), they act as fast as it lets them. **NoCheatPlus** (6b6t runs a version of it) is treated as Vanilla,
+except that its loose elytra checks let flights like Elytra Fly's Control work there. Addons for a particular server
+can add a profile of their own; it shows up in the same list.
 
 **Auto** (the default) works out which a server is: Grim once the server sends the steady pings anti-cheats like it
-use, or at once for servers known to run it (2b2t). You can pick yourself in the **Profiles** window, or with:
+use, or at once for servers known to run it (2b2t); NoCheatPlus on 6b6t; Vanilla otherwise and in singleplayer. You
+can pick yourself in the **Profiles** window, or with:
 
 | Command | |
 |---|---|
 | `.anticheat` | what's in effect, and what Auto detected |
-| `.anticheat auto` / `grim` / `vanilla` | choose |
+| `.anticheat auto` / `grim` / `vanilla` / `ncp` | choose (an addon's profile by its id) |
 | `.anticheat known add <host>` / `remove` | servers to treat as Grim from the moment you join |
 
 Essentials is made for 2b2t and stays safe on Grim whichever you pick.

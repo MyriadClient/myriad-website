@@ -52,7 +52,8 @@ Match.caller("myriad-essentials:recast")
 Match.caller(MyAura.class)
 // Calls for any module of one addon.
 Match.addon("my-addon")
-// Only while that anti-cheat profile is in effect; only on that server (and its subdomains).
+// Only while that anti-cheat profile is in effect (by id, so an addon's own profile works too);
+// only on that server (and its subdomains).
 Match.always().on(AntiCheat.Profile.GRIM)
 Match.always().server("6b6t.org")
 // Combined.
@@ -199,14 +200,15 @@ the other. Return without calling `proceed()` to take over the decision.
 | `Placement.AIM` | `Target(pos, options)` → the `BlockHitResult` to click, or null for nowhere | the placement's owner |
 | `Inventory.CLICK_READY` | `ClickMoment(sprinting, keys, sneaking)` → whether an inventory click may go out now | none |
 | `HighlightEvent.ENTITY_HIGHLIGHT` | `EntityHighlight(entity, style, color)` → how it's highlighted (null style: not at all) | none |
+| `AntiCheat.DETECT` | `ServerSeen(host, singleplayer, pings, protocol)` → the anti-cheat profile for this server, or null for core's guess | none |
 
 <Tabs items={["Placement aim", "Click timing", "Highlights"]}>
 <Tabs.Tab>
 ```java
-// Never click the top face on 6b6t (say its anti-cheat dislikes it): fall back to core's choice otherwise.
+// Never click the top face under NoCheatPlus (say it dislikes them): fall back to core's choice otherwise.
 ctx.hook(Placement.AIM)
     .named("No top faces")
-    .when(Match.always().server("6b6t.org"))
+    .when(Match.always().on(AntiCheat.Profile.NCP))
     .handle(call -> {
         BlockHitResult hit = call.proceed();
         return hit != null && hit.getDirection() == Direction.UP ? null : hit;
