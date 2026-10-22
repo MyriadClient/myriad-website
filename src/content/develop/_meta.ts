@@ -5,6 +5,7 @@ export default {
   modules: "Modules",
   settings: "Settings",
   events: "Events",
+  threads: "Threads",
   commands: "Commands",
   ui: "Windows, HUD and widgets",
   rendering: "Drawing in the world",

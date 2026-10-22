@@ -1,0 +1,58 @@
+---
+title: "Threads"
+description: "Which thread your code runs on: events, services, and handing work to the render thread."
+---
+
+import { Callout } from "nextra/components";
+
+# Threads
+
+Almost everything in Myriad runs on the game's own thread, the **render thread**: ticks, rendering, input, screens,
+and the handlers of nearly every event. Code there can use the world, the player and every service without a care.
+A few events fire on other threads, and code you start yourself (an HTTP request, a file read) runs on its own.
+
+## Events
+
+| Event | Thread |
+|---|---|
+| `PacketEvent.Receive` | the network thread, as the packet arrives, before vanilla handles it |
+| `PacketEvent.Send` | the thread that sends: the render thread, except vanilla's keep-alive replies (network thread) |
+| `BlockRenderEvent` | the chunk-building workers, while a section is meshed |
+| `ItemTooltipEvent` | usually the render thread; a background thread while the creative search index is built |
+| every other event | the render thread |
+
+The ones that may run elsewhere are marked `@AnyThread` in the API. Their handlers should read what they're given and
+decide quickly: cancel a packet, hide a block, add a tooltip line. Don't touch the world, the player or a service
+there.
+
+## Acting on what arrives
+
+A packet handler that has to act on the game asks to run on the render thread:
+
+```java
+@Subscribe(packets = ClientboundSetEntityDataPacket.class, thread = HandlerThread.RENDER)
+private void onEntityData(PacketEvent.Receive e) {
+    var data = (ClientboundSetEntityDataPacket) e.packet();
+    if (data.id() == mc.player.getId()) Myriad.notifications().info("Status", "Your flags changed");
+}
+```
+
+It gets the event at the start of the next client tick, after vanilla has handled the packet. By then it can't cancel
+or change the packet, and it's skipped if another handler cancelled it (unless it has `receiveCancelled = true`). A
+handler that has to cancel stays on the network thread and only reads.
+
+For anything else, hand the work over yourself: `Minecraft.getInstance().execute(() -> ...)` runs it on the render
+thread as soon as it can. After background work, `Async.onRenderThread(...)` does the same (see
+[Services](/docs/develop/services)).
+
+## Services
+
+Every service (placement, breaking, rotations, inventory, containers, building, jobs, the elytra) is render thread
+only: its types are marked `@RenderThread`. A few things are safe from any thread and marked `@AnyThread`:
+`Modules` (lookups and `guard`), `Packets`, `Myriad.notifications()`, and the event bus itself (`post`,
+`subscribe`, `listen`).
+
+<Callout type="info">
+  With `-Dmyriad.dev` set (the dev clients set it), core's services log a call made from another thread, with the
+  stack, once per place in your code. In a player's game the check costs nothing.
+</Callout>

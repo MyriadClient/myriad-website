@@ -29,6 +29,7 @@ private void onTime(PacketEvent.Receive e) { ... }
 | `inGame` | skip the handler unless a world and player exist |
 | `packets` | on a `PacketEvent` handler: only these packet classes |
 | `receiveCancelled` | still receive the event after another handler cancelled it |
+| `thread` | `HandlerThread.RENDER`: run on the render thread, for a handler of an event posted elsewhere (see [Threads](/docs/develop/threads)) |
 
 A handler for a supertype receives its subtypes too. A handler that keeps throwing is logged against its addon and
 then turned off, so one broken addon can't break the game.
@@ -51,6 +52,9 @@ flags actions sent after the tick's movement packet; Myriad holds any that come 
 tick, so they're safe but a tick late. The [services](/docs/develop/services) act at the right time on their own.
 
 ## Core events
+
+They fire on the render thread, except `PacketEvent.Send` and `.Receive`, `BlockRenderEvent` and `ItemTooltipEvent`,
+which may run on another: see [Threads](/docs/develop/threads).
 
 | Event | |
 |---|---|
