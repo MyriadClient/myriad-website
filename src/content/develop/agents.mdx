@@ -53,8 +53,9 @@ These are not style preferences. An addon that breaks them breaks for players.
     (`setting.override(this, Setting.Layer.MODULE, "Label", value)`) and `release(this)` when done.
 11. **Don't depend on Essentials** at runtime. To use its hooks, `compileOnly` it and register behind
     `FabricLoader.getInstance().isModLoaded("myriad-essentials")`, in a separate class.
-12. **Mixins stay thin**: they call a method on the module, which checks `Modules.active(...)`. Prefix handler names
-    with the mod id. Prefer an event when one exists.
+12. **Mixins stay thin**: look the module up with `Modules.active(...)`, and if it's on, run what it does through
+    `Modules.guard(m, () -> ...)` so an exception turns the module off instead of crashing the game. Prefix handler
+    names with the mod id. Prefer an event when one exists.
 13. **Hooks are for decisions**: use `ctx.hook(...)` only to answer a decision; call `call.proceed()` when you have no
     answer; scope with the narrowest `Match`. A replacement scoped to your addon hands calls on with `super`.
 14. **Long-running work is a `Step` started as a job** (`Myriad.jobs().start(this, step)`), built from `Steps` and

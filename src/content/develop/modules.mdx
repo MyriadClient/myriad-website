@@ -78,8 +78,8 @@ Don't keep a static `INSTANCE`: `Modules.active` is the way, and it's null befor
 
 ## Mixins
 
-Keep mixins thin: the logic goes in a method on the module, which starts with `Modules.active(...)`, and the mixin
-calls it.
+Keep mixins thin: look the module up with `Modules.active(...)`, and run what it does there through
+`Modules.guard`, ideally a call to a method on the module.
 
 ```java
 @Mixin(Minecraft.class)
@@ -87,10 +87,16 @@ public abstract class MinecraftMixin {
     @Inject(method = "createTitle", at = @At("RETURN"), cancellable = true)
     private void myAddon$windowTitle(CallbackInfoReturnable<String> cir) {   // prefix handlers with your mod id
         WindowTitle m = Modules.active(WindowTitle.class);
-        if (m != null) cir.setReturnValue(m.title.get());
+        if (m != null) Modules.guard(m, () -> cir.setReturnValue(m.title.get()));
     }
 }
 ```
+
+A mixin runs in the middle of vanilla's code, so an exception there would crash the game. The guard catches it,
+logs the first few with their stack trace, and after 50 turns the module off with a notice. Event handlers get the
+same from the bus without asking. For code that answers something, `Modules.guard(m, () -> m.shouldHide(entity),
+false)` returns the fallback when it throws. Check `m != null` before the guard: the lambda is made at the call, so
+while the module is off nothing is allocated.
 
 Prefer an [event](/docs/develop/events) to a mixin whenever one exists. For mixins into other mods, see
 [Compatibility](/docs/develop/compatibility#mixins-into-other-mods).
