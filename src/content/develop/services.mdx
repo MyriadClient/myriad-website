@@ -183,11 +183,41 @@ works, deprecated, until 1.0.
 | `Myriad.antiCheat()` | `profile()` and its answers, `detected()`, `choice()`/`choose(profile)`, `profiles()` |
 | `Myriad.tickSpeed()` | client tick speed per owner (`set(owner, multiplier)`), multiplied together, cleared on disable |
 | `Myriad.server()` | TPS, ping, address, `isLagging(ms)`, `rubberbandedWithin(ms)`, `reconnect()` |
-| `Myriad.elytra()` | the elytra engine: `noDurability(owner)`, `chestSwap()`, `glideHold()`, `addPilot(...)`; `GlideEvent` |
+| `Myriad.elytra()` | the elytra engine: `altitude(owner)`/`control(owner)` flights ([below](#flights)), `noDurability(owner)`, `chestSwap()`, `glideHold()`, `addPilot(...)`; `GlideEvent` |
 | `Myriad.friends()` | `isFriend(player)` |
 | `Myriad.controls()` | control panels: list, switch, create |
 | `Myriad.shares()` | [shared configs](/docs/develop/sharing) |
 | `Myriad.hooks()` | [hooks](/docs/develop/hooks) in effect |
+
+## Flights
+
+`Myriad.elytra().altitude(owner)` and `control(owner)` give a `Flight` that flies the elytra itself along a heading,
+the camera staying the player's. **Altitude** crosses open country without fireworks on any server: it dives until
+fast, pulls up and eases back to level, holding its height (about 27 blocks a second, 18 with No Durability where Grim
+simulates the glide); it takes off only from the air. **Control** flies straight at a set speed, holding a height,
+only where the glide isn't simulated (NoCheatPlus, singleplayer), and takes off by itself.
+
+```java
+private final Flight flight = Myriad.elytra().altitude(this);   // this implements NoDurability.Owner
+
+protected void onEnable() {
+    flight.preserve(5).onLanded(why -> disable()).start();
+}
+
+@Subscribe(priority = Priority.BEFORE_ACTIONS + 20)   // before the flight's own tick
+private void onTick(TickEvent.Pre e) {
+    flight.heading(yawTowards(next));
+}
+```
+
+Both keep the elytra from wearing while the owner's `noDurability()` says so, catch a dropped glide, put elytras worn
+down to `preserve(percent)` aside, put a spare on before the worn one can't last the way down, slow down for chunks
+that haven't loaded and ride out setbacks. `heading(yaw)` is followed at once (turn it gradually yourself for smooth
+corners); Control also takes `speed(bps)`, `height(y)` and `climb(bps)` (climb or descend instead of holding the height).
+`land()` brings it down; it also comes down by itself when the last elytra is wearing out, and `onLanded` hears why
+(null when you asked). `state()` is `CLIMBING`, `CRUISING`, `LANDING`, `DOWN` or `STUCK`, with `why()` for the last
+three (no elytra, on the ground for Altitude, set back over and over: whether to land then is yours), and `status()`
+is a few words for a HUD line.
 
 ## Helpers
 
