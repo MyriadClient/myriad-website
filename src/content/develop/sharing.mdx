@@ -21,7 +21,7 @@ private final StringSetting webhook = sgGeneral.string("Webhook")
     .description("Discord webhook for finds.")
     .protect()
     .build();
-private final IntSetting centerX = sgGeneral.intSetting("Center X").range(-30_000_000, 30_000_000)
+private final IntSetting centerX = sgGeneral.integer("Center X").range(-30_000_000, 30_000_000)
     .protect()                                     // coordinates in plain numbers: protect them too
     .build();
 ```

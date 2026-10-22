@@ -92,7 +92,7 @@ import net.minecraft.world.entity.Entity;
 
 /** Faces the nearest target in range and hits it when the attack is charged. */
 public final class SimpleAura extends Module {
-    private final DoubleSetting range = sgGeneral.doubleSetting("Range")
+    private final DoubleSetting range = sgGeneral.decimal("Range")
         .description("How far to reach for a target.")
         .defaultValue(3.0).range(1, 6).decimals(1)
         .build();

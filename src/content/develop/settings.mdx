@@ -13,13 +13,13 @@ profile (only values that differ from the default), edited in the menu and with 
 
 ```java
 public final class Nuker extends Module {
-    private final DoubleSetting range = sgGeneral.doubleSetting("Range")
+    private final DoubleSetting range = sgGeneral.decimal("Range")
         .description("How far to break blocks.")
         .defaultValue(4.5)
         .range(0, 6)                 // the hard limits
         .decimals(1)
         .build();
-    private final EnumSetting<Mode> mode = sgGeneral.enumSetting("Mode", Mode.ALL).build();
+    private final EnumSetting<Mode> mode = sgGeneral.oneOf("Mode", Mode.ALL).build();
     private final RegistryListSetting<Block> blocks = sgGeneral.blocks("Blocks")
         .defaultValue(Blocks.STONE, Blocks.DEEPSLATE)
         .visible(() -> mode.get() == Mode.LIST)   // shown only when it matters
@@ -40,12 +40,15 @@ another class (a mixin, a [control panel preset](/docs/develop/control-panels)) 
 
 ## Every type
 
+Before 0.8 the number and enum builders were `intSetting`, `doubleSetting` and `enumSetting`; they still work,
+deprecated, until 1.0.
+
 | Builder (on a group) | Type | Value |
 |---|---|---|
 | `bool(name)` | `BoolSetting` | `boolean` |
-| `intSetting(name)` | `IntSetting` | `int`; `.range(min, max)`, `.sliderRange(min, max)` |
-| `doubleSetting(name)` | `DoubleSetting` | `double`; `.range`, `.sliderRange`, `.decimals(n)`; `getFloat()` |
-| `enumSetting(name, default)` | `EnumSetting<E>` | an enum constant (shown title-cased) |
+| `integer(name)` | `IntSetting` | `int`; `.range(min, max)`, `.sliderRange(min, max)` |
+| `decimal(name)` | `DoubleSetting` | `double`; `.range`, `.sliderRange`, `.decimals(n)`; `getFloat()` |
+| `oneOf(name, default)` | `EnumSetting<E>` | an enum constant (shown title-cased) |
 | `choice(name, () -> options)` | `ChoiceSetting` | one of a list worked out at runtime |
 | `string(name)` | `StringSetting` | text |
 | `stringList(name)` | `StringListSetting` | lines of text |
@@ -66,7 +69,7 @@ Every builder has `.description(text)`, `.defaultValue(v)`, `.visible(() -> bool
 ## Reacting to changes
 
 ```java
-private final IntSetting radius = sgGeneral.intSetting("Radius").defaultValue(32).range(1, 128)
+private final IntSetting radius = sgGeneral.integer("Radius").defaultValue(32).range(1, 128)
     .onChanged(r -> cache.invalidateAll())      // one setting
     .build();
 
@@ -145,7 +148,7 @@ shown under the addon in the Addons window and saved with the profile.
 
 ```java
 AddonSettings units = ctx.settings("Units");
-EnumSetting<Unit> distance = units.group("General").enumSetting("Distance", Unit.BLOCKS).build();
+EnumSetting<Unit> distance = units.group("General").oneOf("Distance", Unit.BLOCKS).build();
 ```
 
 ## Your own setting types
