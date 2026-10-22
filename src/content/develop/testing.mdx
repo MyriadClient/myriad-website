@@ -31,7 +31,8 @@ script (or an agent) can drive the game without a keyboard:
 
 - `.fakeplayer add <name>` spawns a client-side dummy player to test combat and render features against.
 - `.hooks` and `.hooks why <module>` show which hooks and replacements are in effect.
-- `.profiler on` shows what your module costs.
+- `.profiler on` shows what your module costs, with [hints](/docs/develop/performance#what-the-profiler-tells-you)
+  where it reads many blocks or works per frame; `.bench` (dev runs) what core's hot paths cost on your machine.
 - `.diagnostics` copies versions and settings for a bug report.
 
 ## Unit tests
