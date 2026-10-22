@@ -14,6 +14,10 @@ Three ways to draw shapes in the world, one vocabulary (`ShapeBuilder`: `box`, `
 | now and then (a path, a plan, a selection) | a `WorldMesh`, rebuilt when it changes | one draw call |
 | per chunk (ores, storage, holes) | a `ChunkCache` with a mesher | one draw per visible chunk |
 
+These helpers (`Renderer3D`, `WorldMesh`, `HighlightStyle`, `Ghosts`, `RenderLayers`, `RenderStates`) draw through
+`Myriad.render()`, core's renderer behind the API, so the API loads without it (a test harness puts its own there).
+It's marked internal: use the helpers.
+
 ## Every frame
 
 ```java
