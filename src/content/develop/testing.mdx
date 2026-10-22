@@ -33,6 +33,11 @@ script (or an agent) can drive the game without a keyboard:
 - `.hooks` and `.hooks why <module>` show which hooks and replacements are in effect.
 - `.profiler on` shows what your module costs, with [hints](/docs/develop/performance#what-the-profiler-tells-you)
   where it reads many blocks or works per frame; `.bench` (dev runs) what core's hot paths cost on your machine.
+- `.packets log on` writes every packet both ways, with its fields, to `.minecraft/myriad/packets/<time>.log`, until
+  `.packets log off`: what your module really sent, and in what order, when a server flags or refuses it. Sent packets
+  are logged as they leave (after every module had its say), received ones as they arrive; chunk, entity-movement,
+  sound and similar received packets are left out unless you add `all`, and words after `on` keep only packets whose
+  names contain them (`.packets log on useitem action`). Each line: `t<tick> +<ms> > Name {field=value, ...}`.
 - `.diagnostics` copies versions and settings for a bug report.
 
 ## Unit tests
@@ -42,7 +47,38 @@ a world needs the dev client.
 
 ## Against Grim
 
-Essentials keeps a local Grim server and a suite in `tools/grim-test/` of
-[its repository](https://github.com/MyriadClient/myriad-essentials): `./setup.sh` downloads Paper, Grim and
-ViaVersion, `./start.sh` starts it, and `./suite` runs scripted scenarios through the dev console and fails any that
-Grim flags. Copy the approach to check a module of yours before anyone tries it on 2b2t.
+Myriad is Grim-safe by default, and a module of yours should be too. Essentials checks its modules against a local Grim
+server before anyone tries them on 2b2t, with scripts you can copy: `tools/grim-test/` in
+[its repository](https://github.com/MyriadClient/myriad-essentials).
+
+**The server.** `./setup.sh` downloads Paper, GrimAC, ViaVersion and ViaBackwards (pinned in `versions.env`; JDK 21 for
+the server), `./start.sh` starts it in the background, `./stop.sh` stops it. It's set up like 2b2t as far as is
+known (its seed, hard survival, PvP). `./lag.py 100 15` adds ping on a second port, for anything timing-dependent.
+
+**The client.** Join it from the dev client, op the player once, and drive it through the dev console:
+
+```bash
+./gradlew runClient -PquickPlayServer=localhost:25565 -Pusername=GrimTester   # joins as 1.20.4 through ViaFabricPlus
+tools/grim-test/cmd "op GrimTester"
+```
+
+**A test** sets the scene with server commands, marks Grim's log, acts through the client, and reads the flags:
+
+```bash
+./cmd "clear GrimTester" "tp GrimTester 1000 65 1000 0 0" "setblock 1001 65 1000 stone"
+./flags mark
+./client ".toggle my_module on" "wait 100" status ".toggle my_module off"
+./flags          # "no flags", or each flag with Grim's details (exit code 1)
+```
+
+`./cmd` runs console commands over RCON, `./client` writes the steps to the dev console's file and prints what the
+client logged, and `./flags` reads Grim's alerts since the mark. Check the result on the server too (the block is gone,
+the item moved), not only that nothing flagged: a module that does nothing never flags.
+
+**A suite** is those tests in a script: Essentials' `./suite` turns every module off, builds each test's scene in its
+own spot, runs it, checks the result and Grim's flags, and reports. With `./clients N` and `./suite --workers N` the
+tests run side by side on several dev clients, each in a world of its own. Copy `tools/grim-test/` into your addon,
+keep `setup.sh`, `start.sh`, `cmd`, `client`, `flags` and `clients` as they are, and write your own tests in `suite`.
+
+Run it with nothing heavy beside it: a game of your own running alongside slows the clients enough for Grim to flag
+movement that's fine on an idle machine. A failure that doesn't come back on a quiet machine wasn't your module.
