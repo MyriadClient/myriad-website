@@ -1,0 +1,52 @@
+---
+title: "Jobs"
+description: "See what modules are doing at length, why they're waiting, and pause or cancel it."
+---
+
+# Jobs
+
+Some modules work at length: a Printer building a schematic, a kit builder going from chest to chest, a search flying
+a route. What they're doing is a **job**, and Myriad shows every running job the same way, whichever addon it's from:
+the step it's on, how far along it is, and, when it's waiting, why.
+
+## The Jobs window
+
+Open **Jobs** from the launcher (`#job` lists the running jobs too; pick one to open the window on it). Each job is
+listed under the module that started it:
+
+- its name, state (running, stuck, paused) and how long it has run;
+- what it's doing now, e.g. "Placing · 142 left", or why it's waiting: "stuck: no item: ×12 cobblestone";
+- a progress bar, when the job knows how far it has to go;
+- the steps under it, as they run.
+
+**Pause** stops a job where it is (a build stops placing) until you **Resume** it. **Cancel** ends it and lets go of
+everything it held: turned looks, held slots, borrowed items. **Cancel all** ends every job. A job that ended stays
+listed for a few seconds with how it ended.
+
+Turning a module off cancels its jobs, and leaving the world cancels them all.
+
+## The Jobs HUD element
+
+Add **Jobs** to the HUD (launcher: "Add to HUD: Jobs") for a line per running job:
+
+```
+Printer  Printing · Placing · 142 left · stuck: no item: cobblestone
+```
+
+**Lines** sets how many jobs it lists; **Show Ended** keeps a finished job's line for a few seconds.
+
+## Notices
+
+A job that fails tells you, with the module's name, the job and why ("Module: job failed: reason"), unless the module
+handles the failure itself. A job stuck for five seconds tells you once, in a notice that replaces itself rather than
+piling up, and again only if it gets going and then gets stuck again. Being out of reach doesn't count: moving puts
+that right, and a Printer waits on it whenever you're away from what's left to build.
+
+## Commands
+
+| Command | Does |
+|---|---|
+| `.jobs` | lists the running jobs, each with its id |
+| `.job pause <id\|module>` | pauses a job, or every job of a module (`.job pause printer`) |
+| `.job resume <id\|module>` | resumes it |
+| `.job cancel <id\|module\|all>` | cancels it, a module's jobs, or every job |

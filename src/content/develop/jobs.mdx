@@ -136,8 +136,22 @@ Step<Void> leg = Step.of("Flying the leg", FlyLeg::new);
 Modules start jobs: a Printer is a module around one job, a search a module around a job tree. Turning the module off
 cancels its jobs (their reason is `OWNER_OFF`); leaving the world cancels every job (`LEFT_WORLD`). A root job that
 fails with nobody listening to its `result()` (and no `onFailed` or `recover`) shows a notice with your module's name
-and the reason. `JobEvent.Started`, `Changed` and `Finished` go on the bus, for UIs and for other addons that react to
-your work.
+and the reason; one stuck for five seconds shows one too, once (not for `OUT_OF_REACH`, which the player puts right by
+moving). The player sees your jobs in the [Jobs window and HUD element](/docs/use/jobs) and can pause or cancel them
+there or with `.job`; name your steps for them (`named(...)`) and give long ones a `status()`. `JobEvent.Started`,
+`Changed` and `Finished` go on the bus, for UIs and for other addons that react to your work.
+
+A build started by `Steps.build` or `Steps.keepUp` belongs to the step's job: to draw its plan, find it among
+`Myriad.building().running()` by its `owner()`, a job under yours.
+
+```java
+private @Nullable Build myBuild() {
+    for (Build b : Myriad.building().running()) {
+        if (b.owner() instanceof Job<?> j && root(j) == job) return b;   // root: follow parent() up
+    }
+    return null;
+}
+```
 
 <Callout>
 `Myriad.tasks()` is deprecated: `Myriad.jobs().later(...)` and `every(...)` replace its delays and repeats (they run

@@ -4,6 +4,7 @@ export default {
   launcher: "The launcher",
   modules: "Modules and settings",
   "control-panels": "Control panels",
+  jobs: "Jobs",
   "setting-layers": "Setting layers",
   macros: "Macros",
   sharing: "Sharing your config",
