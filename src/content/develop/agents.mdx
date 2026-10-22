@@ -42,7 +42,9 @@ These are not style preferences. An addon that breaks them breaks for players.
 5. **Act in `TickEvent.Pre`** (clicks, placing, breaking, attacking, slot switches), or through a service that does.
 6. **Rotate through `Myriad.rotations()`**, switch slots through `Myriad.inventory()`, place through
    `Myriad.placement()`, break through `Myriad.breaking()`. Pass `this` (the module) as the owner.
-7. **Use `Options.forServer()`** for services' options. Don't add a "Strict"/"Grim" setting.
+7. **Use `Options.forServer()`** for services' options. Don't add a "Strict"/"Grim" setting. Turn speed, range,
+   air placement, break mode and building settings come from the standard groups (`RotationSettings`,
+   `PlacementSettings`, `BreakingSettings`, `BuildingSettings`), which build on it ([Settings](/docs/develop/settings#standard-groups)).
 8. **Settings come from groups** (`sgGeneral.bool("Name")...build()`), with a `description`. Colours default to theme
    roles (`SettingColor.role(SettingColor.Mode.ACCENT)`).
 9. **`.protect()` every private setting**: URLs with tokens, webhooks, passwords, coordinates, server addresses, file

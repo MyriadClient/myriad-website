@@ -66,6 +66,33 @@ deprecated, until 1.0.
 Every builder has `.description(text)`, `.defaultValue(v)`, `.visible(() -> bool)`, `.onChanged(v -> ...)` and
 `.protect()`, then `.build()`, which adds the setting to the group.
 
+## Standard groups
+
+Some settings mean the same in every module, so core makes them once: the group adds them, with the same names and
+descriptions everywhere, and hands back the service's options built on `forServer()` (what the server checks), so a
+module never needs a "Strict" setting. Make one as a field, passing the group the settings go in.
+
+| Class | Adds | Gives |
+|---|---|---|
+| `service.RotationSettings` | Turn Speed (0 turns at once) | `Rotations.Options` |
+| `service.PlacementSettings` | Range (capped at what the server allows: `reach()`), Air Place | `Placement.Options` |
+| `service.BreakingSettings` | Mode (Packet, or Fast: every block at 70% of its time), Double Break (shown with Fast) | `Breaking.Options` |
+| `service.BuildingSettings` | Placement's two, Actions Per Tick, Break Wrong Blocks, and Breaking's two (shown while Break Wrong Blocks is on) | `Building.Options` |
+| `combat.TargetSettings` | the Targets group: which entities, angry only, invisibles, friends, through walls, sort | a `Targets.Query` |
+| `render.BoxStyle`, `render.HighlightSettings`, `render.EntityGroups` | how boxes and highlights are drawn, for which entities | drawing helpers |
+
+```java
+private final RotationSettings rotation = new RotationSettings(sgGeneral);
+private final BuildingSettings building = new BuildingSettings(sgGeneral);
+
+Myriad.rotations().lookAt(this, target.getEyePosition(), Rotations.PRIORITY_NORMAL, rotation.options());
+Myriad.building().start(this, blueprint, building.options().withKeepUp(true));
+```
+
+Change what your module needs on the options they give with the `with` methods. Add only settings that have more
+than one good value; anything with one obvious value is hard-coded (a scaffold places as far as the server allows,
+so it has no Range).
+
 ## Reacting to changes
 
 ```java
