@@ -104,6 +104,24 @@ public Freecam() {
 }
 ```
 
+## Holding another module off
+
+When your work would fight another module over the player (a flight of yours and Elytra Fly, say), hold it off
+instead of turning it off yourself:
+
+```java
+@Override
+protected void onEnable() {
+    Modules.suspend(this, MyriadId.of("myriad-essentials", "elytra_fly"));   // by id: no dependency on Essentials
+}
+```
+
+It turns off now and stays off while anyone holds it; when the last one lets go (`Modules.resume(this)`, or your module
+turning off, which lets go of everything it held) it comes back on if the player has it on. The menu shows "suspended
+by" your module, a player turning it on meanwhile only takes effect afterwards, and it's saved as the player has it,
+never as off because of you. `isSuspended()` and `suspendedBy()` say so to a UI of your own. Jobs do the same with
+`suspending(...)`.
+
 ## Renaming a module or its settings
 
 Players' saved settings follow a rename if you say how:
