@@ -89,6 +89,7 @@ one module don't cancel each other's.
 | `Steps.take(view, what, how)`, `put(view, what, how)` | how many moved | `NO_ROOM` | `NO_CONTAINER` |
 | `Steps.arrange(view, arrangement)` | whether it all went in | | `NO_CONTAINER` |
 | `Steps.closeContainer()`, `untilClosed(view, ticks)` | | | `TIMEOUT` |
+| `Steps.inItem(inventoryIndex, view -> step)` | the step's result, once the box is back | | `NO_ITEM`, `NO_ROOM`, `SERVER_REFUSED`, `TIMEOUT` |
 | `Steps.build(blueprint, options)`, `keepUp(...)` | | the commonest reason in reach ("no item: ×12 cobblestone") | |
 | `Steps.suspend(moduleIds...)` | | | |
 

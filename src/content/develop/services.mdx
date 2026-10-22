@@ -137,6 +137,16 @@ Myriad.containers().open(chestPos, 40).thenAccept(view -> {
 });
 ```
 
+A shulker box or ender chest from your inventory opens where you stand: `openItem(owner, index, ticks, options)`
+puts it down beside you (turned first where the server checks looks), opens it, and gives you an `ItemSession`;
+`session.finish()` closes it, breaks it (with your Silk Touch pickaxe for an ender chest), picks it up and puts it back
+in its slot. Putting it back is Myriad's own job, so it finishes even if your module turns off, and a box put down but
+not opened is picked back up too. From a job, `Steps.inItem(index, view -> step)` does the whole round trip:
+
+```java
+Myriad.jobs().start(this, Steps.inItem(index, view -> Steps.put(view, this::isLoot, Containers.Transfer.all())));
+```
+
 ## Work over several ticks
 
 Long-running work (open, take, close; build until done; fly a route) is a [job](/docs/develop/jobs): a `Step` you
