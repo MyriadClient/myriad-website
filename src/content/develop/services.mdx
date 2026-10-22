@@ -99,7 +99,25 @@ a.result().thenAccept(placed -> { if (!placed) retryLater(pos); });   // once th
 
 Neighbour clicks, silent swap, visible faces first, rotation through `rotations()` when the options rotate.
 `check(pos, options)` says why not without trying. `clickTargets(pos)` and `place(owner, hit, slot, options)` for when
-the clicked face matters (stairs, logs, slabs).
+the clicked face matters.
+
+For a block that has to come out a certain way (stairs, logs, observers, a door's hinge, a second candle), ask for the
+click instead of picking a face yourself:
+
+```java
+Placement.Solution s = Myriad.placement().solve(pos, Blocks.OBSERVER.defaultBlockState().setValue(FACING, Direction.UP), slot, options);
+if (s.found()) Myriad.placement().place(this, s.click(), slot, options);
+else warn("Not from here: " + s.check());   // WRONG_ANGLE, NOT_VISIBLE, NO_SUPPORT, ...
+```
+
+`solve` tries every face at a few points the way the game would place the item, so facing, half, axis, hinge and
+attachment come out as asked; on a block that already has fewer of itself it adds one. With a profile that checks
+looks, the click turns first and is checked again against the look the server really has before it goes, so a look a
+hair off can't place it the wrong way (the result is then `false`); a block that faces where you look (an observer, a
+piston) waits a tick longer when needed, since the server takes its facing from your head, which it turns only on its
+own tick of you. Blocks whose facing no look on them gives are
+clicked with a clean rotation and looked at in the next movement packet, the order Grim accepts. `WRONG_ANGLE` means no
+click from where you stand works; from somewhere else one may.
 
 ## Breaking
 
@@ -123,9 +141,12 @@ Build build = Myriad.building().start(this, wall, Building.Options.forServer().w
 build.finished().thenAccept(done -> info(done ? "Built" : "Stopped"));
 ```
 
-`Target.air()`, `solid()`, `block(b)`, `anyOf(...)`, `state(blockState)` (orientation included). `Blueprint.of(map)`,
-`box`, `dynamic(supplier)`. `Build.steps()` says what's happening at each position or why it's stuck (`NO_ITEM`,
-`FLUID`, `WRONG_ANGLE`, ...); `keepUp` maintains the shape (surround).
+`Target.air()`, `solid()`, `block(b)`, `anyOf(...)`, `state(blockState)` (orientation included), `exact(blockState)`
+(as near the state as clicks make it: orientation, how many, and settings clicked by hand such as a repeater's delay or
+a lever, for printing a schematic; `withClickSettings(false)` leaves settings be). `Blueprint.of(map)`, `box`,
+`dynamic(supplier)`. Every placement goes through `placement().solve`. `Build.steps()` says what's happening at each
+position or why it's stuck (`NO_ITEM`, `NO_SLOT`, `WRONG_ANGLE`, `REFUSED`, `UNSUPPORTED`, ...); `keepUp` maintains
+the shape (surround).
 
 ## Containers
 

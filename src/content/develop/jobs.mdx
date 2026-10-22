@@ -79,6 +79,7 @@ one module don't cancel each other's.
 | Step | Produces | Stuck on | Fails on |
 |---|---|---|---|
 | `Steps.place(pos, slot, options)`, `place(hit, slot, options)` | | `OUT_OF_REACH`, `NOT_VISIBLE`, `NO_SUPPORT`, `ENTITY_IN_WAY`, `BLOCKED`, `RATE_LIMITED` | `SERVER_REFUSED`, `UNSUPPORTED` |
+| `Steps.placeState(pos, state, slot, options)` (solved click, one more where it takes several, then its setting) | | as place, and `WRONG_ANGLE` | as place |
 | `Steps.use(hit, slot, options)` | | as place | as place |
 | `Steps.breakBlock(pos, priority, options)` | | `OUT_OF_REACH`, `UNBREAKABLE` | `SERVER_REFUSED` |
 | `Steps.lookAt(target, options)`, `face(yaw, pitch, options)` | | | |
