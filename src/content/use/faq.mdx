@@ -20,6 +20,13 @@ on current Grim, Elytra Fly's Control) don't work where Grim runs, and say so.
 Something may be [layered](/docs/use/setting-layers) over them: a control panel that's on, or a module using it. The
 setting shows a tag with who. Turn that off and yours are back.
 
+### Every module was off after a crash
+
+That's safe mode. When the game crashes twice in a row within a minute of starting, Myriad starts the next time with
+every module off, as `.panic` leaves them, in case one of them is the cause. A window lists the ones that were on, with
+**Turn them back on**. Closing the game normally, or playing for a minute, ends the streak. A game closed by force
+in its first minute counts as a crash too.
+
 ### Where are my files?
 
 In `.minecraft/myriad/`. See [Profiles](/docs/use/profiles#your-files).

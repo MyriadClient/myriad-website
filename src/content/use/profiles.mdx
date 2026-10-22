@@ -27,6 +27,7 @@ Everything lives in `.minecraft/myriad/`:
 - `themes/`: your themes.
 - `myriad.json`: global options and key actions. `friends.json`: friends.
 - `addons/<addon>/`: what each addon saves for itself.
+- `.running`: there while the game runs, for [safe mode](/docs/use/faq#every-module-was-off-after-a-crash).
 
 Myriad saves a moment after anything changes, writes every file safely (a crash mid-save can't break it), and keeps a
 `.bak` of each from the start of the session. Settings of an addon you've removed are kept, so adding it back loses
