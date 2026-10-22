@@ -70,7 +70,7 @@ tick, so they're safe but a tick late. The [services](/docs/develop/services) ac
 | `ItemUseEvent.Finished`, `.Stopped` | eating, drinking, drawing a bow |
 | `BlockBreakEvent.Start`, `.Progress`, `BlockBrokenEvent` | mining |
 | `BlockUpdateEvent` | the server changed a block (old and new state) |
-| `ChunkEvent.Loaded`, `.Unloaded` | chunks |
+| `ChunkEvent.Loaded`, `.Unloaded` | chunks; `Loaded.isFresh()`: generated just now rather than saved (`ChunkAge`) |
 | `EntityEvent.Added`, `.Removed`, `.TotemPopped`, `.Died` | entities |
 | `ContainerEvent.Opened`, `.Loaded`, `.SlotUpdated`, `.Closed` | containers (chests, your inventory) |
 | `ContainerScreenEvent.SlotDrawn`, `.Tooltip`, `.Click` | icons on slots, previews, taking over clicks |

@@ -228,6 +228,7 @@ Static helpers so addons don't each re-derive the same things (all under `dev.my
 | `combat.Targets`, `combat.TargetSettings` | finding entities with shared rules (hostile, friends, invisible, walls), sorted |
 | `combat.Damage`, `combat.Threats`, `combat.Crystals`, `combat.Trajectory` | explosion and melee damage, what could kill you, crystal spots, projectile paths |
 | `world.Holes`, `world.ChunkCache`, `world.BlockScan` | holes and surrounds; per-chunk work; fast block search |
+| `world.ChunkAge` | which chunks the server generated as you came (nobody was there) and which it had saved, from the order of each section's block palette: `use(owner)`/`release(owner)`, `isFresh(chunkX, chunkZ)`; `ChunkEvent.Loaded.isFresh()` for the chunk arriving. A chunk it can't tell counts as saved, so nothing is skipped on a guess |
 | `util.Entities`, `util.BlockInfo`, `util.ItemInfo` | facts about entities, blocks and items |
 | `util.Reach`, `util.Interactions`, `util.Packets`, `util.Mining`, `util.Movement` | reach and line of sight; attacking, using, swinging; sending packets; mining speed; movement keys and speed |
 | `util.Positions`, `util.MathUtil`, `util.Slots` | spheres and boxes of positions; angles and vectors; slot indexes |
