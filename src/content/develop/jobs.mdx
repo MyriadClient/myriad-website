@@ -1,0 +1,143 @@
+---
+title: "Jobs"
+description: "Long-running work as steps: compose them, run them as jobs, see why they're stuck, and write steps of your own."
+---
+
+import { Callout } from "nextra/components";
+
+# Jobs
+
+A module is a continuous controller: Kill Aura, a bounce loop, Offhand. A **job** is finite work towards a goal: open
+a chest and take what's needed, build a wall, fill a shulker box, fly a route. You describe the work as a **step**,
+start it, and the runner ticks it, cancels it when your module turns off, and can say at any moment what it's doing
+and why it's waiting.
+
+```java
+Step<Integer> restock = Steps.openContainer(chest, 20, Placement.Options.forServer())
+    .then(view -> Steps.take(view, ItemInfo::isFood, Containers.Transfer.upTo(32)))
+    .then(moved -> Steps.closeContainer().then(Step.supply("Count", () -> moved)))
+    .named("Restock food")
+    .timeout(20 * 30)
+    .retry(2);
+
+Myriad.jobs().start(this, restock).result()
+    .thenAccept(moved -> info("Took " + moved))
+    .exceptionally(t -> { warn("Couldn't restock: " + Why.of(t)); return null; });
+```
+
+## The pieces
+
+| | |
+|---|---|
+| `Step<T>` | a description of work producing a `T`: a value like `Placement.Options`, reusable and printable (`toString()` is the tree). Nothing happens until it's started |
+| `Job<T>` | a step running for an owner: `state()`, `why()`, `status()`, `progress()`, `children()`, `pause()`/`resume()`/`cancel()`, `result()` |
+| `Progress<T>` | what a step reports each tick: `running()`, `stuck(why)`, `done(value)`, `failed(why)` |
+| `Why` | a reason: a `Code` everyone can match (`Why.NO_ITEM`, or your own `Why.Code.of("my-addon:no_schematic")`), a detail for people, and what it's about (a position, an item) |
+| `Myriad.jobs()` | `start(owner, step)`, `running()`, `of(owner)`, `cancel(owner)`, `later(owner, ticks, action)`, `every(owner, ticks, action)` |
+
+**Stuck is not failed.** A build waiting for cobblestone is stuck: it keeps being ticked, carries on by itself when
+cobblestone arrives, and a remedy can fetch some. Failed means it can't finish from here (the server refused the
+block, the container is gone).
+
+## Composing
+
+| | |
+|---|---|
+| `a.then(b)`, `a.then(result -> step)` | one after another, passing the result on |
+| `Step.sequence(name, a, b, c)` | in order; steps that finish at once hand over in the same tick |
+| `Step.all(name, list)` | at once; done when every one is, the first failure cancels the rest |
+| `Step.race(name, list)` | at once; the first to finish wins, the rest are cancelled |
+| `Step.forEach(name, () -> items, item -> step)` | one step per item, the items read when it starts |
+| `Step.when(condition, step)`, `Step.choose(name, () -> step)` | decided when reached, not when built |
+| `step.repeat(n)`, `step.repeatWhile(condition)` | again |
+| `Step.run`, `supply`, `delay`, `until`, `await(future)`, `fail`, `nothing` | the small leaves |
+
+Policies wrap a step and everything under it, and show as pills on its job:
+
+| | |
+|---|---|
+| `named(name)`, `named(() -> live)` | what the Jobs window shows |
+| `timeout(ticks)` | running or stuck too long: fails with `TIMEOUT` (paused ticks don't count) |
+| `stuckFor(ticks)` | stuck too long: fails with the stuck reason |
+| `whenStuck(code, ticks, why -> remedy)` | stuck on `code` for `ticks`: the step pauses, the remedy runs (as its child), then the step carries on. If the remedy fails, so does the step |
+| `recover(why -> alternative)`, `retry(n)` | on failure; never on a cancellation (the player, a lost race, the owner turning off, leaving the world). A retry starts the next tick, in the same job |
+| `require(condition, why)` | checked when reached |
+| `suspending(moduleIds...)` | holds those modules off while it runs ([suspension](/docs/develop/modules#holding-another-module-off)) |
+| `finallyDo(action)`, `onDone(value -> ...)`, `onFailed(why -> ...)`, `peek(value -> ...)` | callbacks |
+
+```java
+Step<Void> wall = Steps.build(wallBlueprint, Building.Options.forServer())
+    .whenStuck(Why.NO_ITEM, 20, why -> fetchFrom(supplyChest))   // fetch more, then carry on building
+    .stuckFor(20 * 60);                                          // but not forever
+```
+
+## The services as steps
+
+Every one passes the job as the owner to the service, so cancelling the job cancels what it asked for, and two jobs of
+one module don't cancel each other's.
+
+| Step | Produces | Stuck on | Fails on |
+|---|---|---|---|
+| `Steps.place(pos, slot, options)`, `place(hit, slot, options)` | | `OUT_OF_REACH`, `NOT_VISIBLE`, `NO_SUPPORT`, `ENTITY_IN_WAY`, `BLOCKED`, `RATE_LIMITED` | `SERVER_REFUSED`, `UNSUPPORTED` |
+| `Steps.use(hit, slot, options)` | | as place | as place |
+| `Steps.breakBlock(pos, priority, options)` | | `OUT_OF_REACH`, `UNBREAKABLE` | `SERVER_REFUSED` |
+| `Steps.lookAt(target, options)`, `face(yaw, pitch, options)` | | | |
+| `Steps.selectSlot(slot)` | | | |
+| `Steps.ensureInHotbar(item, preferred)` | the slot | `NO_ITEM`, `NO_SLOT` | |
+| `Steps.borrow(inventoryIndex)` | the slot (given back when the enclosing step ends) | | `NO_ITEM` |
+| `Steps.openContainer(pos, ticks, options)` | the `View` | `OUT_OF_REACH` | `TIMEOUT`, `NO_CONTAINER` |
+| `Steps.take(view, what, how)`, `put(view, what, how)` | how many moved | `NO_ROOM` | `NO_CONTAINER` |
+| `Steps.arrange(view, arrangement)` | whether it all went in | | `NO_CONTAINER` |
+| `Steps.closeContainer()`, `untilClosed(view, ticks)` | | | `TIMEOUT` |
+| `Steps.build(blueprint, options)`, `keepUp(...)` | | the commonest reason in reach ("no item: ×12 cobblestone") | |
+| `Steps.suspend(moduleIds...)` | | | |
+
+## Writing a step
+
+When nothing above fits, write a `Step.Run`. One is made for each start and polled once a tick, at the start of the
+tick before the services act, so what it asks for goes out that tick.
+
+```java
+final class FlyLeg implements Step.Run<Void> {
+    @Override
+    public Progress<Void> tick(JobContext ctx) {
+        if (!chunkLoaded()) return Progress.stuck(Why.of(Why.UNLOADED, "the next chunk"));
+        if (arrived()) return Progress.done();
+        steerTowardsCorner();
+        ctx.progress(flown(), legLength());
+        return Progress.running();
+    }
+
+    @Override
+    public void cancel(JobContext ctx) {
+        land();   // let go of what you hold
+    }
+
+    @Override
+    public String status() {
+        return "leg " + leg + " of " + legs;
+    }
+}
+
+Step<Void> leg = Step.of("Flying the leg", FlyLeg::new);
+```
+
+- Pass `ctx.job()` as the owner to every service.
+- Never subscribe to the bus yourself: `ctx.on(PacketEvent.Receive.class, e -> ...)` hears events for the life of the
+  step and delivers them on its tick (on the render thread, whatever thread fired them; read them, you can't cancel).
+- `ctx.budget()` says how long you may still work this tick; stop when it's spent and carry on next tick.
+- `pause`/`resume` mean stop asking the services for things and start again; `cancel` means let go.
+- A throw fails the step: `throw Why.of(code, detail).asException()` fails it with that reason.
+
+## Jobs and modules
+
+Modules start jobs: a Printer is a module around one job, a search a module around a job tree. Turning the module off
+cancels its jobs (their reason is `OWNER_OFF`); leaving the world cancels every job (`LEFT_WORLD`). A root job that
+fails with nobody listening to its `result()` (and no `onFailed` or `recover`) shows a notice with your module's name
+and the reason. `JobEvent.Started`, `Changed` and `Finished` go on the bus, for UIs and for other addons that react to
+your work.
+
+<Callout>
+`Myriad.tasks()` is deprecated: `Myriad.jobs().later(...)` and `every(...)` replace its delays and repeats (they run
+at the start of a tick; tasks ran at its end), and a step replaces a task sequence. It goes in 1.0.
+</Callout>

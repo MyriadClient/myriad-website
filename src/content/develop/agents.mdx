@@ -55,9 +55,11 @@ These are not style preferences. An addon that breaks them breaks for players.
     with the mod id. Prefer an event when one exists.
 13. **Hooks are for decisions**: use `ctx.hook(...)` only to answer a decision; call `call.proceed()` when you have no
     answer; scope with the narrowest `Match`. A replacement scoped to your addon hands calls on with `super`.
-14. **Ticks are cheap, frames are not**: keep render handlers light; cache per tick (`TickCached`) or per chunk
+14. **Long-running work is a `Step` started as a job** (`Myriad.jobs().start(this, step)`), built from `Steps` and
+    your own `Step.Run`: never a hand-rolled state machine on tick, never a chain of futures.
+15. **Ticks are cheap, frames are not**: keep render handlers light; cache per tick (`TickCached`) or per chunk
     (`ChunkCache`).
-15. **Keep the jar's `fabric.mod.json` correct**: `entrypoints.myriad`, `depends.myriad` (the oldest supported),
+16. **Keep the jar's `fabric.mod.json` correct**: `entrypoints.myriad`, `depends.myriad` (the oldest supported),
     `environment: client`, `contact.sources` for updates.
 
 ## Common mistakes

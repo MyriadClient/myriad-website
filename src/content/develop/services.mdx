@@ -1,6 +1,6 @@
 ---
 title: "Services"
-description: "Rotations, inventory, placement, breaking, building, containers, tasks, the packet budget, anti-cheat and elytra flight."
+description: "Rotations, inventory, placement, breaking, building, containers, the packet budget, anti-cheat and elytra flight."
 ---
 
 import { Callout } from "nextra/components";
@@ -137,22 +137,12 @@ Myriad.containers().open(chestPos, 40).thenAccept(view -> {
 });
 ```
 
-## Tasks
+## Work over several ticks
 
-Work over ticks, cancelled when the owner (your module) turns off:
-
-```java
-Myriad.tasks().later(this, 20, () -> info("A second later"));
-Myriad.tasks().every(this, 5, this::scan);
-Myriad.tasks().sequence(this)
-    .run(this::openChest)
-    .waitUntil(() -> Myriad.containers().current().isPresent(), 40)
-    .await(() -> Myriad.inventory().refresh(), 40)   // a CompletableFuture to wait for
-    .require(this::hasRoom, "Inventory full")
-    .retry(2)
-    .onFail(t -> warn(t.getMessage()))
-    .start();
-```
+Long-running work (open, take, close; build until done; fly a route) is a [job](/docs/develop/jobs): a `Step` you
+start with `Myriad.jobs().start(this, step)`, with the services above as ready-made steps in `Steps`. Delays and
+repeats are `Myriad.jobs().later(this, ticks, action)` and `every(this, ticks, action)`. `Myriad.tasks()` still
+works, deprecated, until 1.0.
 
 ## The rest
 

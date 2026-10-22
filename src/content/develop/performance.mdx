@@ -28,4 +28,7 @@ shows what each module, service and listener costs, in milliseconds per second. 
   tick already; `Targets.query().list()` isn't.
 - **Hooks**: check `hooked()` before building an expensive input for a hook you declare; keep render-thread handlers
   quick.
+- **Spread big work over ticks.** A `TickBudget` says how long a loop may still run this tick ("as much as fits in
+  2 ms, nearest first, carry on next tick"); a job's steps get one from `ctx.budget()`. The job runner itself costs
+  about 70 ns a tick per running job.
 - **Measure.** Anything over a millisecond per second in a tick handler, or a few in a render handler, is worth a look.

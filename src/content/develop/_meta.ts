@@ -9,6 +9,7 @@ export default {
   ui: "Windows, HUD and widgets",
   rendering: "Drawing in the world",
   services: "Services",
+  jobs: "Jobs",
   hooks: "Hooks",
   "control-panels": "Control panel presets",
   sharing: "Shared configs",
