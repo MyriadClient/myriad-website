@@ -93,6 +93,19 @@ one module don't cancel each other's.
 | `Steps.inItem(inventoryIndex, view -> step)` | the step's result, once the box is back | | `NO_ITEM`, `NO_ROOM`, `SERVER_REFUSED`, `TIMEOUT` |
 | `Steps.build(blueprint, options)`, `keepUp(...)` | | the commonest reason in reach ("no item: ×12 cobblestone") | |
 | `Steps.suspend(moduleIds...)` | | | |
+| `Steps.walkTo(pos)`, `walkNear(pos, radius)` (Baritone) | | | `NO_PATHING` (no Baritone), `BLOCKED` (Baritone found no way) |
+| `Steps.fly(flight, f -> keepFlying)` (done once it's landed) | | the flight's reason: `NO_ELYTRA`, `UNLOADED`, `SERVER_REFUSED` | why it had to come down |
+| `Steps.acquire(what, count, sources)` | how many you hold | `NO_ITEM` ("×12 short") once every source was tried | |
+
+`fly` starts the flight and asks `keepFlying` once a tick, which steers it (`heading`, `speed`, `height`) and says
+whether to go on; once it says no, the flight lands. `acquire` tries a list of `MaterialSource`s in turn until you hold
+enough: `MaterialSource.container(pos)` (a chest, opened, taken from, closed), `MaterialSource.shulkerBoxes()` (the
+boxes you carry), or your own, a lambda returning a step that fetches up to a count and says how many it got:
+
+```java
+MaterialSource stash = (what, count) -> Steps.walkNear(stashPos, 3).then(MaterialSource.container(stashPos).fetch(what, count));
+Step<Integer> obsidian = Steps.acquire(s -> s.is(Items.OBSIDIAN), 64, List.of(MaterialSource.shulkerBoxes(), stash));
+```
 
 ## Writing a step
 
