@@ -66,6 +66,10 @@ deprecated, until 1.0.
 Every builder has `.description(text)`, `.defaultValue(v)`, `.visible(() -> bool)`, `.onChanged(v -> ...)` and
 `.protect()`, then `.build()`, which adds the setting to the group.
 
+Every type keeps its value through a save and a load, `encode`/`decode`, and (except files, module lists and registry
+lists, which show a summary) `.set` with what `valueString()` shows, in any locale. Bad JSON leaves the value as it was
+instead of throwing. Core's `SettingRoundTripTest` checks this for each type.
+
 ## Standard groups
 
 Some settings mean the same in every module, so core makes them once: the group adds them, with the same names and
