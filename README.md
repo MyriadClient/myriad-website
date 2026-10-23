@@ -16,8 +16,10 @@ npm run build    # static site in out/
 
 ## Deploying
 
-Two ways, both fine for Coolify. With the Nixpacks build pack, `npm run build` then `npm start` serves `out/` with
-`serve` on `$PORT`. With the Dockerfile build pack, nginx serves it on port 80. Either way set one build variable:
+On Coolify, use the Dockerfile build pack: nginx serves `out/` on port 80 (set Ports Exposes to 80). The Railpack
+build pack works too if you set `RAILPACK_NO_SPA=1`, so it runs `npm start` (`serve` on `$PORT`, with
+`public/serve.json` for the `/config/<code>` rewrite) rather than serving the export itself, which would 404 shared
+configs. Either way set one build variable:
 
 | Variable | Value |
 |---|---|
