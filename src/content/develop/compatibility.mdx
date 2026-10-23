@@ -27,8 +27,19 @@ An addon built against one version of Myriad keeps working on the next. What tha
 
 ## Versions
 
-Myriad follows semantic versioning for the API: while the major version is 0, a **minor** release may change the API
-(with deprecations first), a **patch** release never does. Each repository's `CHANGELOG.md` says what changed.
+Myriad follows semantic versioning for the API. The API names Minecraft's own types, so your addon is rebuilt for
+each Minecraft version whatever Myriad does; within one:
+
+| Release | What it may do to the API |
+|---|---|
+| 1.x, same Minecraft version | add only: source- and binary-compatible with every 1.x before it (built against 1.2, runs on 1.5) |
+| a new Minecraft version | a minor release: may deprecate what the new version made wrong, with the replacement in the javadoc; removes nothing |
+| a major (2.0) | remove what a minor release deprecated first |
+| a patch | nothing |
+
+Until 1.0 the same holds, except that a minor release may remove what an earlier minor release deprecated. Core's
+build compares the API with the last release's on every change and fails on anything that would break an addon built
+against it. Each repository's `CHANGELOG.md` says what changed.
 
 Declare the oldest Myriad you support in `fabric.mod.json`:
 
