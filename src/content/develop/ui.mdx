@@ -56,8 +56,29 @@ Myriad.ui().openPanel(window);   // from a key action, a command, a module
 
 Widgets: `Label` (`.dim()`, `.bold()`), `Button` (`.accent()`), `Toggle`, `Slider`, `Dropdown`, `TextField`
 (`.placeholder`, `.onChange`, `.onSubmit`), `ColorPicker`, `KeybindButton`, `RegistryPicker`, `StringListEditor`,
-`Collapsible`, `HBox`/`VBox` (`addWeighted`, `addFixed`), `ScrollView`, `Spacer`, and `SettingsView.build(settings)`,
+`Collapsible`, `HBox`/`VBox` (`addWeighted`, `addFixed`), `ScrollView`, `Spacer`, `Preview` (below), and `SettingsView.build(settings)`,
 which lays out a whole `Settings` like a module's.
+
+## Previews
+
+`Preview` shows something in 3D so the player can see what render settings do to it: `Preview.entity(type)`,
+`Preview.player()` (you, with your armour and what you hold), `Preview.block(block)` (chests and shulker boxes as they
+stand), `Preview.item(stack)` and `Preview.viewModel()` (your first-person hands and held items, as View Model shapes
+them). Drag to turn it, right-drag or Shift-drag to move it, scroll to zoom, double-click to put it back.
+`decorate((shapes, box, entity) -> ...)` draws on it each frame with the same `ShapeBuilder` calls a module uses in the
+world, in the subject's own coordinates, so a `BoxStyle` draws itself (`box` is the subject's box: an entity's hitbox,
+a block's cube; `entity` the entity shown, to colour it as the module would). Shader effects (highlight outlines,
+glow) don't run in a preview.
+
+A module shows one at the top of its settings window by overriding `preview()`; any window can hold one like any
+other widget.
+
+```java
+@Override
+public Widget preview() {
+    return Preview.entity(EntityTypes.ZOMBIE).decorate((shapes, box, entity) -> style.draw(shapes, box, color.argb(), 1));
+}
+```
 
 For full control, extend `Panel` and implement `render(canvas, width, height, mouseX, mouseY)` and the input methods
 (`mouseClicked`, `keyPressed`, ...).
