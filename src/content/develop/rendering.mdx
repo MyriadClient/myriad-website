@@ -57,7 +57,7 @@ Highlights are outlines traced by a shader around the exact silhouette of what's
 armour and held items, or a set of boxes), with an optional glow, fill and gradient, through walls or not.
 
 ```java
-private final HighlightSettings look = new HighlightSettings(settings.group("Outline"));   // the standard options
+private final HighlightSettings look = new HighlightSettings(settings.group("Render"));    // the standard options
 
 @Subscribe(inGame = true)
 private void onHighlight(HighlightEvent.Entity e) {          // each entity as it's prepared for drawing
@@ -102,3 +102,16 @@ Create custom fills as `static final` fields of your addon class, so they exist 
 `BoxStyle` (outline, fill, opacity, width, through walls) and `EntityGroups` (players, friends, monsters, crystals,
 pearls, … each with a theme colour) give ESP-like modules the same options as the stock ones. `FadeMap` fades
 highlights in and out.
+
+How a module draws goes in one group named **Render**, last, as in every stock module: its colours, its mode of
+drawing and the style options. A module that draws either boxes or outlines, by mode, puts both styles there with
+`HighlightSettings.builder(group).sharing(box)`, which uses the box's Fill Opacity and Through Walls instead of a
+second pair:
+
+```java
+private final SettingGroup sgRender = settings.group("Render");
+private final EnumSetting<Mode> mode = sgRender.oneOf("Mode", Mode.BOXES).build();
+private final BoxStyle box = new BoxStyle(sgRender, () -> mode.get() == Mode.BOXES);
+private final HighlightSettings outline = HighlightSettings.builder(sgRender)
+    .visible(() -> mode.get() == Mode.OUTLINE).sharing(box).build();
+```
