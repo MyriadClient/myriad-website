@@ -79,6 +79,7 @@ private void onTick(TickEvent.Pre e) {          // request in Pre so move fix co
 | `hold(owner, slot, ticks)` / `holdWeakly` / `release(owner)` | hold a slot on the server for a while (mining runs at its speed) |
 | `findInHotbar(pred)`, `findInInventory(pred)`, `bestInHotbar(score)`, `count(pred)` | find items |
 | `moveToHotbar`, `ensureInHotbar(pred, preferred)`, `pullToHotbar`, `borrow(owner, index, replaceable)` / `giveBack` | bring items to hand |
+| `arrange(Containers.Arrangement)` | your own inventory into a layout (sorting it), as a container's `View.arrange` does |
 | `move`, `merge`, `swapWithOffhand`, `quickMove`, `drop` | inventory clicks |
 | `safeToClick()`, `prepareClick()` | Grim cancels inventory clicks while you move: check, or release your keys for a tick |
 | `spare(owner, pred)` | ask other modules to leave some items alone (worn-out tools) |
