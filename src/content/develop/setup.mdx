@@ -28,7 +28,7 @@ clone it.
 ./gradlew runClient
 ```
 
-Minecraft starts with Myriad, Essentials and your addon, the menu open.
+Minecraft starts with Myriad, Essentials and your addon (`-PopenDesktop` opens the menu over the title screen).
 
 ### Build it
 
@@ -41,33 +41,43 @@ The jar is in `build/libs/`.
 
 ## The build
 
-```groovy filename="build.gradle (the parts that matter)"
-repositories {
-    exclusiveContent {
-        forRepositories(maven {
-            name = "Myriad"
-            url = "https://maven.myriadclient.dev/releases"
-        })
-        filter { includeGroup "dev.myriadclient" }
-    }
+The template builds with Myriad's Gradle plugin, so `build.gradle` holds only what's yours:
+
+```groovy filename="build.gradle"
+plugins {
+    id 'dev.myriadclient.addon' version '0.10.0'
 }
 
-dependencies {
-    minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+version = project.mod_version
+group = project.maven_group
 
-    implementation "dev.myriadclient:myriad:${project.myriad_version}"
-    // Only in the dev client, to test next to the stock modules. Don't use its classes: players can remove it.
-    localRuntime "dev.myriadclient:myriad-essentials:${project.essentials_version}"
+base {
+    archivesName = project.archives_base_name
 }
 ```
 
-Myriad's artifacts (`dev.myriadclient:myriad`, with sources and javadoc, and `dev.myriadclient:myriad-essentials`) are
-on `https://maven.myriadclient.dev/releases`. Your IDE shows the javadoc of every API class: it's written to be read.
+The plugin's version is the Myriad release you build against. It comes from Myriad's maven, which `settings.gradle`
+lists under `pluginManagement`, and it sets up:
 
-To build against Myriad changes that aren't released yet: run `./gradlew publishToMavenLocal` in a Myriad checkout and
-add `mavenLocal()` to `forRepositories(...)`.
+- **Loom, Minecraft, Fabric and Myriad** at the versions that Myriad release was built with. To override one, set
+  `minecraft_version`, `loader_version`, `fabric_api_version` or `myriad_version` in `gradle.properties`.
+- **Myriad's maven** (`https://maven.myriadclient.dev/releases`), for `dev.myriadclient` only. It has
+  `dev.myriadclient:myriad` with sources and javadoc, so your IDE shows the javadoc of every API class.
+- **Essentials in the dev client** when `essentials_version` is set in `gradle.properties`. Essentials is never on
+  your compile classpath, so your code can't come to depend on it: players can remove it.
+- **`checkApiOnly`** before every compile. It fails the build if your code references `dev.myriadclient.impl`.
+- **Java 25**, a sources jar, and `${version}`, `${myriad_version}` and `${minecraft_version}` filled in
+  `fabric.mod.json`.
+- **Publishing**: a maven publication named after `archives_base_name`. `./gradlew publishToMavenLocal` publishes it
+  locally; `./gradlew publishAddon` builds and tests, then publishes to Myriad's maven (with the `myriadUsername` and
+  `myriadPassword` properties, which official addons have). To release to players, see
+  [Publishing](/docs/develop/publishing).
+
+Your own repositories, dependencies and settings go in `build.gradle` as usual.
+
+To build against Myriad changes that aren't released yet, keep a Myriad checkout next to your project, build core's jar
+there (`./gradlew :core:jar`) and build with `-PcoreDir=../myriad`. Both the plugin and core then come from that
+checkout, with nothing to publish.
 
 ## `fabric.mod.json`
 
@@ -97,23 +107,22 @@ add `mavenLocal()` to `forRepositories(...)`.
 
 ## The dev client
 
-The template's `loom.runs.client` sets Myriad's dev options as system properties. Add the ones you want:
+`./gradlew runClient` starts the game with Myriad's dev checks on: a core service called off the render thread is
+logged, and `.bench` measures core's hot paths. Switches:
 
-```groovy filename="build.gradle"
-loom {
-    runs {
-        client {
-            property("myriad.openDesktop", "true")                 // the menu open on start
-            property("myriad.devConsole", "run/myriad-dev-inbox")  // scripted steps (below)
-            property("myriad.auditMixins", "true")                 // apply every mixin at start, so a bad target fails at once
-            property("myriad.screenshotEvery", "10")               // a screenshot every 10 s into run/screenshots
-            programArgs("--quickPlaySingleplayer", "New World")    // straight into a world
-        }
-    }
-}
-```
+| Switch | Does |
+|---|---|
+| `-PopenDesktop` | opens the menu over the title screen |
+| `-PquickPlay="New World"` | loads straight into a singleplayer world |
+| `-PquickPlayServer=localhost:25565` | joins a server (with `-Pusername=Name` to play as that name on an offline server) |
+| `-PscreenshotEvery=10` | saves a screenshot every 10 s into `run/screenshots` |
+| `-PauditMixins` | applies every mixin at start, so a bad target fails at once |
+| `-PrunDir=run2` | uses another game directory, for a second client beside the first |
+| `-Photswap` | runs on the JetBrains Runtime with a debug port (5005, or `-PdebugPort`), so recompiled classes swap in without a restart |
+| `-PessentialsDir=../myriad-essentials` | uses the Essentials jar built in that checkout |
+| `-PnoEssentials` | leaves Essentials out |
 
-The **dev console** reads commands from the inbox file (one per line) and logs what happens: Myriad commands,
+The **dev console** reads commands from `run/myriad-dev-inbox` (one per line) and logs what happens: Myriad commands,
 `hold forward,sprint 20`, `look <yaw> <pitch>`, `wait <ticks>`, `screenshot <name>`, `menu open`, `panel <id>`, and
 `selftest` (turns every module on and off and reports any that throw). See [Testing](/docs/develop/testing).
 
