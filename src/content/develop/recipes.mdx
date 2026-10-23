@@ -25,7 +25,10 @@ details.
   `Building.Options.forServer()` rotates for everything and clicks only visible faces where the server checks, and goes
   fast where it doesn't. Each placement's `result()` says whether the server kept the block, `FadeMap` with
   `Renderer3D.blockShape` shows the plan, a job (`Steps.build`) runs it, and it pauses while `server().isLagging(...)` or right
-  after a rubberband. A `FileSetting` picks the schematic and a `BlockPosSetting` its origin. Integrations with other
+  after a rubberband. Around it, `whenStuck(Why.NO_ITEM, ticks, why -> Steps.acquire(...))` fetches what ran out from
+  `MaterialSource.shulkerBoxes()` and `MaterialSource.container(pos)`, then building carries on (Essentials' Printer
+  does this, and walks on with `Steps.walkTo` once nothing in reach is left). A `FileSetting` picks the schematic and a
+  `BlockPosSetting` its origin. Integrations with other
   mods (Litematica, Baritone) belong in the addon: keep any code touching their classes in its own class, only load it
   after `FabricLoader.getInstance().isModLoaded("litematica")`, and put mixins into them under `compat.litematica`.
 - **A storage manager** finds containers per chunk with a `ChunkCache` (`BlockInfo.isStorage`), opens them

@@ -147,7 +147,9 @@ build.finished().thenAccept(done -> info(done ? "Built" : "Stopped"));
 a lever, for printing a schematic; `withClickSettings(false)` leaves settings be). `Blueprint.of(map)`, `box`,
 `dynamic(supplier)`. Every placement goes through `placement().solve`. `Build.steps()` says what's happening at each
 position or why it's stuck (`NO_ITEM`, `NO_SLOT`, `FLUID`, `WRONG_ANGLE`, `REFUSED`, `UNSUPPORTED`, ...); `keepUp` maintains
-the shape (surround).
+the shape (surround). Placements go bottom up, then nearest first; `withOrder(Building.Order.NEAREST)` drops the
+bottom-up part, for building what's beside you as you walk past. Materials are borrowed into any hotbar slot but the
+one you hold and put back when no build is running.
 
 ## Containers
 
