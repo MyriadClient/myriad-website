@@ -19,6 +19,10 @@ Your entrypoint implements `MyriadAddon`. Myriad calls its phases for every addo
 If any phase throws, your addon is marked **failed**, everything it registered is removed, and the game carries on.
 The Addons window shows the error.
 
+Keep the phases quick: they run on the render thread while the game starts. The Addons window shows how long your
+`initialize` and `postInitialize` took, and the log warns about a phase over 250 ms. Load big data on first use, or with
+`Async`, rather than up front.
+
 ```java
 public final class MyAddon implements MyriadAddon {
     @Override
@@ -99,8 +103,8 @@ Following these keeps addons consistent with each other and with the stock modul
   option only when the choice really is the player's (a mode that's flagged on purpose, say).
 - **Settings.** Make a setting when the player will want to change it, or when it changes what the module does. A
   behaviour that would be on almost all the time should simply be on.
-- **`dev.myriadclient.api` only.** Myriad's own addons fail their build if they reference `dev.myriadclient.impl`
-  (`./gradlew checkApiOnly`); yours shouldn't touch it either.
+- **`dev.myriadclient.api` only.** The [addon plugin](/docs/develop/setup#the-build) runs `checkApiOnly` before every
+  compile, which fails the build if your code references `dev.myriadclient.impl`.
 
 ## Registering later
 
