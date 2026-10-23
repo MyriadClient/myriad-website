@@ -16,7 +16,7 @@ public final class Sprint extends Module {
         .build();
 
     public Sprint() {
-        super(Categories.MOVEMENT, "Sprint", "Sprints for you.");
+        super(Tags.MOVEMENT, "Sprint", "Sprints for you.");
     }
 
     @Subscribe(inGame = true)
@@ -105,7 +105,7 @@ Prefer an [event](/docs/develop/events) to a mixin whenever one exists. For mixi
 
 ```java
 public Freecam() {
-    super(Categories.RENDER, "Freecam", "Fly the camera around.");
+    super(Tags.RENDER, "Freecam", "Fly the camera around.");
     conflictsWith(FreeLook.class);   // turning this on turns Free Look off
 }
 ```
@@ -134,7 +134,7 @@ Players' saved settings follow a rename if you say how:
 
 ```java
 public Tunnel() {
-    super(Categories.WORLD, "Tunnel", "Digs a tunnel the way you face.");
+    super(Tags.WORLD, "Tunnel", "Digs a tunnel the way you face.");
     formerNames("Tunnel Miner");          // saved under these before: settings, bind and state carry over
 }
 

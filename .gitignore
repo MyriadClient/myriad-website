@@ -45,3 +45,5 @@ next-env.d.ts
 /public/llms-full.txt
 /public/docs/
 /public/docs.md
+# The latest release's javadoc, put at /api by scripts/javadoc.mjs on every build
+/public/api/

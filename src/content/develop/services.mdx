@@ -93,7 +93,7 @@ if (sword >= 0) Myriad.inventory().silentSwap(sword, () -> Interactions.attack(t
 
 ```java
 Placement.Attempt a = Myriad.placement().place(this, pos, slot, Placement.Options.forServer());
-if (!a.sent()) warn("Can't place there: " + a.check());   // OUT_OF_RANGE, ENTITY_IN_WAY, NOT_VISIBLE, ...
+if (!a.sent()) warn("Can't place there: " + a.check());   // OUT_OF_RANGE, ENTITY_IN_WAY, NOT_VISIBLE, PENDING (already queued), ...
 a.result().thenAccept(placed -> { if (!placed) retryLater(pos); });   // once the server kept or refused it
 ```
 
@@ -127,7 +127,8 @@ Breaking.Attempt a = Myriad.breaking().breakBlock(this, pos, priority, Breaking.
 
 Queues by priority across modules, picks and holds the fastest tool on the server, batches instant breaks, shows the
 crack, rotates if asked. Modes: `VANILLA` (like the attack button), `PACKET` (finishes the moment the server allows),
-`FAST` and `FAST_GRIM` (2b2t-style decoy starts), with `withDoubleBreak` to mine a second block meanwhile.
+`FAST` and `FAST_GRIM` (2b2t-style decoy starts), with `withDoubleBreak` (`doubleBreak` in the options) to mine a
+second block while the server finishes the first. Placements and breaks see each other's pending positions.
 `progress(pos)`, `isPending(pos)`, `cancel(owner)`.
 
 ## Building
@@ -145,7 +146,7 @@ build.finished().thenAccept(done -> info(done ? "Built" : "Stopped"));
 (as near the state as clicks make it: orientation, how many, and settings clicked by hand such as a repeater's delay or
 a lever, for printing a schematic; `withClickSettings(false)` leaves settings be). `Blueprint.of(map)`, `box`,
 `dynamic(supplier)`. Every placement goes through `placement().solve`. `Build.steps()` says what's happening at each
-position or why it's stuck (`NO_ITEM`, `NO_SLOT`, `WRONG_ANGLE`, `REFUSED`, `UNSUPPORTED`, ...); `keepUp` maintains
+position or why it's stuck (`NO_ITEM`, `NO_SLOT`, `FLUID`, `WRONG_ANGLE`, `REFUSED`, `UNSUPPORTED`, ...); `keepUp` maintains
 the shape (surround).
 
 ## Containers
@@ -157,6 +158,10 @@ Myriad.containers().open(chestPos, 40).thenAccept(view -> {
     Myriad.containers().close();
 });
 ```
+
+A `View` reads and moves the container's items: `find`, `count`, `quickMove`, `swapWithHotbar`, `drop`, `take`/`put`
+(a `Transfer` of what and how many), `arrange` (an exact layout) and `run` (your own click planner). `view.byHand()`
+says the player opened it, and `opener()` which module opened the rest.
 
 A shulker box or ender chest from your inventory opens where you stand: `openItem(owner, index, ticks, options)`
 puts it down beside you (turned first where the server checks looks), opens it, and gives you an `ItemSession`;
@@ -182,8 +187,12 @@ works, deprecated, until 1.0.
 | `Myriad.limits()` | the shared packet budget: `canSend(kind, n)`, and `urgent(action)` for must-happen actions (totems) |
 | `Myriad.antiCheat()` | `profile()` and its answers, `detected()`, `choice()`/`choose(profile)`, `profiles()` |
 | `Myriad.tickSpeed()` | client tick speed per owner (`set(owner, multiplier)`), multiplied together, cleared on disable |
-| `Myriad.server()` | TPS, ping, address, `isLagging(ms)`, `rubberbandedWithin(ms)`, `reconnect()` |
-| `Myriad.elytra()` | the elytra engine: `altitude(owner)`/`control(owner)` flights ([below](#flights)), `noDurability(owner)`, `chestSwap()`, `glideHold()`, `addPilot(...)`; `GlideEvent` |
+| `Myriad.server()` | TPS, ping, address, `isLagging(ms)`, `rubberbandedWithin(ms)`, packets per second, totem pops, `reconnect()` to the last server |
+| `Myriad.runCommand(line)` | runs a Myriad command from code (macros, binds, clickable chat) |
+| `Myriad.chat(text, id)` | a chat line that replaces the previous one with the same id (progress, status) |
+| `Myriad.notifications()` | toasts: `info`/`warn`/..., or `toast(title, message).replacing(key).lasting(ms).show()` for a status that updates |
+| `Myriad.ui().confirm(...)` | a yes/no dialog |
+| `Myriad.elytra()` | the elytra engine: `altitude(owner)`/`control(owner)` flights ([below](#flights)), `noDurability(owner)`, `chestSwap()`, `glideHold()`, `addPilot(...)` for a module flying by its own rotation (`steers`) or holding the glide open (`holdsGlide`); `GlideEvent` replaces the glide's movement |
 | `Myriad.friends()` | `isFriend(player)` |
 | `Myriad.controls()` | control panels: list, switch, create |
 | `Myriad.shares()` | [shared configs](/docs/develop/sharing) |
@@ -225,17 +234,43 @@ Static helpers so addons don't each re-derive the same things (all under `dev.my
 
 | | |
 |---|---|
-| `combat.Targets`, `combat.TargetSettings` | finding entities with shared rules (hostile, friends, invisible, walls), sorted |
-| `combat.Damage`, `combat.Threats`, `combat.Crystals`, `combat.Trajectory` | explosion and melee damage, what could kill you, crystal spots, projectile paths |
-| `world.Holes`, `world.ChunkCache`, `world.BlockScan` | holes and surrounds; per-chunk work; fast block search |
+| `combat.Targets`, `combat.TargetSettings` | finding entities to attack or highlight with shared rules (hostile, neutral-when-angry, friends, invisibles, walls), sorted by distance, health or angle. `TargetSettings` is the standard "Targets" settings group |
+| `combat.Damage` | explosion, crystal, bed, anchor, fall and melee damage after armour, enchantments and effects; against a predicted position, with chosen blocks treated as air |
+| `combat.Threats` | what could hurt you right now (crystals, beds, anchors, creepers, players, the fall you're in) and `isLethal(margin)`: when to force a totem or leave |
+| `combat.Crystals` | where a crystal can go as the server decides (`canPlace`, `bases(from, range)`, ignoring entities about to go), its position and space; the 1.12 two-high rule optional |
+| `combat.Trajectory` | where a projectile goes: `launch(shooter, item, yaw, pitch)` for bows (at their draw), crossbows, tridents, pearls, snowballs, potions, bottles and wind charges, `simulate` tick by tick (gravity, drag, water) to the block or entity it hits, and `aimAt(target)` for the angles that reach it |
 | `world.ChunkAge` | which chunks the server generated as you came (nobody was there) and which it had saved, from the order of each section's block palette: `use(owner)`/`release(owner)`, `isFresh(chunkX, chunkZ)`; `ChunkEvent.Loaded.isFresh()` for the chunk arriving. A chunk it can't tell counts as saved, so nothing is skipped on a guess |
-| `util.Entities`, `util.BlockInfo`, `util.ItemInfo` | facts about entities, blocks and items |
-| `util.Reach`, `util.Interactions`, `util.Packets`, `util.Mining`, `util.Movement` | reach and line of sight; attacking, using, swinging; sending packets; mining speed; movement keys and speed |
-| `util.Positions`, `util.MathUtil`, `util.Slots` | spheres and boxes of positions; angles and vectors; slot indexes |
-| `util.Timer`, `util.RateCounter`, `util.Format`, `util.Texts`, `util.Ticks`, `util.TickCached` | timing and formatting; a value worked out once per tick |
-| `util.Async`, `util.Http` | the worker pool (and back to the render thread); GET/POST/DELETE with JSON |
-| `util.Baritone` | drive Baritone when it's installed, without depending on it |
-| `util.FakePlayers` | client-side dummy players for testing |
+| `service.RotationSettings`, `PlacementSettings`, `BreakingSettings`, `BuildingSettings` | the standard Turn Speed, Range, Air Place, break Mode, Actions Per Tick and Break Wrong Blocks settings, giving the services' options on `forServer()` |
+| `world.Holes` | 1x1, 2x1 and 2x2 holes with their safety (bedrock or blast-proof): `scan(chunk)` for a `ChunkCache`, `around` for a one-off, `holeOf(entity)`, an entity's `footprint`, `surround` positions, `isSurrounded` and the `city` blocks that open it |
+| `util.Entities` | `kind`, `isHostile`, `isFriend`, `ping`/`gameMode` of a player, `intersects(box)`, render distance, render-interpolated boxes, `predict(entity, ticks)` |
+| `util.BlockInfo`, `util.ItemInfo` | unbreakable, instant-break, blast-resistant, storage, clickable blocks; enchantment levels, food, shulker contents, durability, weapon/tool/armour slot, armour and toughness, gliders, Curse of Binding |
+| `util.Reach` | reach and line of sight from the eyes, `canReach(pos)` (to the block's nearest point, as the server and Grim measure), `aimPoint(entity)`, `hitFor(pos)` (the nearest visible point to click to open or break a block) |
+| `util.Interactions` | attack, use, interact with a block, start/continue breaking, swing; `shouldPause(eating, mining)`; attack charge, item-use and jump cooldowns |
+| `util.Packets` | `send`, `sendSilently` (skips events, for your own tricks), `sendSequenced` (block and item actions; with a position it returns a future of the server's answer: the block state once it has acknowledged the action) |
+| `util.ChatMessages` | who a chat line is from and whether it's a whisper, across vanilla and common plugin formats; `ChatReceiveEvent.parsed()` |
+| `util.Mining` | mining speed and progress as the server computes them; fastest tool slot |
+| `util.Positions` | `sphere`, `cube`, `box` of block positions (nearest first), neighbours, face centres |
+| `util.MathUtil` | angles to a point, angle differences, look and ground direction vectors, closest point on a box, lerp/map/snap |
+| `util.Movement` | which way the movement keys point, horizontal speed, `baseSpeed()` (sprinting speed with your effects), setting speed along the input, stopping |
+| `util.Slots` | player inventory indexes ↔ screen slot ids |
+| `util.Timer`, `util.RateCounter`, `util.Format`, `util.Texts` | delays and cooldowns; events per second (lock-free); distances, durations, compact numbers; clickable chat (run a Myriad command, copy, hover) |
+| `util.Ticks`, `util.TickCached` | the client tick counter; a value computed at most once per tick however often a render handler reads it |
+| `util.Async`, `util.Http` | a shared worker pool (and a hop back to the render thread); GET/POST/DELETE with JSON |
+| `util.FakePlayers` | client-side dummy players for testing combat and render features |
+| `util.Baritone` | drive Baritone when it's installed, without depending on it: `pathTo`, `pathNear`, `isPathing`, `stop`, `command`, and `pause(owner)`/`resume(owner)` counted per module; its settings by name (`getSetting`/`setSetting`, any of them as text with `settingText`/`setSettingText`) and all of them with their types (`settings()`); where it walks and where it's going (`path()`, `goalSpots()`). Every call is a no-op without Baritone; `.b <command>` runs Baritone commands with Myriad's prefix |
+| `render.Ghosts` | a living entity's render state drawn again anywhere as a see-through copy: skin, armour, cape and elytra faded, posed as you set it |
+| `map.Maps` (`Myriad.maps()`) | waypoints from Xaero's Minimap when it's installed: `waypoints()` for the server you're on, every dimension (this one's first), `waypoint(name)`, `positionHere(w)` scaled across dimensions. Empty without it |
+| `setting.KeybindSetting` | a key or mouse bind; `wasPressed(event)` for a bind inside a module ("sub bind"), on `KeyEvent` and `MouseButtonEvent` |
+| `render.MyriadLogo` | the Myriad mark at any size |
+| `render.Renderer3D` / `ShapeBuilder` | boxes, real block shapes, single faces, lines, circles, tracers (this frame) |
+| `render.WorldMesh` | the same shapes kept on the GPU and drawn every frame until rebuilt |
+| `world.ChunkCache`, `world.BlockScan` | work out something per chunk once, redo it only when the chunk changes, optionally drawn as a mesh; block searches that skip sections by palette |
+| `render.HighlightStyle`, `render.HighlightSettings` | how a highlight looks (outline width, glow, fill: none, solid or dots, gradient, through walls) and the standard settings for one |
+| `render.BoxStyle`, `render.EntityGroups` | the standard box options (outline, fill, opacity, width, through walls) and entity picker (players, friends, monsters, crystals, pearls, ... each with a theme colour), so every ESP-like module offers the same choices |
+| `render.WorldLabel`, `render.FadeMap`, `render.RenderStates`, `render.PlayerHeads` | labels on world positions (text and item icons); highlights that fade in and out; the entity behind a render state in renderer mixins; players' faces |
+| `ui.ThemePalette`, `ui.Theme` | build a theme from a terminal palette; themes that follow something live, explain problems, or replace old ids |
+| `mixin.CompatMixinPlugin` | mixins that apply only when another mod is (or isn't) installed: put them in `compat.<mod id>` (or `compat.no_<mod id>`) |
+| `command.arguments.Arguments` | argument types: `blockPos` (with `~`), `item`, `block`, `entityType`, any registry, `enumValue`, `duration`, `choice`/`suggesting`, `module`, `player` |
 
 <Callout type="info">
   Service interfaces are `@ApiStatus.NonExtendable`: don't implement them. To bring your own rotations, inventory,

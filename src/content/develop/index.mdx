@@ -16,8 +16,9 @@ What the API gives you:
 - **Modules** with typed **settings**, binds, hold mode and HUD info, saved per profile.
 - An **event bus** for ticks, packets, input, rendering, the world and the UI.
 - **Services** so addons share one implementation of hard things: rotations (with move fix), inventory and silent
-  swaps, placement, breaking (vanilla, packet and Grim-timed), building from blueprints, containers, tasks over ticks,
-  the packet budget, elytra flight.
+  swaps, placement, breaking (vanilla, packet and Grim-timed), building from blueprints, containers, the packet budget,
+  elytra flight.
+- **Jobs**: long work as steps the player can see, pause and cancel.
 - **Windows and HUD elements** drawn with an SDF canvas, a widget toolkit, and title-bar controls.
 - **World rendering**: immediate shapes, GPU meshes, per-chunk caches, shader highlights.
 - **Hooks**: replace a service with your own, or change one decision in Myriad or another addon.
@@ -44,8 +45,8 @@ package com.example.addon;
 
 import dev.myriadclient.api.event.Subscribe;
 import dev.myriadclient.api.event.events.WorldEvent;
-import dev.myriadclient.api.module.Categories;
 import dev.myriadclient.api.module.Module;
+import dev.myriadclient.api.module.Tags;
 import dev.myriadclient.api.setting.StringSetting;
 
 public final class Greeter extends Module {
@@ -55,7 +56,7 @@ public final class Greeter extends Module {
         .build();
 
     public Greeter() {
-        super(Categories.MISC, "Greeter", "Greets you when you join a world.");
+        super(Tags.MISC, "Greeter", "Greets you when you join a world.");
     }
 
     @Subscribe
@@ -73,12 +74,12 @@ public final class Greeter extends Module {
   "name": "My Addon",
   "environment": "client",
   "entrypoints": { "myriad": ["com.example.addon.MyAddon"] },
-  "depends": { "myriad": ">=0.3.0", "minecraft": "~26.2" }
+  "depends": { "myriad": ">=0.9.0", "minecraft": "~26.2" }
 }
 ```
 
-That's an addon: the module shows in the menu under *Misc · My Addon*, has a Message setting, a keybind, hold mode, and
-its on/off state and settings save with the player's profile.
+That's an addon: the module shows in the menu in *My Addon*'s window (and under `#misc` in the launcher), has a Message
+setting, a keybind, hold mode, and its on/off state and settings save with the player's profile.
 
 <Callout type="info">
   Start from the [addon template](https://github.com/MyriadClient/myriad-addon-template), and read the
@@ -91,7 +92,10 @@ its on/off state and settings save with the player's profile.
   <Cards.Card title="Setting up" href="/docs/develop/setup" arrow />
   <Cards.Card title="Modules" href="/docs/develop/modules" arrow />
   <Cards.Card title="Settings" href="/docs/develop/settings" arrow />
-  <Cards.Card title="Services" href="/docs/develop/services" arrow />
+  <Cards.Card title="Services and helpers" href="/docs/develop/services" arrow />
+  <Cards.Card title="Jobs" href="/docs/develop/jobs" arrow />
+  <Cards.Card title="Building bigger addons" href="/docs/develop/recipes" arrow />
   <Cards.Card title="Hooks" href="/docs/develop/hooks" arrow />
+  <Cards.Card title="API reference map" href="/docs/develop/reference" arrow />
   <Cards.Card title="For AI agents" href="/docs/develop/agents" arrow />
 </Cards>

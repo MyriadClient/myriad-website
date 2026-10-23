@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node scripts/llms.mjs && next dev",
-    "build": "node scripts/llms.mjs && next build && pagefind --site out --output-path out/_pagefind",
+    "build": "node scripts/llms.mjs && node scripts/javadoc.mjs && next build && pagefind --site out --output-path out/_pagefind",
     "start": "serve out -l ${PORT:-3000} --no-clipboard",
     "lint": "eslint"
   },

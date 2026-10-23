@@ -27,7 +27,12 @@ const navbar = (
     }
     logoLink="/docs"
     projectLink={site.github}
-  />
+  >
+    {/* Plain links: /api is the javadoc's own static pages, not part of the app. */}
+    <a className="docs-nav-link" href="/api/">
+      API
+    </a>
+  </Navbar>
 );
 
 const footer = (

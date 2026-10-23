@@ -1,0 +1,45 @@
+---
+title: "Building bigger addons"
+description: "How the services, helpers and events fit together for movement modules, a printer, a storage manager and a crystal PvP suite."
+---
+
+# Building bigger addons
+
+How the pieces fit the kinds of addons people build. Each names the parts; their pages ([Services](/docs/develop/services),
+[Jobs](/docs/develop/jobs), [Events](/docs/develop/events), [Drawing in the world](/docs/develop/rendering)) have the
+details.
+
+- **Movement modules** change this tick's motion in `PlayerMoveEvent` (scaled from `Movement.baseSpeed()` so effects
+  still count), press keys with `InputEvent`, change what they collide with in `CollisionShapeEvent` (water walking,
+  avoiding cactus), back off in `TeleportEvent` and while `server().rubberbandedWithin(ms)`, and change the tick rate
+  with `tickSpeed()`. `Myriad.antiCheat().isStrict()` says whether the server simulates movement (Grim) and will
+  catch anything the vanilla client couldn't do.
+- **A schematic printer** turns the schematic into a `Blueprint.of(...)` of `Target.state(...)` and hands it to
+  `building()`, which works through what's in reach: wrong blocks broken, materials moved into the hotbar, each block
+  clicked and rotated so it comes out facing the right way, and `Build.steps()` drawn as the plan. For clicks of your
+  own, `placement().place(this, hit, slot, options)` places where vanilla would for that exact click (into air with
+  `withAirPlace`, onto a candle or slab with the same item) and `withSneak` places against chests and doors;
+  `placement().use(this, hit, slot, options)` right-clicks a block to use it (a lever, a repeater's delay), turned
+  onto it first where the server checks looks.
+  `Building.Options.forServer()` rotates for everything and clicks only visible faces where the server checks, and goes
+  fast where it doesn't. Each placement's `result()` says whether the server kept the block, `FadeMap` with
+  `Renderer3D.blockShape` shows the plan, a job (`Steps.build`) runs it, and it pauses while `server().isLagging(...)` or right
+  after a rubberband. A `FileSetting` picks the schematic and a `BlockPosSetting` its origin. Integrations with other
+  mods (Litematica, Baritone) belong in the addon: keep any code touching their classes in its own class, only load it
+  after `FabricLoader.getInstance().isModLoaded("litematica")`, and put mixins into them under `compat.litematica`.
+- **A storage manager** finds containers per chunk with a `ChunkCache` (`BlockInfo.isStorage`), opens them
+  with `containers().open(this, pos, ticks, Placement.Options.forServer())` (turned onto the container first where the
+  server checks looks), reads them in `ContainerEvent.Loaded`/`SlotUpdated` (including ones the player opens by hand:
+  `view().byHand()`, and `opener()` says which module opened the rest), moves items with `view.take`/`put`, sorts or
+  fills one to an exact layout with `view.arrange(Containers.Arrangement.of(slots, layout))` (or runs click planners of
+  its own with `view.run`), and runs each visit as a job (`Steps.openContainer`, `take`, `closeContainer`). It saves what it learns with `ctx.storage()`, says
+  where an item is with `ItemTooltipEvent`, reads shulkers with `ItemInfo.contents`, and marks chests with
+  `WorldLabel.Segment.item(...)` icons.
+- **A crystal PvP suite** picks targets with `TargetSettings`, finds placements with `Crystals.bases` and scores them
+  with `Damage.crystal` against `Entities.predict` positions (treating blocks it's about to break as air), surrounds
+  with `Holes.surround` and a `keepUp` build, mines targets out with `Holes.city`, decides when to force a totem with
+  `Threats.isLethal`, reacts to `EntityEvent.TotemPopped`, breaks crystals the tick they appear with
+  `EntityEvent.Added` + `Interactions.attack`, checks `BlockInfo.isBlastResistant` and `Entities.intersects` for
+  placements, rotates through `rotations()`, swaps with `inventory()`, pauses with `Interactions.shouldPause`, and
+  checks `Reach` before every action. `AttackEvent` lets separate modules react to the same hit, and `.fakeplayer`
+  gives you someone to test against in singleplayer.

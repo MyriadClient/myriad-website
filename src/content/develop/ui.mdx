@@ -111,7 +111,8 @@ ctx.registerHud("Player Count", "", PlayerCountHud::new);                    
 ctx.registerHud("Watermark", "", Watermark::new, PanelType.Anchor.TOP_LEFT, 0, 0); // placed on a fresh install
 ```
 
-`preview()` is true while there's no world (arranging the HUD from the title screen): show sample values. For
+`preview()` is true while there's no world (arranging the HUD from the title screen): show sample values;
+`alignRight()` while the element sits on the right of the screen, so text grows leftwards. For
 drawing of your own, extend `HudPanel` and use `HudStyle` and `ItemHud`.
 
 ## The bar and themes

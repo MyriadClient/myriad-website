@@ -11,7 +11,7 @@ Your entrypoint implements `MyriadAddon`. Myriad calls its phases for every addo
 
 | Phase | When | Use it for |
 |---|---|---|
-| `registerCategories(ctx)` | first, for every addon | your own categories, so other addons can use them too |
+| `registerTags(ctx)` | first, for every addon | your own [tags](#conventions), so other addons can use them too (rarely needed) |
 | `initialize(ctx)` | then, for every addon | everything else: modules, commands, windows, hooks |
 | (config load) | | Myriad loads the player's profile: your modules' settings and states come in |
 | `postInitialize(ctx)` | last | looking for optional integrations (other mods, other addons) |
@@ -21,20 +21,14 @@ The Addons window shows the error.
 
 ```java
 public final class MyAddon implements MyriadAddon {
-    private Category automation;
-
-    @Override
-    public void registerCategories(AddonContext ctx) {
-        automation = ctx.registerCategory("Automation", "", SettingColor.role(SettingColor.Mode.CYAN));
-    }
-
     @Override
     public void initialize(AddonContext ctx) {
         // Shared state: made here, passed to whatever needs it. Not in static fields.
         WaypointStore waypoints = new WaypointStore(ctx.storage());
         waypoints.load();
 
-        ctx.registerModules(new Waypoints(waypoints), new AutoFarm(automation));   // menu order
+        ModuleGroup travel = ctx.registerGroup("Travel", Icons.PLANE);              // a window in the menu
+        ctx.registerModules(travel, new Waypoints(waypoints), new AutoWalk());     // menu order
         ctx.registerCommand(new WaypointCommand(waypoints));
         PanelType window = ctx.registerPanel("Waypoints", "", () -> new WaypointsPanel(waypoints));
         ctx.registerHud("Nearest Waypoint", "", () -> new NearestWaypointHud(waypoints));
@@ -53,8 +47,9 @@ public final class MyAddon implements MyriadAddon {
 
 | Method | Registers |
 |---|---|
-| `registerModules(Module...)` | [modules](/docs/develop/modules), in menu order |
-| `registerCategory(name, icon, color)` | a category (in `registerCategories`) |
+| `registerModules(Module...)`, `registerModules(group, Module...)` | [modules](/docs/develop/modules), in menu order: in your addon's own window, or in a group |
+| `registerGroup(name, icon)` | a group of your modules: one window in the menu |
+| `registerTag(name, icon, color)` | a tag of your own (in `registerTags`), for modules none of `Tags` fits |
 | `registerCommand(Command)` | a [chat command](/docs/develop/commands) |
 | `registerPanel(name, icon, factory)` / `registerPanel(PanelType)` | a [window](/docs/develop/ui) |
 | `registerHud(name, icon, factory[, anchor, x, y])` | a [HUD element](/docs/develop/ui#hud-elements) |
@@ -72,6 +67,40 @@ public final class MyAddon implements MyriadAddon {
 
 Everything registered through the context is owned by your addon: shown with its name in the menu, and removed if it
 fails.
+
+## Conventions
+
+Following these keeps addons consistent with each other and with the stock modules:
+
+- **Groups.** Each group of yours is a window in the menu: `ModuleGroup travel = ctx.registerGroup("Travel",
+  Icons.PLANE)`, then `ctx.registerModules(travel, ...)`. Group them the way a player looks for them, by what they're
+  for; a handful to a dozen per group reads better than one or thirty. A small addon can skip groups: modules
+  registered without one go in your addon's own window, named after it.
+- **Tags.** Give each module the shared tag that says what it's about (`Tags.COMBAT`, `MOVEMENT`, `RENDER`, `PLAYER`,
+  `WORLD`, `MISC`): its colour and icon, and `#combat` in the launcher finds it with every other addon's.
+  `alsoTagged(...)` in the constructor adds more. Register your own tag (in `registerTags`) only for a kind of module
+  none of them fits.
+- **Icons.** `Icons` has about 190 ready-made glyphs (`Icons.ROCKET`, `Icons.CUBES`…) for groups, tags and panels; an
+  `IconSetting` (`sg.icon("Icon")`) lets players pick one. Any glyph of the bundled Nerd Font (`"\uf041"`) works too.
+- **Shared state** lives in objects you create in `initialize` and pass to constructors, not in static fields.
+- **Colours** default to theme roles (`SettingColor.role(Mode.ACCENT)`, `RED`, `TEXT`…) so they follow the player's
+  theme. A colour the player changes is saved as an override.
+- **Reaching a module** from a mixin, another module or another addon: `Modules.active(MyModule.class)` returns it
+  while it's on, or null. Don't keep a static `INSTANCE`. See [Modules](/docs/develop/modules#reaching-a-module).
+- **Timing.** Act (click, place, break, attack, switch slots) in `TickEvent.Pre`, before the player moves, as vanilla
+  does: Grim (2b2t) flags actions sent after the tick's movement packet. Myriad holds any that come later to the start
+  of the next tick, so they're still safe, just a tick late. The services already act at the right time.
+- **Mixins** stay thin: the logic in a static method on the module, run through `Modules.guard`
+  ([Modules](/docs/develop/modules#mixins)). Prefix handler names with your mod id; prefer an event when there is one.
+- **Don't depend on Essentials.** Players can remove it. Everything general it used to keep to itself is in the core
+  API.
+- **Strict or not.** Don't add a "Strict" or "Grim" option to every module: use the services' `forServer()` presets,
+  which follow the player's [anti-cheat profile](/docs/develop/services#options-and-the-anti-cheat-profile). Add an
+  option only when the choice really is the player's (a mode that's flagged on purpose, say).
+- **Settings.** Make a setting when the player will want to change it, or when it changes what the module does. A
+  behaviour that would be on almost all the time should simply be on.
+- **`dev.myriadclient.api` only.** Myriad's own addons fail their build if they reference `dev.myriadclient.impl`
+  (`./gradlew checkApiOnly`); yours shouldn't touch it either.
 
 ## Registering later
 

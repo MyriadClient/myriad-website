@@ -127,6 +127,7 @@ export default async function Home() {
             <li><a className="hover:text-ink" href="#install">Install</a></li>
             <li><a className="hover:text-ink" href="#keys">Keys</a></li>
             <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
+            <li><a className="hover:text-ink" href="/api/">API</a></li>
           </ul>
           <a
             href={site.github}
@@ -325,6 +326,7 @@ export default async function Home() {
             <li><a className="hover:text-ink" href={site.issues}>Issues</a></li>
             <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
             <li><Link className="hover:text-ink" href="/docs/develop">Write an addon</Link></li>
+            <li><a className="hover:text-ink" href="/api/">API reference</a></li>
           </ul>
         </div>
       </footer>

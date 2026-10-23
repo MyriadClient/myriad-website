@@ -39,6 +39,15 @@ kbd {
   font-weight: 400;
 }
 
+.docs-nav-link {
+  font-size: 0.875rem;
+  color: #8c9690;
+}
+
+.docs-nav-link:hover {
+  color: #7fd8ae;
+}
+
 .docs-footer {
   color: #8c9690;
   font-size: 0.875rem;

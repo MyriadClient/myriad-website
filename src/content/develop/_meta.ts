@@ -11,6 +11,7 @@ export default {
   rendering: "Drawing in the world",
   services: "Services",
   jobs: "Jobs",
+  recipes: "Building bigger addons",
   hooks: "Hooks",
   "control-panels": "Control panel presets",
   sharing: "Shared configs",

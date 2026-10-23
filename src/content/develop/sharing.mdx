@@ -49,7 +49,8 @@ back.
 ConfigShare share = Myriad.shares().builder()
     .title("Highway setup")
     .module(elytraFly)                                     // one module
-    .addonCategory("myriad-essentials", Categories.MOVEMENT) // one of the menu's windows
+    .tag(Tags.MOVEMENT)                                    // every movement module, from every addon
+    .group(travel)                                         // one of the menu's windows
     .addon("my-addon")                                     // every module of an addon
     .controlPanel(highway)                                 // a control panel, with what it saves
     .theme()                                               // the active theme's look
