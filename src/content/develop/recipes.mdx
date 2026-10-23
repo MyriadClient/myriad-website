@@ -15,8 +15,9 @@ details.
   with `tickSpeed()`. `Myriad.antiCheat().isStrict()` says whether the server simulates movement (Grim) and will
   catch anything the vanilla client couldn't do.
 - **A schematic printer** turns the schematic into a `Blueprint.of(...)` of `Target.state(...)` and hands it to
-  `building()`, which works through what's in reach: wrong blocks broken, materials moved into the hotbar, each block
-  clicked and rotated so it comes out facing the right way, and `Build.steps()` drawn as the plan. For clicks of your
+  `building()`, which works through what's in reach: wrong blocks broken, materials borrowed into the hotbar (any slot but
+  the one you hold, put back when it's done, and shown as it was meanwhile), each block clicked and rotated so it
+  comes out facing the right way, and `Build.steps()` drawn as the plan. For clicks of your
   own, `placement().place(this, hit, slot, options)` places where vanilla would for that exact click (into air with
   `withAirPlace`, onto a candle or slab with the same item) and `withSneak` places against chests and doors;
   `placement().use(this, hit, slot, options)` right-clicks a block to use it (a lever, a repeater's delay), turned
