@@ -65,18 +65,34 @@ which lays out a whole `Settings` like a module's.
 `Preview.player()` (you, with your armour and what you hold), `Preview.block(block)` (chests and shulker boxes as they
 stand), `Preview.item(stack)` and `Preview.viewModel()` (your first-person hands and held items, as View Model shapes
 them). Drag to turn it, right-drag or Shift-drag to move it, scroll to zoom, double-click to put it back.
-`decorate((shapes, box, entity) -> ...)` draws on it each frame with the same `ShapeBuilder` calls a module uses in the
-world, in the subject's own coordinates, so a `BoxStyle` draws itself (`box` is the subject's box: an entity's hitbox,
-a block's cube; `entity` the entity shown, to colour it as the module would). Shader effects (highlight outlines,
-glow) don't run in a preview.
 
-A module shows one at the top of its settings window by overriding `preview()`; any window can hold one like any
-other widget.
+Modules that are on draw on every preview as they draw in the world: those in a module's settings, and the Preview
+windows players add to a workspace. Shader highlights come for free: what your `HighlightEvent.Entity` and
+`HighlightEvent.Hand` handlers highlight is outlined, glowed and filled on a preview's entity and hands the same way.
+For the rest, handle `PreviewEvent`, posted each frame for each preview drawn. `entity()`, `block()` (from a block's
+item) and `viewModel()` say what it shows; `box()` is its box in the preview's coordinates (an entity's hitbox from its
+feet, a block's cube from the origin) and `shapes()` takes boxes and lines there; `highlight(style, color)` gives a
+block the shader highlight `HighlightEvent.Shapes` would. The first highlight wins, and `highlighted()` tells a
+fallback look (a highlight for the block you look at, say) to stay off. Preview entities stand where you are, so
+range checks count them as near.
+
+```java
+@Subscribe(inGame = true)
+private void onPreview(PreviewEvent e) {
+    if (e.entity() == null || mode.get() != Mode.BOXES) return;
+    int c = colorFor(e.entity());
+    if (c != 0) style.draw(e.shapes(), e.box(), c, 1);
+}
+```
+
+A module shows a preview at the top of its settings window by overriding `preview()`; any window can hold one like
+any other widget. `decorate((shapes, box, entity) -> ...)` draws on that one preview only, with the same `ShapeBuilder`
+calls, for something no module draws.
 
 ```java
 @Override
 public Widget preview() {
-    return Preview.entity(EntityTypes.ZOMBIE).decorate((shapes, box, entity) -> style.draw(shapes, box, color.argb(), 1));
+    return Preview.entity(EntityTypes.ZOMBIE);
 }
 ```
 
