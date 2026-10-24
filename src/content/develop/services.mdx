@@ -180,8 +180,7 @@ Myriad.jobs().start(this, Steps.inItem(index, view -> Steps.put(view, this::isLo
 
 Long-running work (open, take, close; build until done; fly a route) is a [job](/docs/develop/jobs): a `Step` you
 start with `Myriad.jobs().start(this, step)`, with the services above as ready-made steps in `Steps`. Delays and
-repeats are `Myriad.jobs().later(this, ticks, action)` and `every(this, ticks, action)`. `Myriad.tasks()` still
-works, deprecated, until 1.0.
+repeats are `Myriad.jobs().later(this, ticks, action)` and `every(this, ticks, action)`.
 
 ## The rest
 

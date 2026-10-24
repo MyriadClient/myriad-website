@@ -43,7 +43,9 @@ script (or an agent) can drive the game without a keyboard:
 ## Unit tests
 
 Settings, blueprints, maths and your own logic can be tested with JUnit without starting the game; anything that needs
-a world needs the dev client.
+a world needs the dev client. Myriad tests its own services and jobs headless, in a harness that runs the game's
+classes with a fake world and connection and records the packets sent; it's internal for now, and published as a test
+kit for addons in a later 1.x release.
 
 ## Against Grim
 

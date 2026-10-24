@@ -48,8 +48,9 @@ public final class Sprint extends Module {
 | `whileEnabled(start, stop)` | run `start` now if on and on every enable, `stop` on every disable: for helpers you start and stop |
 | `isEnabled()`, `toggle()`, `enable()`, `disable()`, `setEnabled(b)` | state |
 
-Do the work in event handlers. Don't keep timers or threads of your own: use [Tasks](/docs/develop/services#tasks),
-which are cancelled when the module turns off.
+Do the work in event handlers. Don't keep timers or threads of your own: use [jobs](/docs/develop/jobs)
+(`Myriad.jobs().later` and `every` for delays and repeats, a step for longer work), which are cancelled when the module
+turns off.
 
 ## Talking to the player
 

@@ -63,7 +63,8 @@ These are not style preferences. An addon that breaks them breaks for players.
 15. **Ticks are cheap, frames are not**: keep render handlers light; cache per tick (`TickCached`) or per chunk
     (`ChunkCache`).
 16. **Keep the jar's `fabric.mod.json` correct**: `entrypoints.myriad`, `depends.myriad` (the oldest supported),
-    `environment: client`, `contact.sources` for updates.
+    `environment: client`, `contact.sources` for updates. Using anything marked `@ApiStatus.AvailableSince("1.x")`
+    means `depends.myriad` of at least that release, or a `Myriad.isAtLeast` check around it.
 
 ## Common mistakes
 

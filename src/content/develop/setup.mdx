@@ -45,7 +45,7 @@ The template builds with Myriad's Gradle plugin, so `build.gradle` holds only wh
 
 ```groovy filename="build.gradle"
 plugins {
-    id 'dev.myriadclient.addon' version '0.10.0'
+    id 'dev.myriadclient.addon' version '1.0.0'
 }
 
 version = project.mod_version
@@ -97,7 +97,7 @@ checkout, with nothing to publish.
   "environment": "client",
   "entrypoints": { "myriad": ["com.example.addon.MyAddon"] },
   "mixins": ["my-addon.mixins.json"],
-  "depends": { "myriad": ">=0.10.0", "minecraft": "~26.2" }
+  "depends": { "myriad": ">=1.0.0", "minecraft": "~26.2" }
 }
 ```
 

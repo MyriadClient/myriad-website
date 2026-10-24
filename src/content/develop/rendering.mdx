@@ -176,11 +176,11 @@ API, so the API loads without it (a test harness puts its own there). It's marke
 `WorldLabel` puts text and item icons on world positions. For your own, project with `Projection.toScreen(pos)` in a
 `Render2DEvent` handler and draw on `event.canvas()`.
 
-## Moving from the old looks
+## Coming from 0.10
 
 `BoxStyle`, `HighlightSettings`, `HighlightEvent.Entity`, `HighlightEvent.Shapes` and `ChunkCache.Builder.highlight`
-are deprecated and go in 1.0. A module that offered a Mode option (boxes or outlines) drops it: the Render window is
-that choice now.
+were removed in 1.0. A module that offered a Mode option (boxes or outlines) drops it: the Render window is that choice
+now.
 
 | Before | Now |
 |---|---|

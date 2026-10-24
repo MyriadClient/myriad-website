@@ -24,6 +24,8 @@ An addon built against one version of Myriad keeps working on the next. What tha
   `Layout`, `Blueprint`, `Replacement`, `HookHandler`) only gain `default` methods.
 - **`@ApiStatus.Internal`** marks what's public for Myriad's own use (event constructors, lifecycle calls). Don't call it.
 - **Removals are announced**: `@Deprecated` for at least one minor release first, with the replacement in the javadoc.
+- **What's new since 1.0 says so**: every public type and member added after 1.0 carries
+  `@ApiStatus.AvailableSince("1.x")`, the release it came in, so you know what to check `Myriad.isAtLeast` for.
 
 ## Versions
 
@@ -37,20 +39,20 @@ each Minecraft version whatever Myriad does; within one:
 | a major (2.0) | remove what a minor release deprecated first |
 | a patch | nothing |
 
-Until 1.0 the same holds, except that a minor release may remove what an earlier minor release deprecated. Core's
+Before 1.0 a minor release could also remove what an earlier one had deprecated; 1.0 removed the last of it. Core's
 build compares the API with the last release's on every change and fails on anything that would break an addon built
 against it. Each repository's `CHANGELOG.md` says what changed.
 
 Declare the oldest Myriad you support in `fabric.mod.json`:
 
 ```json
-"depends": { "myriad": ">=0.9.0" }
+"depends": { "myriad": ">=1.0.0" }
 ```
 
 To use something newer while still supporting older versions:
 
 ```java
-if (Myriad.isAtLeast("0.10.0")) {
+if (Myriad.isAtLeast("1.1.0")) {
     useTheNewThing();
 }
 ```

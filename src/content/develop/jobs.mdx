@@ -3,8 +3,6 @@ title: "Jobs"
 description: "Long-running work as steps: compose them, run them as jobs, see why they're stuck, and write steps of your own."
 ---
 
-import { Callout } from "nextra/components";
-
 # Jobs
 
 A module is a continuous controller: Kill Aura, a bounce loop, Offhand. A **job** is finite work towards a goal: open
@@ -166,7 +164,3 @@ private @Nullable Build myBuild() {
 }
 ```
 
-<Callout>
-`Myriad.tasks()` is deprecated: `Myriad.jobs().later(...)` and `every(...)` replace its delays and repeats (they run
-at the start of a tick; tasks ran at its end), and a step replaces a task sequence. It goes in 1.0.
-</Callout>

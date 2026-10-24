@@ -28,6 +28,7 @@ The template has a GitHub workflow that builds on every push and releases on a `
 ## Before you release
 
 - Bump the version, and add a CHANGELOG entry.
-- `depends.myriad` is the oldest Myriad you've tested with.
+- `depends.myriad` is the oldest Myriad you've tested with; within 1.x a newer one keeps working, as
+  [Compatibility and versions](/docs/develop/compatibility#versions) explains.
 - Private settings are [protected](/docs/develop/sharing).
 - The dev client's `selftest` passes, and `myriad.auditMixins` finds nothing.
