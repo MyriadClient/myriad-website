@@ -8,7 +8,7 @@ import { Callout } from "nextra/components";
 # Shared configs
 
 Players [share their setup](/docs/use/sharing) as a code like `myriad_JS3k4d`: modules with their settings, control
-panels, the theme. As an addon author, you have one job: **mark private settings**. The API also lets you build and
+panels, wheels, the theme. As an addon author, you have one job: **mark private settings**. The API also lets you build and
 take in shares from code.
 
 ## Private settings: `protect()`
@@ -103,6 +103,7 @@ each setting's kind and shown value), so the website can draw it without knowing
                 { "name": "Webhook", "kind": "text", "protected": true } ] }] }
   }],
   "controlPanels": [{ "name": "Highway", "members": ["myriad-essentials:elytra_fly"], "settings": { } }],
+  "wheels": [{ "name": "Travel", "slots": [{ "kind": "module", "target": "myriad-essentials:elytra_fly", "label": "Elytra Fly" }] }],
   "theme": { "name": "Myriad", "settings": { } }
 }
 ```

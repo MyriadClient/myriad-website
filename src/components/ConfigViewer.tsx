@@ -151,6 +151,26 @@ function ShareView({ code, share }: { code: string; share: Share }) {
         </section>
       )}
 
+      {(share.wheels ?? []).length > 0 && (
+        <section className="flex flex-col gap-4">
+          <h2 className="font-display text-xl font-semibold">Wheels</h2>
+          <div className="share-menu grid gap-4 md:grid-cols-2" style={vars}>
+            {share.wheels!.map((w) => (
+              <div key={w.name} className="share-window p-4">
+                <p className="font-semibold" style={{ color: "var(--s-text)" }}>{w.name}</p>
+                <p className="mt-2 flex flex-wrap gap-1.5">
+                  {w.slots.map((s, i) => (
+                    <span key={i} className={s.kind === "command" ? "share-pill font-mono" : "share-pill"} title={SLOT_KINDS[s.kind]}>
+                      {s.kind === "command" ? s.target : s.name || s.label || s.target}
+                    </span>
+                  ))}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {share.theme && (
         <section className="flex flex-col gap-4">
           <h2 className="font-display text-xl font-semibold">Theme{share.theme.name ? `: ${share.theme.name}` : ""}</h2>
@@ -172,6 +192,15 @@ function ShareView({ code, share }: { code: string; share: Share }) {
     </div>
   );
 }
+
+/** What a wheel's slot runs, for its tooltip. */
+const SLOT_KINDS: Record<string, string> = {
+  module: "Toggles a module",
+  control: "Switches a control panel",
+  key_action: "Runs an action",
+  panel: "Opens a window",
+  command: "Runs a command",
+};
 
 function TakeIn({ code }: { code: string }) {
   const [copied, setCopied] = useState(false);

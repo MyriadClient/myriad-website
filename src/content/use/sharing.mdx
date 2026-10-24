@@ -1,6 +1,6 @@
 ---
 title: "Sharing your config"
-description: "Share modules, control panels and your theme as a short code, view shares on the website, and take one in."
+description: "Share modules, control panels, wheels and your theme as a short code, view shares on the website, and take one in."
 ---
 
 import { Callout, Steps } from "nextra/components";
@@ -14,6 +14,7 @@ A share can hold any mix of:
 
 - single modules, whole windows (an addon's category), or every module of an addon;
 - control panels;
+- wheels (their slots and icons; a slot that runs a command shows the command itself where it's taken in);
 - your theme (its colours and style; not your personal preferences);
 - keybinds, if you choose to include them (they're left out unless you do).
 
@@ -26,8 +27,9 @@ From the launcher: type `share`.
 
 ### Pick what goes in
 
-Click a window's card to include all of it, or right-click to unfold it and pick single modules. Switch on control
-panels, the theme, and keybinds if you want them.
+Click a window's card under **Modules** to include all of it, or right-click to unfold it and pick single modules.
+Unfold **Control panels** and **Wheels** to pick those, and **Also** for the theme and keybinds. Each section shows how
+much of it you picked while it's folded.
 
 ### Share it
 
@@ -35,7 +37,7 @@ Give it a title and press **Share**. The code is copied for you. Send it, or its
 `https://myriadclient.dev/config/myriad_JS3k4d`.
 </Steps>
 
-From chat: `.share module <module>`, `.share addon <addon>`, `.share panel <control panel>`, `.share theme`.
+From chat: `.share module <module>`, `.share addon <addon>`, `.share panel <control panel>`, `.share wheel <wheel>`, `.share theme`.
 
 ## What's never shared
 
@@ -57,7 +59,7 @@ whether it needs an addon you don't have. Then:
 - **Try as control panel**: makes a control panel of its modules and settings and turns it on. Your own settings are
   untouched underneath: turn the panel off and you're back to yours. The safest way to try someone's setup.
 - **Use these settings**: its settings become yours, for the modules in it (private settings excepted), and its
-  modules are turned on or off as they were shared. Its control panels and theme are added too.
+  modules are turned on or off as they were shared. Its control panels, wheels and theme are added too.
 
 From chat: `.share try <code>` and `.share import <code>`.
 

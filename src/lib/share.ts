@@ -1,4 +1,4 @@
-/** A shared config as Myriad clients publish it (ConfigShare, format 1): what the viewer reads. */
+/** A shared config as Myriad clients publish it (ConfigShare, format 1: modules, control panels, wheels, a theme): what the viewer reads. */
 export interface Share {
   format: number;
   title: string;
@@ -7,8 +7,15 @@ export interface Share {
   addons?: { id: string; name: string; version: string }[];
   modules: ShareModule[];
   controlPanels?: { name: string; description?: string; members?: string[]; settings?: Record<string, Record<string, unknown>> }[];
+  wheels?: ShareWheel[];
   theme?: { name?: string; view?: Look };
   look?: Look;
+}
+
+/** A wheel: its slots clockwise from the top, each what it runs and the name it shows in game. */
+export interface ShareWheel {
+  name: string;
+  slots: { kind: "module" | "control" | "key_action" | "panel" | "command"; target: string; label?: string; name?: string }[];
 }
 
 export interface ShareModule {
