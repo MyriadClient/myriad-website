@@ -5,7 +5,7 @@ export const site = {
     "Myriad is a free, open-source utility client for Minecraft 26.2 on Fabric. Its menu is a tiling window manager modelled on Hyprland, every module is an addon, and the stock modules pass Grim on 2b2t.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   /** Fallback only: the build reads the latest release from GitHub (see release.ts). */
-  version: "0.3.0",
+  version: "1.0.2",
   minecraft: "26.2",
   org: "https://github.com/MyriadClient",
   github: "https://github.com/MyriadClient/myriad-core",
