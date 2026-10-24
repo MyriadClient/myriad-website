@@ -41,7 +41,7 @@ const features = [
   },
   {
     title: "Addon-first",
-    body: "The core ships no modules. Essentials, the stock set, is an addon like any other. One API, a template, a reference addon, and a compatibility promise across releases.",
+    body: "The core ships no modules. Essentials, the stock set, is an addon like any other. One API, a template, a reference addon, and a promise that what works on 1.0 works on every 1.x.",
     art: <AddonVignette />,
   },
 ];
@@ -214,8 +214,8 @@ export default async function Home() {
             <div>
               <h2 className="text-3xl font-semibold sm:text-4xl">Official addons</h2>
               <p className="mt-4 text-[15px] leading-relaxed text-dim">
-                Addons share the standard categories, so modules from different authors sit in the same windows.
-                An addon built today keeps working on the next release: the API is versioned and tested for it.
+                Addons share the standard tags, so modules from different authors sit in the same windows. An addon
+                built against 1.0 keeps working on every 1.x release: core&rsquo;s build checks the API on every change.
               </p>
             </div>
             <dl className="divide-y divide-line border-y border-line">
