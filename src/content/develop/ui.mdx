@@ -72,7 +72,7 @@ the same way. For the rest, handle `PreviewEvent`, posted each frame for each pr
 (from a block's item) and `viewModel()` say what it shows; `render(look, color)` shows it in your look in the
 [render mode](/docs/develop/rendering#showing-things) that's on, as `RenderEvent` does in the world. `box()` is its box in
 the preview's coordinates (an entity's hitbox from its feet, a block's cube from the origin) and `shapes()` takes
-boxes and lines there, for anything else. The first `render` wins, and `highlighted()` tells a fallback look (a
+boxes and lines there, for anything else. The first `render` wins, and `shown()` tells a fallback look (a
 highlight for the block you look at, say) to stay off. Preview entities stand where you are, so range checks count
 them as near.
 

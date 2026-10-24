@@ -189,7 +189,6 @@ that choice now.
 | `HighlightEvent.Shapes` → `e.box(...)`, `e.block(...)` | `RenderEvent` → `e.box(box, look, color)`, `e.block(pos, look, color)` |
 | boxes drawn in `Render3DEvent` for Box mode | the same `RenderEvent` request |
 | `ChunkCache` with `.mesh` and `.highlight` | `.boxes(boxes, look)` and `e.chunks(cache)` |
-| `PreviewEvent` → `style.draw(e.shapes(), ...)` or `e.highlight(...)` | `e.render(look, color)` |
 
 Players' saved options carry over with `RenderSettings.migrate(saved, group, name)` in your module's
 `migrateSettings`: the fill (a box's *Lines* shape means no fill, *Fill* means no edges), and Dot Spacing and Dot Size
