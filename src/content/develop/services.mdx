@@ -268,8 +268,9 @@ Static helpers so addons don't each re-derive the same things (all under `dev.my
 | `render.Renderer3D` / `ShapeBuilder` | boxes, real block shapes, single faces, lines, circles, tracers (this frame) |
 | `render.WorldMesh` | the same shapes kept on the GPU and drawn every frame until rebuilt |
 | `world.ChunkCache`, `world.BlockScan` | work out something per chunk once, redo it only when the chunk changes, optionally drawn as a mesh; block searches that skip sections by palette |
-| `render.HighlightStyle`, `render.HighlightSettings` | how a highlight looks (outline width, glow, fill: none, solid or dots, gradient, through walls) and the standard settings for one |
-| `render.BoxStyle`, `render.EntityGroups` | the standard box options (outline, fill, opacity, width, through walls) and entity picker (players, friends, monsters, crystals, pearls, ... each with a theme colour), so every ESP-like module offers the same choices |
+| `render.RenderMode`, `render.RenderLook`, `render.RenderSettings` | the player's render mode (Shader or Box) and how what a module shows looks in either: the standard Render options (fill, opacity, line, outline and glow widths, gradient, through walls) |
+| `render.HighlightStyle` | how a shader highlight looks (outline width, glow, fill: none, solid, dots or an addon's, gradient, through walls) |
+| `render.EntityGroups` | the standard entity picker (players, friends, monsters, crystals, pearls, ... each with a theme colour), so every ESP-like module offers the same choices |
 | `render.WorldLabel`, `render.FadeMap`, `render.RenderStates`, `render.PlayerHeads` | labels on world positions (text and item icons); highlights that fade in and out; the entity behind a render state in renderer mixins; players' faces |
 | `ui.ThemePalette`, `ui.Theme` | build a theme from a terminal palette; themes that follow something live, explain problems, or replace old ids |
 | `mixin.CompatMixinPlugin` | mixins that apply only when another mod is (or isn't) installed: put them in `compat.<mod id>` (or `compat.no_<mod id>`) |

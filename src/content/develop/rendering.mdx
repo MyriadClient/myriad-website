@@ -1,33 +1,78 @@
 ---
 title: "Drawing in the world"
-description: "Immediate shapes, GPU meshes, per-chunk caches, shader highlights with custom fills, and labels."
+description: "Showing entities, blocks and boxes in the player's render mode, per-chunk caches, fills of your own, and drawing shapes and labels yourself."
 ---
 
 # Drawing in the world
 
-Three ways to draw shapes in the world, one vocabulary (`ShapeBuilder`: `box`, `blockShape`, `side`, `line`, `quad`,
-`circle`, in world coordinates). Pick by how often the shapes change:
+What a module draws in the world is one of two things:
 
-| Changes | Use | Cost per frame |
-|---|---|---|
-| every frame (entities, the crosshair target) | `event.shapes()` in a `Render3DEvent` handler | rebuilds and uploads every shape |
-| now and then (a path, a plan, a selection) | a `WorldMesh`, rebuilt when it changes | one draw call |
-| per chunk (ores, storage, holes) | a `ChunkCache` with a mesher | one draw per visible chunk |
+- **What it shows**: entities, blocks and boxes that it marks (ESP's mobs, Storage's chests, a build plan). Hand them
+  to core through a `RenderEvent` and core draws them in the mode the player picked in the
+  [Render window](/docs/use/menu#render): **Shader** (an outline, glow and fill traced around each thing's exact shape)
+  or **Box** (edges and faces). Your module never checks the mode, and never draws twice.
+- **Everything else**: tracers, paths, beams, circles, labels. Draw those yourself with a `ShapeBuilder`, a
+  `WorldMesh` or a label, the same in both modes.
 
-These helpers (`Renderer3D`, `WorldMesh`, `HighlightStyle`, `Ghosts`, `RenderLayers`, `RenderStates`) draw through
-`Myriad.render()`, core's renderer behind the API, so the API loads without it (a test harness puts its own there).
-It's marked internal: use the helpers.
-
-## Every frame
+## Showing things
 
 ```java
+private final SettingGroup sgRender = settings.group("Render");
+private final ColorSetting monsters = sgRender.color("Monsters").defaultValue(SettingColor.role(SettingColor.Mode.RED)).build();
+private final RenderSettings look = RenderSettings.builder(sgRender).build();     // the standard Render options
+
 @Subscribe(inGame = true)
-private void onRender(Render3DEvent e) {
-    if (target == null) return;
-    AABB box = Entities.lerpedBox(target, e.tickDelta());
-    Renderer3D.box(box, ColorUtil.withAlpha(color.get().argb(), 40), color.get().argb(), Renderer3D.ShapeMode.BOTH, false);
+private void onRender(RenderEvent e) {                       // once a frame, before entities are drawn
+    for (Entity entity : mc.level.entitiesForRendering()) {
+        if (entity instanceof Monster) e.entity(entity, look, monsters.argb());
+    }
+    if (target != null) e.block(target, look, 0xFFFFCC00);     // by the block's shape (a chest's, a slab's)
+    e.box(new AABB(start, end), look, 0x8055FF55);              // any box, in world coordinates
 }
 ```
+
+- `entity(entity, look, color)`: in Shader mode its exact shape (armour, held items, capes); in Box mode its hitbox.
+  The first request for an entity wins, so a higher-priority handler's look is the one drawn.
+- `block(pos, look, color)` and `box(aabb, look, color)`. Pass everything in range: what's off screen is skipped.
+- `below().block(...)` / `below().box(...)`: drawn under every other module's shapes, for something often right in
+  front of you (the block under the crosshair) that would otherwise hide the highlights behind it.
+- `chunks(cache)`: a `ChunkCache`'s boxes, kept on the GPU (below).
+- `mode()` says which mode is on, for what you draw yourself; `RenderMode.current()` says it anywhere.
+
+Colours are ARGB, and alpha fades the thing (`FadeMap` fades things in and out). Colours stay your module's own, one
+per kind of thing you show; the look is the rest. The `HighlightEvent.ENTITY_HIGHLIGHT` [hook](/docs/develop/hooks)
+sees every entity request, in both modes.
+
+### The look
+
+`RenderSettings` adds the standard Render options to a group, so every module offers the same ones, and only those for
+the mode that's on show: Fill, Fill Opacity and Through Walls in both modes; Outline Width, Glow, Gradient and the
+fill's Pattern Spacing and Pattern Size in Shader; Line Width in Box. Put your colours in the same group, named
+**Render**, last, as every stock module does.
+
+```java
+private final RenderSettings look = RenderSettings.builder(sgRender)
+    .defaults(HighlightStyle.OUTLINE.withFill(HighlightStyle.Fill.DOTS).withGlow(4))   // where the options start
+    .lineWidth(2)                                                                        // Box mode's edges
+    .throughWalls(false)
+    .visible(show::get)                                                                  // only while a toggle is on
+    .build();
+```
+
+Several looks in one group take a name each (`.named("Hand")` makes *Hand Fill*, *Hand Glow*). `.noThroughWalls()`
+leaves that option out for what's never behind anything, and `.alwaysShader()` is for what only the shader can draw
+(your hands, which have no box): its shader options show whatever the mode.
+
+For a look the player doesn't set, `RenderLook.of(style)` makes a fixed one: the style in Shader mode, its fill and
+1.5-pixel edges in Box mode (`RenderLook.of(style, 0)` for faces only). `RenderLook` is an interface, so a look can
+also come from somewhere else entirely.
+
+### Depth
+
+Depth is core's to get right in both modes. A box face lying on a block's face doesn't flicker against it, as the
+world pipelines pull Myriad's shapes towards the camera by about what vanilla gives its block cracks; what's behind
+the world stays hidden unless the look draws through walls; and a see-through box shows one layer of fill (its back
+faces aren't drawn through its front ones). There's nothing to offset or nudge by hand.
 
 ## Per chunk
 
@@ -38,46 +83,40 @@ private final ChunkCache<long[]> found = ChunkCache.of(this, chunk -> {   // run
         return out.isEmpty() ? null : out.toLongArray();
     })
     .range(range::get)                                                    // chunks around the player
-    .mesh((positions, mesh) -> {                                          // kept on the GPU until the chunk changes
-        for (long p : positions) mesh.blockShape(BlockPos.of(p), fill.argb(), line.argb(), ShapeMode.BOTH, true);
-    })
+    .boxes((positions, out) -> {                                          // kept on the GPU until the chunk changes
+        for (long p : positions) out.box(new AABB(BlockPos.of(p)), color.argb());
+    }, look)
     .build();
+
+@Subscribe(inGame = true)
+private void onRender(RenderEvent e) {
+    e.chunks(found);
+}
 ```
 
 The cache runs while its module is on and frees everything when it turns off. Chunks are worked through within a time
 budget each tick, nearest first (`.async()` moves long scans to the worker pool), and a chunk is recomputed only when a
-block in it changes (`.neighbours()` also when the chunk beside it changes). Keep the compute function to facts about
-the world and turn settings into looks in the mesher: a colour change then only needs `remeshAll()`; call
-`invalidateAll()` when a setting changes what is found. `BlockScan` skips every 16×16×16 section whose palette can't
-hold a match, so a search for a rare block reads almost nothing.
+block in it changes (`.neighbours()` also when the chunk beside it changes). `BlockScan` skips every 16×16×16 section
+whose palette can't hold a match, so a search for a rare block reads almost nothing.
 
-## Highlights
+Keep the compute function to facts about the world and turn settings into colours in `boxes`. The meshes are made
+again by themselves when the look or the mode changes; call `remeshAll()` when a colour does, and `invalidateAll()`
+when a setting changes what is found. In both modes a frame costs one draw per visible chunk however many blocks were
+found.
 
-Highlights are outlines traced by a shader around the exact silhouette of what's highlighted (an entity with its
-armour and held items, or a set of boxes), with an optional glow, fill and gradient, through walls or not.
+For drawing of your own per chunk (not boxes to show), `.mesh((value, mesh) -> ...)` takes a `MeshBuilder` instead.
 
-```java
-private final HighlightSettings look = new HighlightSettings(settings.group("Render"));    // the standard options
+## Fills
 
-@Subscribe(inGame = true)
-private void onHighlight(HighlightEvent.Entity e) {          // each entity as it's prepared for drawing
-    if (e.entity() instanceof Player) e.highlight(look.style(), 0xFFFF5555);
-}
-
-@Subscribe(inGame = true)
-private void onHighlightShapes(HighlightEvent.Shapes e) {    // once a frame: boxes and block shapes
-    for (BlockPos pos : chests) e.block(pos, look.style(), 0xFFFFCC00);
-}
-```
-
-`HighlightStyle` is immutable: `HighlightStyle.OUTLINE.withGlow(6).withFill(HighlightStyle.Fill.DOTS)`. Lengths are
-in GUI pixels. The first listener to highlight an entity wins; touching silhouettes of the same look share one outline.
-Highlighting costs nothing while nothing listens.
+A fill is what's drawn inside a shape: `Fill.NONE`, `Fill.SOLID`, `Fill.DOTS`, or one an addon adds. Every fill is
+listed in every module's Fill option, so a fill your addon adds can be picked in ESP, Storage or any other module. In
+Shader mode a fill is a fragment shader; in Box mode every fill draws flat, at its opacity.
 
 **Your own fill** is a fragment shader in your assets, importing Myriad's composite and defining `customFill`:
 
 ```java
-public static final HighlightStyle.Fill STRIPES = HighlightStyle.Fill.custom(Identifier.fromNamespaceAndPath("my-addon", "fill/stripes"));
+public static final HighlightStyle.Fill STRIPES = HighlightStyle.Fill.custom(
+    Identifier.fromNamespaceAndPath("my-addon", "fill/stripes"), "Stripes");
 ```
 
 ```glsl filename="assets/my-addon/shaders/fill/stripes.fsh"
@@ -90,28 +129,71 @@ vec4 customFill(HighlightFill f) {
 }
 ```
 
-Create custom fills as `static final` fields of your addon class, so they exist before the game compiles shaders.
+The name is what Fill options list it as (without one, it comes from the shader's file name: *Stripes*); a name
+another fill has already gets your namespace after it. `f.spacing` and `f.dotSize` are the look's Pattern Spacing and
+Pattern Size, and `f.time` animates. Create custom fills as `static final` fields of your addon class, so they exist
+before the game compiles shaders. `HighlightStyle.Fill.all()` lists them, `byName(name)` finds one.
 
-## Labels
+## Previews
+
+A module that shows things should show them on a [Preview](/docs/develop/ui#previews) too, so the player sees a
+setting change as they make it:
+
+```java
+@Subscribe(inGame = true)
+private void onPreview(PreviewEvent e) {
+    if (e.entity() instanceof Monster) e.render(look, monsters.argb());
+}
+```
+
+`render(look, color)` draws the preview's subject in the mode that's on, as `RenderEvent` does in the world. Your hands
+are highlighted through `HighlightEvent.Hand`, in either mode.
+
+## Drawing yourself
+
+`ShapeBuilder` is one vocabulary for shapes in world coordinates: `box`, `blockShape`, `side`, `line`, `quad`,
+`circle`. Pick where to draw by how often the shapes change:
+
+| Changes | Use | Cost per frame |
+|---|---|---|
+| every frame (a tracer, a trajectory) | `event.shapes()` in a `Render3DEvent` handler | rebuilds and uploads every shape |
+| now and then (a path, a selection) | a `WorldMesh`, rebuilt when it changes | one draw call |
+| per chunk | a `ChunkCache` with `.mesh` | one draw per visible chunk |
+
+```java
+@Subscribe(inGame = true)
+private void onRender3D(Render3DEvent e) {
+    e.shapes().line(mc.player.getEyePosition(), target.position(), color.argb(), true);
+}
+```
+
+A box's faces are drawn from outside only; `quad` is seen from both sides. These helpers (`Renderer3D`, `WorldMesh`,
+`HighlightStyle`, `Ghosts`, `RenderLayers`, `RenderStates`) draw through `Myriad.render()`, core's renderer behind the
+API, so the API loads without it (a test harness puts its own there). It's marked internal: use the helpers.
+
+### Labels
 
 `WorldLabel` puts text and item icons on world positions. For your own, project with `Projection.toScreen(pos)` in a
 `Render2DEvent` handler and draw on `event.canvas()`.
 
-## The standard looks
+## Moving from the old looks
 
-`BoxStyle` (outline, fill, opacity, width, through walls) and `EntityGroups` (players, friends, monsters, crystals,
-pearls, … each with a theme colour) give ESP-like modules the same options as the stock ones. `FadeMap` fades
-highlights in and out.
+`BoxStyle`, `HighlightSettings`, `HighlightEvent.Entity`, `HighlightEvent.Shapes` and `ChunkCache.Builder.highlight`
+are deprecated and go in 1.0. A module that offered a Mode option (boxes or outlines) drops it: the Render window is
+that choice now.
 
-How a module draws goes in one group named **Render**, last, as in every stock module: its colours, its mode of
-drawing and the style options. A module that draws either boxes or outlines, by mode, puts both styles there with
-`HighlightSettings.builder(group).sharing(box)`, which uses the box's Fill Opacity and Through Walls instead of a
-second pair:
+| Before | Now |
+|---|---|
+| `BoxStyle` and `HighlightSettings` in one group | one `RenderSettings` |
+| `HighlightEvent.Entity` → `e.highlight(style, color)` | `RenderEvent` → `e.entity(entity, look, color)` |
+| `HighlightEvent.Shapes` → `e.box(...)`, `e.block(...)` | `RenderEvent` → `e.box(box, look, color)`, `e.block(pos, look, color)` |
+| boxes drawn in `Render3DEvent` for Box mode | the same `RenderEvent` request |
+| `ChunkCache` with `.mesh` and `.highlight` | `.boxes(boxes, look)` and `e.chunks(cache)` |
+| `PreviewEvent` → `style.draw(e.shapes(), ...)` or `e.highlight(...)` | `e.render(look, color)` |
 
-```java
-private final SettingGroup sgRender = settings.group("Render");
-private final EnumSetting<Mode> mode = sgRender.oneOf("Mode", Mode.BOXES).build();
-private final BoxStyle box = new BoxStyle(sgRender, () -> mode.get() == Mode.BOXES);
-private final HighlightSettings outline = HighlightSettings.builder(sgRender)
-    .visible(() -> mode.get() == Mode.OUTLINE).sharing(box).build();
-```
+Players' saved options carry over with `RenderSettings.migrate(saved, group, name)` in your module's
+`migrateSettings`: the fill (a box's *Lines* shape means no fill, *Fill* means no edges), and Dot Spacing and Dot Size
+as the pattern's.
+
+`EntityGroups` (players, friends, monsters, crystals, pearls, … each with a theme colour) gives ESP-like modules the
+same entity picker as the stock ones.

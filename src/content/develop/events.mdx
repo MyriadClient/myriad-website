@@ -82,7 +82,8 @@ which may run on another: see [Threads](/docs/develop/threads).
 | `ChatReceiveEvent`, `ChatSendEvent` | chat in and out (cancel, change); `parsed()` says who and whether it's a whisper |
 | `BlockRenderEvent` | leave a block out of the chunk mesh (X-ray) |
 | `EntityRenderEvent.Visible`, `.Nametag`, `.Model` | hide an entity, replace its name tag, draw its model again |
-| `HighlightEvent.Entity`, `.Shapes` | shader outlines and glows (see [Highlights](/docs/develop/rendering#highlights)) |
+| `RenderEvent` | entities, blocks and boxes a module shows, drawn in the player's render mode (see [Showing things](/docs/develop/rendering#showing-things)) |
+| `HighlightEvent.Hand` | shader highlights on your hands and held items |
 | `GlideEvent` | an elytra glide's movement this tick |
 | `CameraEvent`, `PlaySoundEvent` | the camera; cancel any sound |
 | `KeyEvent`, `MouseButtonEvent`, `MouseScrollEvent`, `CharEvent` | input |
@@ -93,5 +94,5 @@ which may run on another: see [Threads](/docs/develop/threads).
 
 <Callout type="info">
   Event objects are made by Myriad (their constructors are `@ApiStatus.Internal`). Some are reused for every call
-  (`HighlightEvent.Entity` is): don't keep one past your handler.
+  (`RenderEvent` is): don't keep one past your handler.
 </Callout>

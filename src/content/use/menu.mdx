@@ -33,6 +33,19 @@ settings you're tuning to see each change as you make it, without closing the me
 at its top chooses what it shows (your hands as you'd see them without the menu in the way); drag to turn it,
 right-drag to move it, scroll to zoom, double-click to put it back.
 
+### Render
+
+The **Render** window picks how every module draws what it shows in the world, for all of them at once:
+
+- **Shader** traces the exact shape of each thing (a mob with its armour and what it holds, a chest's own shape) with
+  an outline, a glow and a fill, merged where things that look alike touch.
+- **Box** draws a box around each, edges and faces. It costs less on a slow graphics card, and boxes never merge.
+
+Each module keeps its own colours, and its **Render** options show the ones for the mode that's on: Fill (flat, dots,
+or an addon's), Fill Opacity and Through Walls in both; Outline Width, Glow, Gradient and the pattern's size for
+Shader; Line Width for Box. *Switch Render Mode* is a key you can bind in the Keybinds window, and `.render box`
+switches from chat. Your hands and held items (View Model) are always drawn with the shader, having no box.
+
 A window can be:
 
 - **Tiled**: it takes a share of the workspace, and the others make room. Drag the gaps between windows to resize them
