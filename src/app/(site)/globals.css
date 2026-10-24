@@ -110,6 +110,27 @@ kbd {
   border-radius: calc(var(--s-round) * 0.75);
 }
 
+/* Control panels and wheels: the last tile takes what's left of its row, so no row ends half empty. */
+@media (min-width: 48rem) {
+  .share-bento > :last-child:nth-child(2n + 1) {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 80rem) {
+  .share-bento > :last-child:nth-child(2n + 1) {
+    grid-column: auto;
+  }
+
+  .share-bento > :last-child:nth-child(3n + 1) {
+    grid-column: span 3;
+  }
+
+  .share-bento > :last-child:nth-child(3n + 2) {
+    grid-column: span 2;
+  }
+}
+
 .share-pill {
   display: inline-block;
   padding: 0.05rem 0.5rem;

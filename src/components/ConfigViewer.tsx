@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { codeFromLocation, safeColor, safeLook, type Look, type Share, type ShareModule, type SettingRow } from "@/lib/share";
 
 type State =
@@ -24,8 +24,8 @@ const MYRIAD: Required<Look> = {
 };
 
 /**
- * A shared config drawn close to how it looks in Myriad: one window per addon and category, its modules as rows (on
- * ones tinted), each module's settings as they were set, in the sharer's colours. Private settings say only that
+ * A shared config drawn close to how it looks in Myriad: one window per addon and category, packed into columns that
+ * end level, its modules as rows (on ones tinted), each module's settings as they were set, in the sharer's colours. Private settings say only that
  * they're there.
  */
 export function ConfigViewer({ api }: { api: string }) {
@@ -77,6 +77,8 @@ function ShareView({ code, share }: { code: string; share: Share }) {
   const look = { ...MYRIAD, ...safeLook(share.theme?.view ?? share.look) };
   const [onlyChanged, setOnlyChanged] = useState(true);
   const windows = useMemo(() => groupIntoWindows(share.modules), [share.modules]);
+  const columns = useColumns();
+  const layout = useMemo(() => pack(windows, columns, onlyChanged), [windows, columns, onlyChanged]);
   const vars = {
     "--s-accent": look.accent,
     "--s-window": look.window,
@@ -119,9 +121,17 @@ function ShareView({ code, share }: { code: string; share: Share }) {
               Only settings that differ from the defaults
             </label>
           </div>
-          <div className="share-menu grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3" style={vars}>
-            {windows.map((w) => (
-              <ShareWindow key={w.key} title={w.title} subtitle={w.addonName} color={w.color} modules={w.modules} onlyChanged={onlyChanged} />
+          <div
+            className="share-menu grid gap-4"
+            style={{ ...vars, gridTemplateColumns: `repeat(${layout.stacks.length}, minmax(0, 1fr))`, gridTemplateRows: layout.wide ? "auto 1fr" : undefined }}
+          >
+            {layout.wide && <ShareWindow window={layout.wide} onlyChanged={onlyChanged} wide />}
+            {layout.stacks.map((stack, i) => (
+              <div key={i} className="flex flex-col gap-4" style={layout.wide ? (i === 2 ? { gridColumn: 3, gridRow: "1 / 3" } : { gridColumn: i + 1, gridRow: 2 }) : undefined}>
+                {stack.map((w, j) => (
+                  <ShareWindow key={w.key} window={w} onlyChanged={onlyChanged} grow={j === stack.length - 1} />
+                ))}
+              </div>
             ))}
           </div>
         </section>
@@ -130,7 +140,7 @@ function ShareView({ code, share }: { code: string; share: Share }) {
       {(share.controlPanels ?? []).length > 0 && (
         <section className="flex flex-col gap-4">
           <h2 className="font-display text-xl font-semibold">Control panels</h2>
-          <div className="share-menu grid gap-4 md:grid-cols-2" style={vars}>
+          <div className="share-menu share-bento grid gap-4 md:grid-cols-2 xl:grid-cols-3" style={vars}>
             {share.controlPanels!.map((p) => (
               <div key={p.name} className="share-window p-4">
                 <p className="font-semibold" style={{ color: "var(--s-text)" }}>{p.name}</p>
@@ -154,7 +164,7 @@ function ShareView({ code, share }: { code: string; share: Share }) {
       {(share.wheels ?? []).length > 0 && (
         <section className="flex flex-col gap-4">
           <h2 className="font-display text-xl font-semibold">Wheels</h2>
-          <div className="share-menu grid gap-4 md:grid-cols-2" style={vars}>
+          <div className="share-menu share-bento grid gap-4 md:grid-cols-2 xl:grid-cols-3" style={vars}>
             {share.wheels!.map((w) => (
               <div key={w.name} className="share-window p-4">
                 <p className="font-semibold" style={{ color: "var(--s-text)" }}>{w.name}</p>
@@ -247,25 +257,134 @@ function groupIntoWindows(modules: ShareModule[]): WindowGroup[] {
   return [...groups.values()];
 }
 
+/**
+ * The windows packed into balanced columns, like a masonry grid: heaviest first into the lightest column, then
+ * moves and swaps between columns while they make the tallest one shorter; each column in the menu's order. With
+ * three columns, a window heavier than a column's share goes across the first two as a wide tile, its modules
+ * flowing through two columns (a long one carries on in the second). Weighed by what's shown with the filter, never
+ * by which modules are folded, so folding one doesn't move the windows around.
+ */
+function pack(windows: WindowGroup[], columns: number, onlyChanged: boolean): { wide?: WindowGroup; stacks: WindowGroup[][] } {
+  const count = Math.max(1, Math.min(columns, windows.length));
+  if (count === 1) return { stacks: [windows] };
+  const weights = new Map(windows.map((w) => [w, windowWeight(w, onlyChanged)]));
+  const total = windows.reduce((sum, w) => sum + weights.get(w)!, 0);
+  const heaviest = windows.reduce((a, b) => (weights.get(b)! > weights.get(a)! ? b : a));
+  const wide = count === 3 && windows.length > 3 && weights.get(heaviest)! > total / 3 ? heaviest : undefined;
+  const loads = new Array<number>(count).fill(0);
+  if (wide) loads[0] = loads[1] = WINDOW_TITLE + (weights.get(wide)! - WINDOW_TITLE) / 2 + GAP;
+  const stacks = loads.map((): WindowGroup[] => []);
+  for (const w of windows.filter((w) => w !== wide).sort((a, b) => weights.get(b)! - weights.get(a)!)) {
+    const i = loads.indexOf(Math.min(...loads));
+    stacks[i]!.push(w);
+    loads[i]! += weights.get(w)! + GAP;
+  }
+  balance(stacks, loads, (w) => weights.get(w)! + GAP);
+  for (const stack of stacks) stack.sort((a, b) => windows.indexOf(a) - windows.indexOf(b));
+  return { wide, stacks };
+}
+
+/** Moves a window to another column, or swaps two, while that lowers the tallest column (or evens them out at the same height). */
+function balance(stacks: WindowGroup[][], loads: number[], weight: (w: WindowGroup) => number) {
+  const score = () => Math.max(...loads) * 1e6 + loads.reduce((sum, l) => sum + l * l, 0) / 1e3;
+  for (let improved = true, rounds = 0; improved && rounds < 100; rounds++) {
+    improved = false;
+    const before = score();
+    for (let a = 0; a < stacks.length && !improved; a++) {
+      for (let b = 0; b < stacks.length && !improved; b++) {
+        if (a === b) continue;
+        for (let i = 0; i < stacks[a]!.length && !improved; i++) {
+          const w = stacks[a]![i]!;
+          // Move w from a to b.
+          loads[a]! -= weight(w);
+          loads[b]! += weight(w);
+          if (stacks[a]!.length > 1 && score() < before) {
+            stacks[a]!.splice(i, 1);
+            stacks[b]!.push(w);
+            improved = true;
+            break;
+          }
+          // Or swap it with one of b's.
+          for (let j = 0; j < stacks[b]!.length && !improved; j++) {
+            const v = stacks[b]![j]!;
+            loads[a]! += weight(v);
+            loads[b]! -= weight(v);
+            if (score() < before) {
+              stacks[a]![i] = v;
+              stacks[b]![j] = w;
+              improved = true;
+            } else {
+              loads[a]! -= weight(v);
+              loads[b]! += weight(v);
+            }
+          }
+          if (!improved) {
+            loads[a]! += weight(w);
+            loads[b]! -= weight(w);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Rough heights in pixels, only for balancing the columns.
+const WINDOW_TITLE = 53, GAP = 16, MODULE = 38, DEFAULTS_LINE = 30, GROUP_LABEL = 24, SETTING = 24;
+
+function windowWeight(w: WindowGroup, onlyChanged: boolean): number {
+  return WINDOW_TITLE + w.modules.reduce((sum, m) => sum + moduleWeight(m, onlyChanged), 0);
+}
+
+function moduleWeight(m: ShareModule, onlyChanged: boolean): number {
+  const groups = visibleGroups(m, onlyChanged);
+  if (groups.length === 0) return MODULE + DEFAULTS_LINE;
+  const labels = (m.view?.groups?.length ?? 0) > 1 ? groups.length : 0;
+  return MODULE + 12 + labels * GROUP_LABEL + groups.reduce((n, g) => n + g.settings.length, 0) * SETTING;
+}
+
+/** A module's setting groups as its card shows them: with the filter, only the changed and the private ones. */
+function visibleGroups(m: ShareModule, onlyChanged: boolean) {
+  return (m.view?.groups ?? [])
+    .map((g) => ({ ...g, settings: g.settings.filter((s) => !onlyChanged || s.default === false || s.protected) }))
+    .filter((g) => g.settings.length > 0);
+}
+
+/** How many columns the windows get: the menu grid's 1, 2 (md) or 3 (xl). */
+function useColumns(): number {
+  return useSyncExternalStore(onColumns, columnsNow, () => 1);
+}
+
+const MEDIUM = "(min-width: 48rem)", LARGE = "(min-width: 80rem)";
+
+function columnsNow(): number {
+  return matchMedia(LARGE).matches ? 3 : matchMedia(MEDIUM).matches ? 2 : 1;
+}
+
+function onColumns(change: () => void): () => void {
+  const queries = [matchMedia(MEDIUM), matchMedia(LARGE)];
+  for (const q of queries) q.addEventListener("change", change);
+  return () => queries.forEach((q) => q.removeEventListener("change", change));
+}
+
 function moduleName(share: Share, id: string): string {
   return share.modules.find((m) => m.id === id)?.view?.name ?? id.split(":")[1]?.replace(/_/g, " ") ?? id;
 }
 
-function ShareWindow({ title, subtitle, color, modules, onlyChanged }: {
-  title: string;
-  subtitle: string;
-  color?: string;
-  modules: ShareModule[];
+/** A window of the menu; a wide one goes across two columns with its modules in two, one that grows fills its column. */
+function ShareWindow({ window: { title, addonName, color, modules }, onlyChanged, wide, grow }: {
+  window: WindowGroup;
   onlyChanged: boolean;
+  wide?: boolean;
+  grow?: boolean;
 }) {
   return (
-    <div className="share-window overflow-hidden">
+    <div className={`share-window flex flex-col overflow-hidden${grow ? " flex-1" : ""}`} style={wide ? { gridColumn: "1 / 3", gridRow: 1 } : undefined}>
       <div className="share-title flex items-center gap-2 px-3 py-2 text-sm">
         <span className="h-2.5 w-2.5 rounded-full" style={{ background: color ?? "var(--s-accent)" }} />
         <span className="font-semibold" style={{ color: "var(--s-text)" }}>{title}</span>
-        <span style={{ color: "var(--s-dim)" }}>{subtitle}</span>
+        <span style={{ color: "var(--s-dim)" }}>{addonName}</span>
       </div>
-      <div className="flex flex-col gap-1.5 p-2">
+      <div className={wide ? "columns-2 gap-1.5 p-2 pb-0.5 [&>*]:mb-1.5" : "flex flex-col gap-1.5 p-2"}>
         {modules.map((m) => (
           <ModuleCard key={m.id} module={m} color={color} onlyChanged={onlyChanged} />
         ))}
@@ -276,14 +395,12 @@ function ShareWindow({ title, subtitle, color, modules, onlyChanged }: {
 
 function ModuleCard({ module: m, color, onlyChanged }: { module: ShareModule; color?: string; onlyChanged: boolean }) {
   const [open, setOpen] = useState(true);
-  const groups = (m.view?.groups ?? [])
-    .map((g) => ({ ...g, settings: g.settings.filter((s) => !onlyChanged || s.default === false || s.protected) }))
-    .filter((g) => g.settings.length > 0);
+  const groups = visibleGroups(m, onlyChanged);
   return (
-    <div className="share-card">
+    <div className="share-card box-decoration-clone">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center gap-2 px-2.5 py-1.5 text-left text-sm"
+        className="flex w-full break-after-avoid items-center gap-2 px-2.5 py-1.5 text-left text-sm"
         title={m.view?.description}
         style={{ color: m.enabled ? "var(--s-text)" : "var(--s-dim)" }}
       >
@@ -297,7 +414,7 @@ function ModuleCard({ module: m, color, onlyChanged }: { module: ShareModule; co
           {groups.length === 0 && <p className="text-xs" style={{ color: "var(--s-dim)" }}>All settings at their defaults.</p>}
           {groups.map((g) => (
             <div key={g.name} className="flex flex-col gap-1">
-              {(m.view?.groups?.length ?? 0) > 1 && <p className="text-[11px] uppercase tracking-wide" style={{ color: "var(--s-dim)" }}>{g.name}</p>}
+              {(m.view?.groups?.length ?? 0) > 1 && <p className="break-after-avoid text-[11px] uppercase tracking-wide" style={{ color: "var(--s-dim)" }}>{g.name}</p>}
               {g.settings.map((s) => (
                 <Setting key={s.name} row={s} />
               ))}
@@ -311,7 +428,7 @@ function ModuleCard({ module: m, color, onlyChanged }: { module: ShareModule; co
 
 function Setting({ row }: { row: SettingRow }) {
   return (
-    <div className="flex items-center justify-between gap-3 text-[13px]" title={row.description}>
+    <div className="flex break-inside-avoid items-center justify-between gap-3 text-[13px]" title={row.description}>
       <span style={{ color: "var(--s-text)" }}>{row.name}</span>
       <Value row={row} />
     </div>
