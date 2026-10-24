@@ -7,7 +7,7 @@ description: "Showing entities, blocks and boxes in the player's render mode, pe
 
 What a module draws in the world is one of two things:
 
-- **What it shows**: entities, blocks and boxes that it marks (ESP's mobs, Storage's chests, a build plan). Hand them
+- **What it shows**: entities, blocks and boxes that it marks (Entity ESP's mobs, Storage ESP's chests, a build plan). Hand them
   to core through a `RenderEvent` and core draws them in the mode the player picked in the
   [Render window](/docs/use/menu#render): **Shader** (an outline, glow and fill traced around each thing's exact shape)
   or **Box** (edges and faces). Your module never checks the mode, and never draws twice.
@@ -109,7 +109,7 @@ For drawing of your own per chunk (not boxes to show), `.mesh((value, mesh) -> .
 ## Fills
 
 A fill is what's drawn inside a shape: `Fill.NONE`, `Fill.SOLID`, `Fill.DOTS`, or one an addon adds. Every fill is
-listed in every module's Fill option, so a fill your addon adds can be picked in ESP, Storage or any other module. In
+listed in every module's Fill option, so a fill your addon adds can be picked in Entity ESP, Storage ESP or any other module. In
 Shader mode a fill is a fragment shader; in Box mode every fill draws flat, at its opacity.
 
 **Your own fill** is a fragment shader in your assets, importing Myriad's composite and defining `customFill`:
