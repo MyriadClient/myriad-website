@@ -167,7 +167,9 @@ A `View` reads and moves the container's items: `find`, `count`, `quickMove`, `s
 says the player opened it, and `opener()` which module opened the rest.
 
 A shulker box or ender chest from your inventory opens where you stand: `openItem(owner, index, ticks, options)`
-puts it down beside you (turned first where the server checks looks), opens it, and gives you an `ItemSession`;
+puts it down above your head where it can (into the empty space when `options` has air placement, else under a block
+over it), else beside you, opens it with the very next click instead of waiting for the placement's answer, and gives
+you an `ItemSession`;
 `session.finish()` closes it, breaks it (with your Silk Touch pickaxe for an ender chest), picks it up and puts it back
 in its slot. Putting it back is Myriad's own job, so it finishes even if your module turns off, and a box put down but
 not opened is picked back up too. From a job, `Steps.inItem(index, view -> step)` does the whole round trip:
