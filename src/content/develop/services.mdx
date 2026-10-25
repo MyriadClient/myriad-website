@@ -180,6 +180,10 @@ it, and `finish()` opens the chest again, the box back in its slot. From a job, 
 Myriad.jobs().start(this, Steps.inItem(index, view -> Steps.put(view, this::isLoot, Containers.Transfer.all())));
 ```
 
+`session.finishWhenClosed()` leaves a box standing until the player closes a screen themselves, then puts it back:
+switching to another container meanwhile (the swap bar over themed screens gives each box a tab, or opening one by
+hand) keeps it there to open again. Boxes go back newest first, so one opened from another goes back into it first.
+
 `hold(view)` keeps the open container open on the server once its screen closes: no close goes out, and
 `reopen()` (or opening your inventory) shows it again with no packets. Your inventory's clicks go through it meanwhile,
 as the server only takes clicks in the container it has open. It ends when another container opens, the server closes
