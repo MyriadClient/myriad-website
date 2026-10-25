@@ -172,7 +172,9 @@ over it), else beside you, opens it with the very next click instead of waiting 
 you an `ItemSession`;
 `session.finish()` closes it, breaks it (with your Silk Touch pickaxe for an ender chest), picks it up and puts it back
 in its slot. Putting it back is Myriad's own job, so it finishes even if your module turns off, and a box put down but
-not opened is picked back up too. From a job, `Steps.inItem(index, view -> step)` does the whole round trip:
+not opened is picked back up too. One in a chest you have open (or a barrel, shulker box, ender chest) goes with
+`openItem(owner, view, screenSlot, ticks, options)`, the slot the chest's own or yours below it: the chest closes for
+it, and `finish()` opens the chest again, the box back in its slot. From a job, `Steps.inItem(index, view -> step)` does the whole round trip:
 
 ```java
 Myriad.jobs().start(this, Steps.inItem(index, view -> Steps.put(view, this::isLoot, Containers.Transfer.all())));
