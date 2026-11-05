@@ -134,6 +134,54 @@ another fill has already gets your namespace after it. `f.spacing` and `f.dotSiz
 Pattern Size, and `f.time` animates. Create custom fills as `static final` fields of your addon class, so they exist
 before the game compiles shaders. `HighlightStyle.Fill.all()` lists them, `byName(name)` finds one.
 
+### What a fill sees
+
+Since 1.5.0 a fill knows the shape under each pixel, not just that the pixel is inside it, so it can follow a mob's
+faces, edges and depth. Besides the screen rectangle above, `HighlightFill` has:
+
+| Field | What it is |
+|---|---|
+| `hasDepth` | Whether the fields below are known (false on an older core, or where nothing was drawn) |
+| `depth`, `position`, `normal` | Distance from the camera in blocks, the point and its facing in view space (x right, y up, z towards you) |
+| `objectPosition`, `objectNormal` | The same in the highlighted thing's own space: blocks from the bottom middle of its box, turned with a mob's body. A pattern laid out with these stays put on it as it and the camera move |
+| `objectView`, `objectSize` | The direction you're looking at it from, in that space (to look into it), and its box's size |
+| `cavity` | How the surface bends: above 0 on a ridge, below 0 in a valley, 0 on a flat face, as Blender's cavity |
+| `pixelSize` | How many blocks one screen pixel spans there, for sizing lines and fading out detail too fine to show (`fwidth` isn't reliable in a fill) |
+
+And functions that measure on request, so a fill pays only for what it calls:
+
+```glsl
+float highlightEdgeDistance(HighlightFill f, float reach);      // pixels to the silhouette's edge, up to reach
+float highlightFaceEdgeDistance(HighlightFill f, float reach);  // pixels to the edge of the face f is on
+float highlightCavity(HighlightFill f, float reach);            // the cavity measured reach pixels either way
+bool  highlightSurface(ivec2 p, out vec3 position);             // the surface at any pixel
+```
+
+A gradient in from every edge of every face, say, is `highlightFaceEdgeDistance(f, reach) * f.pixelSize` (in blocks)
+through a `smoothstep`. `myriad:highlight_fill.glsl` lists everything with a line on each.
+
+**Options.** A fill can have settings of its own, listed under it in the Render window (a module's Render options get a
+*Fill Options* button there when it's picked). They're your addon's settings, read by the shader in order:
+
+```java
+SettingGroup sg = ctx.settings("Fills").group("Stripes");
+sg.decimal("Width").defaultValue(4).range(1, 16).build();
+sg.color("Edge").defaultValue(SettingColor.of(0xFFFFFFFF)).build();
+STRIPES.options(sg);
+```
+
+```glsl
+float width = highlightOption(0).x;   // a number in x
+vec4 edge = highlightOption(1);       // a colour as RGBA; a switch is 1 or 0, a choice its index
+```
+
+**The scene.** `STRIPES.readsScene(true)` gives the shader what's on screen under it as drawn before the highlights
+(`f.scene`, `highlightScene(p)`) and whether that's the highlighted thing itself (`f.inView`), so a fill can recolour a
+mob or trace its own details. The screen is copied only where that fill draws, so leave it off unless you read it.
+
+The depth, options and scene are read only by addons' fill passes: the built-in fills and every other module cost
+nothing more. They work with Iris installed and with its shader packs on.
+
 ## Previews
 
 A module that shows things should show them on a [Preview](/docs/develop/ui#previews) too, so the player sees a
