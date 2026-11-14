@@ -1,6 +1,6 @@
 ---
 title: "Testing"
-description: "The dev client, the scripted dev console, selftest, fake players, and checking against Grim."
+description: "The dev client, the scripted dev console, in-game tests with Myriad Testing, and checking against Grim."
 ---
 
 # Testing
@@ -40,12 +40,63 @@ script (or an agent) can drive the game without a keyboard:
   names contain them (`.packets log on useitem action`). Each line: `t<tick> +<ms> > Name {field=value, ...}`.
 - `.diagnostics` copies versions and settings for a bug report.
 
+## In-game tests
+
+[Myriad Testing](https://github.com/MyriadClient/myriad-testing) runs tests written in Java in a dev client joined to
+a real server: each test sets up its scene, acts through the game's own input, and checks what the server says
+happened, and a test that passes its checks still fails if Grim flagged the player. A failure comes with the steps it
+took, what the game said, the player tick by tick, the packets and Grim's flags. Save a file and the changed classes
+are swapped into the running client and the tests run again in seconds. Essentials' modules are tested this way
+(`src/gametest` in [its repository](https://github.com/MyriadClient/myriad-essentials)).
+
+Tests live in your addon, in `src/gametest`; the addon plugin sets up a `gametest` source set when that folder exists
+and takes Myriad Testing from Myriad's maven. They're a small dev-only mod of their own, never part of your jar:
+
+```json
+{
+	"schemaVersion": 1,
+	"id": "my-addon-tests",
+	"version": "${version}",
+	"environment": "client",
+	"entrypoints": { "myriad-tests": ["com.example.gametest.GreeterTests"] },
+	"depends": { "my-addon": "*", "myriad-testing": "*" }
+}
+```
+
+```java
+public final class GreeterTests implements TestSuite {
+	@Test(tags = "chat")
+	public void greetsOnJoin(TestContext t) {
+		t.module("my-addon:greeter").enable();
+		t.player().rejoin(2);
+		t.check(t.chat().stream().anyMatch(l -> l.contains("Hello")), "chat: " + t.chat());
+	}
+}
+```
+
+Before each test every module is turned off (and put back afterwards), the inventory emptied and the player
+teleported to a cleared arena on a stone floor, so nothing needs undoing. `t.player()`, `t.arena()`, `t.server()`,
+`t.module()` and `t.hold()` set things up and act; `check`, `note` and `skip` report. Its
+[README](https://github.com/MyriadClient/myriad-testing#readme) has the whole API.
+
+Start the [Grim test server](#against-grim) and a test client, then run the tests with its command line (from a
+checkout of Myriad Testing, next to Essentials' so it finds the server's log):
+
+```bash
+./gradlew runTestClient -Photswap -PquickPlayServer=localhost:25565 -Pusername=GrimTester
+../myriad-testing/cli/myriad-test run greeter            # every test whose id contains "greeter"
+../myriad-testing/cli/myriad-test watch greeter          # rebuild, swap in and rerun on every save
+../myriad-testing/cli/myriad-test report                 # the last failure's full report
+```
+
+It exits 1 when a test failed, and `--junit file.xml` writes a report for CI. The API is 0.x: it may still change
+between releases.
+
 ## Unit tests
 
 Settings, blueprints, maths and your own logic can be tested with JUnit without starting the game; anything that needs
 a world needs the dev client. Myriad tests its own services and jobs headless, in a harness that runs the game's
-classes with a fake world and connection and records the packets sent; it's internal for now, and published as a test
-kit for addons in a later 1.x release.
+classes with a fake world and connection and records the packets sent; it's internal for now.
 
 ## Against Grim
 
@@ -77,10 +128,8 @@ tools/grim-test/cmd "op GrimTester"
 client logged, and `./flags` reads Grim's alerts since the mark. Check the result on the server too (the block is gone,
 the item moved), not only that nothing flagged: a module that does nothing never flags.
 
-**A suite** is those tests in a script: Essentials' `./suite` turns every module off, builds each test's scene in its
-own spot, runs it, checks the result and Grim's flags, and reports. With `./clients N` and `./suite --workers N` the
-tests run side by side on several dev clients, each in a world of its own. Copy `tools/grim-test/` into your addon,
-keep `setup.sh`, `start.sh`, `cmd`, `client`, `flags` and `clients` as they are, and write your own tests in `suite`.
+**A suite** of them is best written with [Myriad Testing](#in-game-tests), which runs against this server, sets up
+each test's scene and reads Grim's flags itself.
 
 Run it with nothing heavy beside it: a game of your own running alongside slows the clients enough for Grim to flag
 movement that's fine on an idle machine. A failure that doesn't come back on a quiet machine wasn't your module.

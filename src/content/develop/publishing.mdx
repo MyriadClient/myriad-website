@@ -13,11 +13,16 @@ Myriad updates addons from their **GitHub releases**, from the Addons window. Fo
 2. Release with a tag `v<version>` (`v1.2.0`) and attach the jar.
 3. The jar is recognised by its name (the installed jar's name with the new version) or by being the release's only jar
    besides `-sources` and `-javadoc`.
+4. A line `Minecraft: ~26.3` in the release's notes says which Minecraft versions it's for (a Fabric version range, as
+   in `fabric.mod.json`). Myriad offers a release only to players on one of them, so a build for a newer Minecraft
+   isn't offered to players still on the old one, who get told about it instead. A release without the line is
+   offered to everyone.
 
 Releasing from elsewhere: `"custom": { "myriad": { "updates": "owner/repo" } }` in `fabric.mod.json`.
 `"updates": false` turns updating off.
 
-The template has a GitHub workflow that builds on every push and releases on a `v*` tag.
+The template has GitHub workflows that build on every push and release on a `v*` tag, with the `Minecraft:` line
+taken from the built jar.
 
 ## Your addon in the menu
 
