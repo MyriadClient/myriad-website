@@ -265,22 +265,22 @@ Static helpers so addons don't each re-derive the same things (all under `dev.my
 | `world.ChunkAge` | which chunks the server generated as you came (nobody was there) and which it had saved, from the order of each section's block palette: `use(owner)`/`release(owner)`, `isFresh(chunkX, chunkZ)`; `ChunkEvent.Loaded.isFresh()` for the chunk arriving. A chunk it can't tell counts as saved, so nothing is skipped on a guess |
 | `service.RotationSettings`, `PlacementSettings`, `BreakingSettings`, `BuildingSettings` | the standard Turn Speed, Range, Air Place, break Mode, Actions Per Tick and Break Wrong Blocks settings, giving the services' options on `forServer()` |
 | `world.Holes` | 1x1, 2x1 and 2x2 holes with their safety (bedrock or blast-proof): `scan(chunk)` for a `ChunkCache`, `around` for a one-off, `holeOf(entity)`, an entity's `footprint`, `surround` positions, `isSurrounded` and the `city` blocks that open it |
-| `util.Entities` | `kind`, `isHostile`, `isFriend`, `ping`/`gameMode` of a player, `intersects(box)`, render distance, render-interpolated boxes, `predict(entity, ticks)` |
-| `util.BlockInfo`, `util.ItemInfo` | unbreakable, instant-break, blast-resistant, storage, clickable blocks; enchantment levels, food, shulker contents, durability, weapon/tool/armour slot, armour and toughness, gliders, Curse of Binding |
-| `util.Reach` | reach and line of sight from the eyes, `canReach(pos)` (to the block's nearest point, as the server and Grim measure), `aimPoint(entity)`, `hitFor(pos)` (the nearest visible point to click to open or break a block) |
-| `util.Interactions` | attack, use, interact with a block, start/continue breaking, swing; `shouldPause(eating, mining)`; attack charge, item-use and jump cooldowns |
-| `util.Packets` | `send`, `sendSilently` (skips events, for your own tricks), `sendSequenced` (block and item actions; with a position it returns a future of the server's answer: the block state once it has acknowledged the action) |
+| `world.Entities` | `kind`, `isHostile`, `isFriend`, `ping`/`gameMode` of a player, `intersects(box)`, render distance, render-interpolated boxes, `predict(entity, ticks)` |
+| `world.BlockInfo`, `item.ItemInfo` | unbreakable, instant-break, blast-resistant, storage, clickable blocks; enchantment levels, food, shulker contents, durability, weapon/tool/armour slot, armour and toughness, gliders, Curse of Binding |
+| `player.Reach` | reach and line of sight from the eyes, `canReach(pos)` (to the block's nearest point, as the server and Grim measure), `aimPoint(entity)`, `hitFor(pos)` (the nearest visible point to click to open or break a block) |
+| `player.Interactions` | attack, use, interact with a block, start/continue breaking, swing; `shouldPause(eating, mining)`; attack charge, item-use and jump cooldowns |
+| `network.Packets` | `send`, `sendSilently` (skips events, for your own tricks), `sendSequenced` (block and item actions; with a position it returns a future of the server's answer: the block state once it has acknowledged the action) |
 | `util.ChatMessages` | who a chat line is from and whether it's a whisper, across vanilla and common plugin formats; `ChatReceiveEvent.parsed()` |
-| `util.Mining` | mining speed and progress as the server computes them; fastest tool slot |
-| `util.Positions` | `sphere`, `cube`, `box` of block positions (nearest first), neighbours, face centres |
+| `player.Mining` | mining speed and progress as the server computes them; fastest tool slot |
+| `world.Positions` | `sphere`, `cube`, `box` of block positions (nearest first), neighbours, face centres |
 | `util.MathUtil` | angles to a point, angle differences, look and ground direction vectors, closest point on a box, lerp/map/snap |
-| `util.Movement` | which way the movement keys point, horizontal speed, `baseSpeed()` (sprinting speed with your effects), setting speed along the input, stopping |
-| `util.Slots` | player inventory indexes ↔ screen slot ids |
+| `player.Movement` | which way the movement keys point, horizontal speed, `baseSpeed()` (sprinting speed with your effects), setting speed along the input, stopping |
+| `item.Slots` | player inventory indexes ↔ screen slot ids |
 | `util.Timer`, `util.RateCounter`, `util.Format`, `util.Texts` | delays and cooldowns; events per second (lock-free); distances, durations, compact numbers; clickable chat (run a Myriad command, copy, hover) |
 | `util.Ticks`, `util.TickCached` | the client tick counter; a value computed at most once per tick however often a render handler reads it |
-| `util.Async`, `util.Http` | a shared worker pool (and a hop back to the render thread); GET/POST/DELETE with JSON |
-| `util.FakePlayers` | client-side dummy players for testing combat and render features |
-| `util.Baritone` | drive Baritone when it's installed, without depending on it: `pathTo`, `pathNear`, `isPathing`, `stop`, `command`, and `pause(owner)`/`resume(owner)` counted per module; its settings by name (`getSetting`/`setSetting`, any of them as text with `settingText`/`setSettingText`) and all of them with their types (`settings()`); where it walks and where it's going (`path()`, `goalSpots()`). Every call is a no-op without Baritone; `.b <command>` runs Baritone commands with Myriad's prefix |
+| `util.Async`, `network.Http` | a shared worker pool (and a hop back to the render thread); GET/POST/DELETE with JSON |
+| `world.FakePlayers` | client-side dummy players for testing combat and render features |
+| `integration.Baritone` | drive Baritone when it's installed, without depending on it: `pathTo`, `pathNear`, `isPathing`, `stop`, `command`, and `pause(owner)`/`resume(owner)` counted per module; its settings by name (`getSetting`/`setSetting`, any of them as text with `settingText`/`setSettingText`), changed for a while and put back with `override()`, and all of them with their types (`settings()`); where it walks and where it's going (`path()`, `goalSpots()`). Every call is a no-op without Baritone; `.b <command>` runs Baritone commands with Myriad's prefix |
 | `render.Ghosts` | a living entity's render state drawn again anywhere as a see-through copy: skin, armour, cape and elytra faded, posed as you set it |
 | `map.Maps` (`Myriad.maps()`) | waypoints from Xaero's Minimap when it's installed: `waypoints()` for the server you're on, every dimension (this one's first), `waypoint(name)`, `positionHere(w)` scaled across dimensions. Empty without it |
 | `setting.KeybindSetting` | a key or mouse bind; `wasPressed(event)` for a bind inside a module ("sub bind"), on `KeyEvent` and `MouseButtonEvent` |

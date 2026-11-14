@@ -15,10 +15,10 @@ The API comes in four tiers. They differ in what they're for and how they change
 
 | Tier | Packages | What it is |
 |---|---|---|
-| **Kernel** | `addon`, `module`, `setting`, `event`, `registry`, `config`, `hook`, `command`, `job` | the contract every addon is written against: it changes only with a major release |
-| **Systems** | `service`, `elytra`, `control`, `share`, `ui.Desktop` | each arbitrates something shared (one player, one look, one hand, one packet budget, one glide) or runs a feature every addon plugs into |
-| **UI** | `ui`, `ui.widget`, `ui.hud`, `ui.layout`, `render.Canvas` | the window manager and the drawing primitives |
-| **Libraries** | `combat`, `world`, `build`, `map`, `render`, `util` | helpers: the shared vocabulary, so addons don't each re-derive it. They cost nothing until called |
+| **Kernel** | `addon`, `module`, `setting`, `event`, `registry`, `config`, `hook`, `command`, `job`, `annotation` | the contract every addon is written against: it changes only with a major release |
+| **Systems** | `service`, `elytra`, `control`, `share`, `ui.Ui` | each arbitrates something shared (one player, one look, one hand, one packet budget, one glide) or runs a feature every addon plugs into |
+| **UI** | `ui`, `ui.widget`, `ui.hud`, `ui.layout`, `ui.draw` | the window manager and the drawing primitives |
+| **Libraries** | `combat`, `world`, `build`, `map`, `render`, `item`, `player`, `network`, `input`, `integration`, `util` | helpers: the shared vocabulary, so addons don't each re-derive it. They cost nothing until called |
 
 Something goes into core when two addons have made it themselves, or when it arbitrates a shared resource; it stays in
 an addon when it integrates another mod, holds a product's own policy, or is one addon's domain.
@@ -33,20 +33,27 @@ an addon when it integrates another mod, holds a product's own policy, or is one
 | `api.setting` | `Setting`, `Settings`, `SettingGroup`, `SavedSettings`, `SettingColor`, and every setting type |
 | `api.event` | `Subscribe`, `HandlerThread`, `Priority`, `EventBus`, `Subscription`, `ListenerFlag`, `Cancellable` |
 | `api.event.events` | every event ([Events](/docs/develop/events)) |
-| `api.registry` | `Registry`, `Identified` |
+| `api.registry` | `Registry`, `Identified`, `MyriadId` |
+| `api.annotation` | `@RenderThread`, `@AnyThread`: which thread a method may be called from |
 | `api.config` | `ConfigManager`: profiles |
 | `api.hook` | `Hook`, `HookHandler`, `HookCall`, `HookBuilder`, `Match`, `Service`, `Replacement`, `ReplacementBuilder`, `Contribution`, `Hooks` |
 | `api.command` | `Command`; `api.command.arguments`: `Arguments` and the argument types |
 | `api.job` | `Step` (and `Step.Run`), `Steps`, `MaterialSource`, `Job`, `Jobs`, `JobContext`, `Progress`, `Why`, `JobEvent` |
-| `api.service` | `Rotations`, `Inventory`, `Placement`, `Breaking`, `Building`, `Containers`, their standard settings (`RotationSettings`, `PlacementSettings`, `BreakingSettings`, `BuildingSettings`), `AntiCheat`, `PacketLimits`, `TickSpeed`, `ServerStats`, `Friends`, `Notifications`, `KeyAction` |
+| `api.service` | `Rotations`, `Inventory`, `Placement`, `Breaking`, `Building`, `Containers`, their standard settings (`RotationSettings`, `PlacementSettings`, `BreakingSettings`, `BuildingSettings`), `AntiCheat`, `PacketLimits`, `TickSpeed`, `ServerStats`, `Friends`, `Enemies`, `Notifications` |
 | `api.elytra` | `Elytra`, `Flight`, `NoDurability`, `ChestSwap`, `GlideHold` |
 | `api.control` | `ControlPanel`, `Controls`, `ControlPreset` |
 | `api.share` | `ConfigShares`, `ConfigShare` |
-| `api.ui` | `Panel`, `WidgetPanel`, `PanelType`, `Desktop`, `Window`, `TitleControl`, `BarWidget`, `Icons`, `Theme`, `ThemeSettings`, `ThemePalette`, `SettingWidgets`; `api.ui.widget`: the widgets; `api.ui.hud`: `HudPanel`, `TextHudPanel`, `HudStyle`, `ItemHud`; `api.ui.layout`: `Layout` |
-| `api.render` | `Canvas`, `Renderer3D`, `ShapeBuilder`, `WorldMesh`, `MeshBuilder`, `RenderMode`, `RenderLook`, `RenderSettings`, `HighlightStyle`, `EntityGroups`, `WorldLabel`, `FadeMap`, `Ghosts`, `PlayerHeads`, `Projection`, `Animated`, `MyriadLogo` |
+| `api.ui` | `Panel`, `WidgetPanel`, `PanelType`, `Ui`, `Window`, `TitleControl`, `BarWidget`, `Icons`, `Theme`, `ThemeSettings`, `ThemePalette`, `SettingWidgets`, `Side`; `api.ui.draw`: `Canvas`, `FontFamily`, `ThemeFont`, `MyriadLogo`, `Animated`, `Bezier`, `Easing`; `api.ui.widget`: the widgets; `api.ui.hud`: `HudPanel`, `TextHudPanel`, `HudStyle`, `ItemHud`; `api.ui.layout`: `Layout` |
+| `api.render` | `Renderer3D`, `ShapeBuilder`, `WorldMesh`, `MeshBuilder`, `RenderMode`, `RenderLook`, `RenderSettings`, `HighlightStyle`, `EntityGroups`, `WorldLabel`, `FadeMap`, `Ghosts`, `PlayerHeads`, `Projection` |
 | `api.combat` | `Targets`, `TargetSettings`, `Damage`, `Threats`, `Crystals`, `Trajectory` |
-| `api.world` | `ChunkCache`, `BlockScan`, `Holes`, `ChunkAge` |
+| `api.world` | `ChunkCache`, `BlockScan`, `Holes`, `ChunkAge`, `Entities`, `BlockInfo`, `Positions`, `FakePlayers` |
+| `api.player` | `Interactions`, `Reach`, `Movement`, `Mining` |
+| `api.item` | `ItemInfo`, `ItemMatch`, `Slots` |
+| `api.network` | `Packets`, `PacketChannel`, `Http` |
+| `api.input` | `Keybind`, `KeyAction`, `GlfwBinds` |
+| `api.integration` | `Baritone` (when installed) |
 | `api.build` | `Blueprint`, `Target`, `Build`, `BlockRules` |
 | `api.map` | `Maps`, `Waypoint` (Xaero's Minimap, when installed) |
-| `api.util` | `Client`, `Threads` (with `@RenderThread`, `@AnyThread`), `TickBudget`, `TickCached`, `Ticks`, `Timer`, `RateCounter`, `MyriadId`, `Keybind`, `Texts`, `Format`, `ChatMessages`, `Http`, `Async`, `Entities`, `BlockInfo`, `ItemInfo`, `ItemMatch`, `Reach`, `Interactions`, `Packets`, `Mining`, `Movement`, `Positions`, `MathUtil`, `Slots`, `Baritone`, `FakePlayers`, `ColorUtil` |
+| `api.util` | `Client`, `Threads`, `TickBudget`, `TickCached`, `Ticks`, `Timer`, `RateCounter`, `Texts`, `Format`, `ChatMessages`, `Async`, `MathUtil`, `ColorUtil`, `FuzzyMatch` |
+| `api.dev` | `DevSteps` (experimental): a dev run's console steps, for in-game tests |
 | `api.mixin` | `CompatMixinPlugin` |

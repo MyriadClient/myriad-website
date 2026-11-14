@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     "Minecraft utility client",
     "Minecraft client",
     "Fabric utility mod",
-    "Minecraft 26.2",
+    "Minecraft 26.3",
     "2b2t client",
     "Grim bypass",
     "tiling window manager",

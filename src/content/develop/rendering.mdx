@@ -121,7 +121,7 @@ public static final HighlightStyle.Fill STRIPES = HighlightStyle.Fill.custom(
 
 ```glsl filename="assets/my-addon/shaders/fill/stripes.fsh"
 #version 330
-#moj_import <myriad:highlight_fill.glsl>
+#include <myriad:highlight_fill.glsl>
 
 vec4 customFill(HighlightFill f) {
     float stripe = step(0.5, fract((f.local.x + f.local.y) / f.spacing));

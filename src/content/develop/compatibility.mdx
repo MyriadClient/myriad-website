@@ -24,8 +24,8 @@ An addon built against one version of Myriad keeps working on the next. What tha
   `Layout`, `Blueprint`, `Replacement`, `HookHandler`) only gain `default` methods.
 - **`@ApiStatus.Internal`** marks what's public for Myriad's own use (event constructors, lifecycle calls). Don't call it.
 - **Removals are announced**: `@Deprecated` for at least one minor release first, with the replacement in the javadoc.
-- **What's new since 1.0 says so**: every public type and member added after 1.0 carries
-  `@ApiStatus.AvailableSince("1.x")`, the release it came in, so you know what to check `Myriad.isAtLeast` for.
+- **What's new says so**: every public type and member added after 1.0 carries `@ApiStatus.AvailableSince` with the
+  release it came in (`"2.0"`), so you know what to check `Myriad.isAtLeast` for.
 
 ## Versions
 
@@ -34,25 +34,26 @@ each Minecraft version whatever Myriad does; within one:
 
 | Release | What it may do to the API |
 |---|---|
-| 1.x, same Minecraft version | add only: source- and binary-compatible with every 1.x before it (built against 1.2, runs on 1.5) |
+| 2.x, same Minecraft version | add only: source- and binary-compatible with every 2.x before it (built against 2.0, runs on 2.3) |
 | a new Minecraft version | a minor release: may deprecate what the new version made wrong, with the replacement in the javadoc; removes nothing |
-| a major (2.0) | remove what a minor release deprecated first |
+| a major (3.0) | remove what a minor release deprecated first, and move or rename types (each in its notes) |
 | a patch | nothing |
 
-Before 1.0 a minor release could also remove what an earlier one had deprecated; 1.0 removed the last of it. Core's
+Before 1.0 a minor release could also remove what an earlier one had deprecated. 2.0, for Minecraft 26.3, moved the
+helpers out of `util` into packages named for what's in them (the [changelog](https://github.com/MyriadClient/myriad-core/blob/master/CHANGELOG.md) has the table). Core's
 build compares the API with the last release's on every change and fails on anything that would break an addon built
 against it. Each repository's `CHANGELOG.md` says what changed.
 
 Declare the oldest Myriad you support in `fabric.mod.json`:
 
 ```json
-"depends": { "myriad": ">=1.0.0" }
+"depends": { "myriad": ">=2.0.0" }
 ```
 
 To use something newer while still supporting older versions:
 
 ```java
-if (Myriad.isAtLeast("1.1.0")) {
+if (Myriad.isAtLeast("2.1.0")) {
     useTheNewThing();
 }
 ```
@@ -72,7 +73,7 @@ public void postInitialize(AddonContext ctx) {
 ```
 
 `compileOnly` the other mod, and keep every class that touches it behind the `isModLoaded` check. For Baritone,
-`util.Baritone` already does this: every call is a no-op without it.
+`integration.Baritone` already does this: every call is a no-op without it.
 
 Don't depend on Essentials: players can remove it. Everything general it used to keep to itself is in the core API.
 
