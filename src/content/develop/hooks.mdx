@@ -8,7 +8,7 @@ import { Callout, Tabs } from "nextra/components";
 # Hooks
 
 Modules add features. **Hooks** change how existing ones work, without changing their code. They're how an addon
-brings its own rotations, makes Kill Aura pick targets differently, or makes Elytra Swap behave differently on one
+brings its own rotations, makes Kill Aura pick targets differently, or makes Elytra Tweaks behave differently on one
 server, and how Myriad stays open to ideas (and bypasses) its authors don't have.
 
 There are two levels:
@@ -294,7 +294,7 @@ if (FabricLoader.getInstance().isModLoaded("myriad-essentials")) EssentialsHooks
 // EssentialsHooks.java: the only class that touches Essentials.
 final class EssentialsHooks {
     static void register(AddonContext ctx) {
-        ctx.hook(ElytraSwap.BEHAVIOUR)
+        ctx.hook(ElytraTweaks.BEHAVIOUR)
             .named("Recast keeps its elytra on 6b6t")
             .when(Match.caller("myriad-essentials:recast").server("6b6t.org"))
             .handle(call -> call.input().withSwaps(false));

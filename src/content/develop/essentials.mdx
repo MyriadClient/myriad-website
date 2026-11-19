@@ -19,7 +19,7 @@ installed, as in [Hooking another addon](/docs/develop/hooks#hooking-another-add
 
 | Hook | Input → answer | Caller |
 |---|---|---|
-| `ElytraSwap.BEHAVIOUR` | `Behaviour(swaps, equipBeforeStart)` → how Elytra Swap works for a flight | the flight: `myriad-essentials:recast`, `:altitude`, `:control`, or Elytra Swap itself (flying yourself) |
+| `ElytraTweaks.BEHAVIOUR` | `Behaviour(swaps, equipBeforeStart)` → how Elytra Tweaks works for a flight | the flight: `myriad-essentials:recast`, `:altitude`, `:control`, or Elytra Tweaks itself (flying yourself) |
 | `LockRotation.HEADING` | `Heading(locked, camera)` → the yaw a flight flies while the heading is locked | the flight |
 | `KillAura.TARGET` | `Candidates(inReach, reach)` → the entity Kill Aura attacks (null: none) | Kill Aura |
 | `Offhand.FORCE_TOTEM` | `Danger(health, lowHealth, gliding, lethal)` → whether to force a totem now | Offhand |
@@ -32,7 +32,7 @@ final class EssentialsHooks {
             focus.target() != null && call.input().inReach().contains(focus.target()) ? focus.target() : call.proceed());
 
         // On 6b6t (NoCheatPlus), Altitude doesn't need to wait for the elytra before each glide start.
-        ctx.hook(ElytraSwap.BEHAVIOUR)
+        ctx.hook(ElytraTweaks.BEHAVIOUR)
             .named("Altitude starts at once on 6b6t")
             .when(Match.caller("myriad-essentials:altitude").server("6b6t.org"))
             .handle(call -> call.input().withEquipBeforeStart(false));
