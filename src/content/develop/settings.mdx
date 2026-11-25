@@ -61,7 +61,9 @@ another class (a mixin, a [control panel preset](/docs/develop/control-panels)) 
 | `file(name)` | `FileSetting` | a path, with the system file picker |
 
 Every builder has `.description(text)`, `.defaultValue(v)`, `.visible(() -> bool)`, `.onChanged(v -> ...)` and
-`.protect()`, then `.build()`, which adds the setting to the group.
+`.protect()`, then `.build()`, which adds the setting to the group. A whole group can show only while something holds:
+`settings.group("Advanced").visibleWhen(() -> mode.get() == Mode.CUSTOM)` (since 2.6). A module's own Module group
+(its keybind, hold, list and chat settings) always comes last.
 
 Every type keeps its value through a save and a load, `encode`/`decode`, and (except files, module lists and registry
 lists, which show a summary) `.set` with what `valueString()` shows, in any locale. Bad JSON leaves the value as it was

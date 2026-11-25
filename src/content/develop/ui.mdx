@@ -54,7 +54,7 @@ PanelType window = ctx.registerPanel("Waypoints", "", () -> new WaypointsPane
 Myriad.ui().openPanel(window);   // from a key action, a command, a module
 ```
 
-Widgets: `Label` (`.dim()`, `.bold()`), `Button` (`.accent()`), `Toggle`, `Slider`, `Dropdown`, `TextField`
+Widgets: `Label` (`.dim()`, `.bold()`), `Button` (`.accent()`, or `.quiet()` for a lesser action: Reset, Remove), `Toggle`, `Slider`, `Dropdown`, `TextField`
 (`.placeholder`, `.onChange`, `.onSubmit`), `ColorPicker`, `KeybindButton`, `RegistryPicker`, `StringListEditor`,
 `Collapsible`, `HBox`/`VBox` (`addWeighted`, `addFixed`), `ScrollView`, `Spacer`, `Preview` (below), and `SettingsView.build(settings)`,
 which lays out a whole `Settings` like a module's.
@@ -159,6 +159,43 @@ drawing of your own, extend `HudPanel` and use `HudStyle` and `ItemHud`.
   Unset values come from Myriad's default. `ThemePalette` builds one from a terminal palette.
 - **Colours** in your panels and modules should come from the theme: `Myriad.ui().theme().accent.argb()`, and for
   settings, `SettingColor.role(SettingColor.Mode.ACCENT)`.
+
+## Background effects
+
+A theme's **Style** (Theme, Background) is Plain or an effect an addon registers: a fragment shader that draws window,
+tooltip, toast, launcher and wheel backgrounds (since 2.6). Register it when your addon loads, with up to 12 options;
+they show as a group of their own while it's picked and are saved with the theme:
+
+```java
+BackdropEffect.register(Identifier.fromNamespaceAndPath("myaddon", "effects/grain"), "Grain", o -> {
+    o.decimal("Amount").defaultValue(0.06).range(0.01, 0.3).build();
+    o.bool("Moving").defaultValue(false).build();
+});
+```
+
+The shader is `assets/myaddon/shaders/effects/grain.fsh`. It includes `myriad:effect.glsl` and defines
+`vec4 effect(EffectInput e)`, the colour laid over the background's own:
+
+```glsl
+#version 330
+#extension GL_ARB_separate_shader_objects : require
+#include <myriad:effect.glsl>
+
+vec4 effect(EffectInput e) {
+    float amount = mix(0.01, 0.3, effectOption(0).x);
+    float seed = effectOption(1).x > 0.5 ? floor(e.time * 24.0) : 0.0;
+    float n = effectHash(floor(e.pixel) + seed * 13.37) - 0.5;
+    return vec4(vec3(step(0.0, n)), abs(n) * amount * 2.0);
+}
+```
+
+`EffectInput` has `uv` and `pixel` (the screen, from its top left), `resolution`, `local` and `size` (the background
+being drawn), `time` (still while the theme's animations are off) and the theme's `accent`, `secondary`, `text` and
+`background`. `effectOption(i)` reads option `i` in the order they were built: a number as 0 to 1 across its range, a
+switch as 1 or 0, a colour as RGBA, a choice as its index / 255. `effectHash`, `effectNoise`, `effectFbm` and
+`effectBayer4` are there to use. Draw the same pattern for the whole screen (from `uv` or `pixel`): see-through widgets
+on the background show it blurred, from one full-screen drawing a frame. A shader that doesn't compile is logged and
+drawn as Plain until resources reload; a theme naming an effect that isn't installed draws Plain and keeps its choice.
 
 ## Drawing in vanilla screens
 

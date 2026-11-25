@@ -18,7 +18,7 @@ same spot above the world.
 
 **Auto** (the default) works out which a server is: Grim once the server sends the steady pings anti-cheats like it
 use, or at once for servers known to run it (2b2t); NoCheatPlus on 6b6t; Vanilla otherwise and in singleplayer. You
-can pick yourself in the **Profiles** window, or with:
+can pick yourself in **Addons**, under Myriad's **Anti-cheat** section, or with:
 
 | Command | |
 |---|---|
@@ -29,8 +29,12 @@ can pick yourself in the **Profiles** window, or with:
 A profile you pick that doesn't match what Auto detects (Vanilla picked where Grim shows, say) is pointed out once each
 time you join, as the server may then refuse what modules do.
 
-Modules share a packet budget kept under what servers allow: 72 inventory clicks in any 5 seconds (2b2t drops you on
-the 80th), 80 block actions in half a second, and 9 uses and placements in 300 ms (Paper drops the rest). **Vanilla
+Modules share a packet budget kept under what servers allow: 76 inventory clicks in any 4.5 seconds, each counted until
+exactly 4.5 seconds after it went (3 more are kept for urgent ones, like a totem; 2b2t drops you on the 80th in about
+4), 80 block actions in half a second, and 9 uses and placements in any 380 ms (Paper drops past 9 in 300). On 2b2t,
+opening containers is held past 8 in 5 seconds, your own opens counting too, as the 9th drops you. An item a build or a
+restock brings from your inventory into the hotbar goes as a pick-from-block where a block of it is in reach (on servers
+that have it, 1.21.4 and later), which uses none of the click budget. **Vanilla
 picked by hand lifts it**, for real vanilla servers and singleplayer, where nothing limits them. A Paper server still
 drops placements past its limit and kicks past 500 packets in 7 seconds, so Auto keeps the budget even when it detects
 Vanilla.
