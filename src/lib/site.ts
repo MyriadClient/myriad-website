@@ -12,7 +12,6 @@ export const site = {
   releases: "https://github.com/MyriadClient/myriad-core/releases/latest",
   essentials: "https://github.com/MyriadClient/myriad-essentials",
   essentialsReleases: "https://github.com/MyriadClient/myriad-essentials/releases/latest",
-  boze: "https://github.com/MyriadClient/myriad-boze",
   omarchy: "https://github.com/MyriadClient/myriad-omarchy",
   template: "https://github.com/MyriadClient/myriad-addon-template",
   issues: "https://github.com/MyriadClient/myriad-core/issues",

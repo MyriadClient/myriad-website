@@ -1,0 +1,157 @@
+---
+title: "The Myriad Library"
+description: "List your addon in the Myriad Library: players find it under Browse, and each release is built from your source, checked and signed."
+---
+
+# The Myriad Library
+
+The [Myriad Library](/library/) is the list of addons players find under **Browse** in the Addons window. Myriad checks
+every addon in it, and every release:
+
+- **Verified** (open source): Myriad's builder builds your tagged source and checks that the jar you released is byte
+  for byte what it builds.
+- **Reviewed** (closed source): Myriad's maintainer reviews each release by hand.
+
+Nothing is hosted by Myriad and nothing is sold. Players download the jar from your own GitHub release; the Library
+signs its SHA-256, and the game refuses anything else. An addon installed from the Library takes its updates only
+through the Library.
+
+Listing is free. You don't need an account: you install a GitHub App and publish releases as you already do.
+
+## Before you start
+
+Your addon needs:
+
+1. **Myriad's Gradle plugin 2.7.0 or later**, so its jar builds the same every time (the
+   [template](https://github.com/MyriadClient/myriad-addon-template) is set up for it).
+2. **Signed releases**, made as [Publishing](/docs/develop/publishing#signing-your-releases) describes: the jar and its
+   `.sig` attached to a GitHub release tagged `v<version>`. The template's release workflow does this.
+3. **Two keys, not one.** List a second public key in `fabric.mod.json`, kept offline as a spare: if you lose the key
+   you sign with, the spare keeps your listing yours. Make it with `./gradlew generateSigningKey` and keep it in your
+   password manager.
+   ```json
+   "custom": { "myriad": { "keys": ["ed25519:<the key you sign with>", "ed25519:<your spare>"] } }
+   ```
+4. **A build that works on a clean machine**: `./gradlew jar` on JDK 25, with nothing but the repository (no secrets,
+   no files you keep locally).
+5. **An id of its own**: not `myriad…`, `minecraft`, `java`, `fabric…`, `quilt…`, `forge` or `neoforge`, and not an
+   id already listed.
+
+## Listing an open-source addon
+
+1. Install the **Myriad Library** GitHub App on the addon's repository (only that repository is needed). It reads the
+   repository's contents and releases, and reports back as a check on your releases. It can't push, change settings or
+   see your other repositories.
+2. Publish a release as usual. A "Myriad Library" check appears on the release's commit and says how it's going.
+3. The builder builds and inspects it, then it waits for Myriad's maintainer. A new addon is always looked at by a
+   person: its build scripts, what it does and what it talks to.
+4. Once it's approved, your addon is listed and later releases are signed automatically, usually within minutes,
+   as long as the checks below pass.
+
+## What's checked on every release
+
+The builder runs in the open on GitHub Actions:
+[MyriadClient/myriad-builder](https://github.com/MyriadClient/myriad-builder), whose every run log anyone can read.
+A release is signed automatically only when all of these hold:
+
+- **The build logic hasn't changed** since your listing was approved. Myriad hashes every file in your repository
+  except your code and resources (`src/main`, `src/client`, `src/test`), `docs/`, `.github/`, and the Markdown files and
+  licence at the top level: so `build.gradle`, `settings.gradle`, `gradle.properties` (apart from a single
+  `mod_version` line), the Gradle wrapper, `buildSrc` and any other script all count. Changing them sends the release
+  to the maintainer, who approves the new build logic once.
+- **The jar you released is exactly what your tag builds**, byte for byte.
+- **You signed it**, with a key both your listing and the new jar name.
+- **Its id and what it `provides` are unchanged.**
+- **The inspection finds nothing new.** The builder reads the jar without running it and notes anything it should
+  explain: its own class loaders, `Unsafe`, starting processes, loading native code, network access and the hosts it
+  names, Java agents and script engines, use of Myriad's internals (`dev.myriadclient.impl`), nested jars, and classes
+  with no matching source, reflection (looking up or calling code by name), and class files or jars hidden among the
+  resources. None of these is forbidden. Each one the maintainer accepts for your listing is fine in later releases; a
+  new one waits for a look.
+- **It isn't obfuscated.** Obfuscated jars aren't listed.
+
+Your repository also has to keep the build honest:
+
+- `fabric.mod.json` may use only the placeholders `${version}`, `${myriad_version}` and `${minecraft_version}`: no
+  other `$` and no `<%`. Older versions of Myriad's Gradle plugin filled it in with Gradle's template engine, which runs
+  code.
+- The Gradle wrapper downloads Gradle from `services.gradle.org`, or pins it with `distributionSha256Sum`.
+- No `.gitattributes` with `filter`, `export-ignore` or `export-subst` (Git LFS included): they change files on
+  checkout.
+- Your build fetches only fixed versions of its dependencies, from repositories that don't change a published version
+  (no `+` or `latest` versions, no snapshots, no JitPack). The maintainer checks this when approving your build logic.
+
+Once your listing is approved, later releases are signed on the strength of your developer key, your unchanged build
+logic and the builder's checks. Keep your signing key safe: whoever holds it can release a version that passes them.
+
+You can run the same inspection yourself before releasing. The tool is in Myriad's Gradle plugin jar, on
+[Myriad's maven](https://maven.myriadclient.dev):
+
+```bash
+java -cp myriad-gradle-<version>.jar dev.myriadclient.gradle.signing.Signing inspect build/libs/my-addon-1.2.0.jar .
+java -cp myriad-gradle-<version>.jar dev.myriadclient.gradle.signing.Signing build-hash .
+```
+
+The first prints what the builder would note, as JSON; the second prints your build logic's hash, which changes
+whenever a file that needs a fresh look changes.
+
+## The check on your release
+
+| Check says | What it means |
+|---|---|
+| Queued | Waiting for the builder. |
+| Waiting for Myriad | A new closed-source addon, waiting for the maintainer to accept it before it's built. |
+| Building | The builder is building and inspecting it. |
+| Listed | It's in the Library. Players see it the next time Browse or the update check reads the Library. |
+| Waiting for review | It built and checked out, but needs a person: a new addon, changed build logic or a new finding. The check says which. |
+| Not listed | It didn't build, the jar didn't match its source, or it wasn't signed. The check says why; fix it and release again. |
+
+Drafts and pre-releases are skipped.
+
+## Closed-source addons
+
+A closed-source addon can be listed as **Reviewed**. Its source stays private; Myriad's maintainer reviews each
+release.
+
+1. Keep the source in a **private repository**, and publish the jars (with their `.sig`) in a **public repository**
+   with the same owner, which `fabric.mod.json` names as its update source:
+   `"custom": { "myriad": { "updates": "you/my-addon-releases" } }`.
+2. Install the Myriad Library App on **both** repositories.
+3. Tag the same commit in both, with the same tag, and publish the release in the public one.
+4. Nothing is built until the maintainer accepts the addon. Then a private builder fetches your source once, with a
+   read-only token for that one repository that lasts 15 minutes, builds and inspects it, and keeps the archive of your
+   source privately for one day, for the review. Your source is never published.
+
+Every release of a closed-source addon is reviewed by a person, so expect it to take longer than an open-source one.
+It's still built from the tagged source, and a jar that isn't exactly what the source builds isn't signed.
+
+## Withdrawing a release or an addon
+
+- **A bad release:** open an issue (below) with the addon and version and it's withdrawn. A withdrawn release is
+  never offered again, and players who haven't installed it never will. Release a fixed version as usual.
+- **Your whole addon:** uninstall the App, or make the repository private. The listing is paused: it stops showing
+  under Browse and gets no updates, and players keep what they have.
+- **Transferring the repository** to another owner pauses the listing too, until the maintainer checks it's still yours.
+  Renaming it just updates the name.
+
+## Keys
+
+The Library lists the developer keys your jar names, up to eight. To change keys, release a version listing the new
+key, signed with the old one, as in [Publishing](/docs/develop/publishing#signing-your-releases); the listing is updated
+when it's approved. If you lose your signing key, sign with your spare. If you lose both, open an issue: the
+maintainer can re-list your addon with new keys once you've shown it's yours, but players who installed it will have
+to install it again.
+
+## Disputes and takedowns
+
+Ids go to whoever lists them first. If you think a listing uses your name or code without permission, or breaks a
+licence, open an issue at [github.com/MyriadClient/myriad-core/issues](https://github.com/MyriadClient/myriad-core/issues)
+(for a security problem in a listed addon, follow
+[the security policy](https://github.com/MyriadClient/myriad-core/security/policy) instead). To appeal a decision about
+your addon, reply on its issue or open one.
+
+## What Myriad keeps about you
+
+Your GitHub account's and repositories' ids and names, the releases you submit, the builder's reports on them and the
+maintainer's decisions. Signed listings and releases are public, in the Library index. See the
+[privacy policy](/docs/privacy#the-myriad-library).

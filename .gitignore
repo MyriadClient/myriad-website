@@ -47,3 +47,6 @@ next-env.d.ts
 /public/docs.md
 # The latest release's javadoc, put at /api by scripts/javadoc.mjs on every build
 /public/api/
+# The Myriad Library, read from the API by scripts/library.mjs on every build
+/.library/
+/public/library-icons/

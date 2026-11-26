@@ -11,7 +11,6 @@ Myriad's.
 | Addon | |
 |---|---|
 | [Myriad Essentials](https://github.com/MyriadClient/myriad-essentials) | the stock modules and HUD elements |
-| [Myriad Boze](https://github.com/MyriadClient/myriad-boze) | Boze's modules in Myriad's menu |
 | [Myriad Omarchy](https://github.com/MyriadClient/myriad-omarchy) | themes that follow your Omarchy system theme |
 
 ## The Addons window
@@ -22,6 +21,31 @@ the one slowing your game's start), and each addon's own settings.
 **Updates**: Myriad checks each addon's releases. When there's a new version, a badge shows it, and **Update** installs
 it (it takes effect the next time you start the game). The switch in the title bar turns checking off; the buttons
 beside it check now and update everything. From chat: `.update check`, `.update all`.
+
+## The Myriad Library
+
+**Browse** in the Addons window's title bar shows the [Myriad Library](/library/): addons by other developers that
+Myriad has checked. Search it, pick one, and **Install** shows what it is and who signed it before anything is
+installed. It loads the next time you start the game.
+
+- **Verified** addons are open source. Myriad's builder built the release from its public source and checked the jar
+  is exactly that build.
+- **Reviewed** addons are closed source. Myriad's maintainer reviewed the release.
+
+Every release is signed by its developer and by the Library, and Myriad checks both itself before installing, with
+keys built into Myriad: neither this website nor Myriad's server could hand you a different jar. The badges mean
+Myriad checked the addon, not that it's perfect: an addon can still have bugs, so install what you trust.
+
+An addon installed from the Library takes its updates **only through the Library**, so a release that wasn't checked
+never reaches you, even from the addon's own GitHub. Its card says so. **Unpin** on the card goes back to updating from
+the addon's own source. An addon you already had gets its badge when your jar is exactly a listed release, but keeps
+updating from its own source: only installing from Browse pins an addon to the Library.
+
+Myriad reads the Library as one file when you press Browse or check for updates. What you search for never leaves the
+game. If the Library can't be reached, Browse shows the copy it last read. Once that copy is two days old, nothing is
+installed or updated from it until Myriad reads a fresh one.
+
+## Updates and signing
 
 **Signed updates.** An addon's card says where its updates come from and whether they're signed. A signed addon takes
 only updates signed with its developer's key, so even someone who takes over its GitHub account or website can't push

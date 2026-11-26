@@ -54,14 +54,8 @@ const addons = [
     icon: "essentials",
   },
   {
-    name: "Myriad Boze",
-    body: "Every module of the Boze client in Myriad's menu, with Boze installed alongside. Settings, keybinds and on/off state stay in sync both ways. Boze keeps its config; Myriad is a second front end.",
-    href: site.boze,
-    icon: "boze",
-  },
-  {
     name: "Myriad Omarchy",
-    body: "A theme that follows your Omarchy system theme. Switch themes on the desktop and the menu follows.",
+    body: "A theme that follows your Omarchy system theme. Switch themes on the UI and the menu follows.",
     href: site.omarchy,
     icon: "omarchy",
   },
@@ -124,6 +118,7 @@ export default async function Home() {
             <li><a className="hover:text-ink" href="#features">Features</a></li>
             <li><a className="hover:text-ink" href="#themes">Themes</a></li>
             <li><a className="hover:text-ink" href="#addons">Addons</a></li>
+            <li><Link className="hover:text-ink" href="/library/">Library</Link></li>
             <li><a className="hover:text-ink" href="#install">Install</a></li>
             <li><a className="hover:text-ink" href="#keys">Keys</a></li>
             <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
@@ -216,6 +211,11 @@ export default async function Home() {
               <p className="mt-4 text-[15px] leading-relaxed text-dim">
                 Addons share the standard tags, so modules from different authors sit in the same windows. An addon
                 built against 1.0 keeps working on every 1.x release: core&rsquo;s build checks the API on every change.
+              </p>
+              <p className="mt-4 text-[15px] leading-relaxed text-dim">
+                Addons by other developers are in the{" "}
+                <Link className="text-ink underline underline-offset-4 hover:text-mint" href="/library/">Myriad Library</Link>,
+                checked by Myriad and installed from Browse in the Addons window.
               </p>
             </div>
             <dl className="divide-y divide-line border-y border-line">
@@ -325,6 +325,7 @@ export default async function Home() {
             <li><a className="hover:text-ink" href={site.releases}>Releases</a></li>
             <li><a className="hover:text-ink" href={site.issues}>Issues</a></li>
             <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
+            <li><Link className="hover:text-ink" href="/library/">Library</Link></li>
             <li><Link className="hover:text-ink" href="/docs/develop">Write an addon</Link></li>
             <li><a className="hover:text-ink" href="/api/">API reference</a></li>
             <li><Link className="hover:text-ink" href="/docs/privacy">Privacy</Link></li>

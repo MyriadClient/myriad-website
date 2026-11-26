@@ -20,6 +20,7 @@ export default {
   performance: "Performance",
   testing: "Testing",
   publishing: "Publishing",
+  library: "The Myriad Library",
   essentials: "Building on Essentials",
   agents: "For AI agents",
   reference: "API reference map",

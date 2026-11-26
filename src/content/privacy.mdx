@@ -5,17 +5,20 @@ description: "What myriadclient.dev, Myriad's config sharing and the Myriad clie
 
 # Privacy policy
 
-_Last updated: 25 November 2026_
+_Last updated: 26 November 2026_
 
 Myriad is a free, open-source project run by **the Myriad project** ([MyriadClient](https://github.com/MyriadClient)
-on GitHub). This page covers the website (myriadclient.dev), its API for shared configs (api.myriadclient.dev), its
-maven repository (maven.myriadclient.dev) and the Myriad client itself. Because the code is public, you can check
+on GitHub). This page covers the website (myriadclient.dev), its API (api.myriadclient.dev), its maven repository
+(maven.myriadclient.dev), the Myriad Library and the Myriad client itself. Because the code is public, you can check
 everything below against what it actually does.
 
 ## The short version
 
 - No accounts, no ads, no analytics, no tracking cookies, and nothing sold or shared for marketing.
-- The Myriad client sends us nothing unless you share a config.
+- The Myriad client sends us nothing about you. It downloads the Myriad Library's list of addons when you browse or
+  check for updates, and uploads a config only when you share one.
+- If you list an addon in the Library, we keep your GitHub account's and repositories' names and ids and what our
+  builder found in your releases.
 - Your IP address reaches our servers when you use them, as it does for any website. We use it to deliver pages and to
   stop abuse, and we don't build profiles from it.
 
@@ -62,9 +65,42 @@ It contacts other services only for these reasons:
   access token, if you give one, is sent only to that feed.
 - **Sharing a config**, only when you do, as above.
 - **Adding an addon from a link**, only to the address you give.
+- **The Myriad Library.** When you press Browse in Addons, and with each update check, Myriad downloads the Library's
+  list from our API as one file. Nothing is sent with it but the ordinary request (your IP address, as above), and
+  what you search for stays in the game. Installing or updating an addon from the Library downloads its jar from the
+  developer's GitHub release, under GitHub's policy.
 
 The Myriad cape is marked with a spare bit in your skin settings, which other players' clients see in-game. No server
 is involved. Addons are made by their own developers and may do things Myriad doesn't: check their own policies.
+
+## The Myriad Library
+
+The [Myriad Library](/library/) lists addons that Myriad has checked. This section applies from when it opens.
+
+**Players** need nothing to use it and give us nothing: the game downloads the list (above), and the website's
+`/library` pages are static like the rest of the site.
+
+**Developers** list an addon by installing the Myriad Library GitHub App on its repositories. GitHub then tells us
+about those repositories and their releases, and we keep:
+
+- the GitHub account the App is installed on (its id and name) and each repository's id, name and whether it's
+  private;
+- the releases you publish (tag, jar address, when), each build's result and our builder's report on it (hashes, what
+  the inspection found, why it was or wasn't listed), and the maintainer's decisions;
+- what you show players: your addon's name, description, author, icon and source repository;
+- the ids of GitHub's notifications, to ignore repeats.
+
+We don't receive your source code, except that closed-source addons are built by a private builder with a token that
+reads one repository once. That copy of your source exists only inside that build, and the archive of it is kept
+privately for a day for the review. The open-source builder's run logs are public on GitHub, like your source.
+
+Signed listings, releases and withdrawals are published in the Library's list, and stay checkable by every game for
+as long as the Library runs: they name your addon, the GitHub ids of its repository and owner, and its keys. The rest is kept while your
+addon is listed. Once it's gone, you can ask us to delete it (below), except what's needed to show why a listing was
+refused or withdrawn.
+
+We use this only to run the Library: to build and check releases, show your addon, and settle disputes about it. It's
+never sold or used for marketing.
 
 ## Children
 
@@ -84,7 +120,8 @@ will say exactly what's kept, and why, **before** accounts open. Until then, non
 
 Wherever you live, you can ask what we hold about you, to have it corrected or deleted, or object to how it's used.
 Under the GDPR and the UK GDPR, our legal basis for the server logs and rate limits is our legitimate interest in
-running the services securely, and for shares it's that you asked us to publish them. As we hold almost nothing that
+running the services securely, for shares it's that you asked us to publish them, and for the Library it's that you
+asked us to list your addon (and our legitimate interest in keeping the Library safe). As we hold almost nothing that
 identifies anyone, most requests will be about a share. You can also complain to your local data-protection authority.
 
 **Contact:** open an issue at
