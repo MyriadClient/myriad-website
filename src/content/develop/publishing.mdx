@@ -1,13 +1,14 @@
 ---
 title: "Publishing"
-description: "Release your addon on GitHub so Myriad can update it, with an icon and the right fabric.mod.json."
+description: "Release your addon so Myriad can update it: GitHub or your own feed, signed so players get only what you built."
 ---
 
 # Publishing
 
 ## Releases Myriad can update
 
-Myriad updates addons from their **GitHub releases**, from the Addons window. For yours to be found:
+Myriad updates addons from the Addons window, from their **GitHub releases** or from an **update feed** you host
+anywhere. For a GitHub release to be found:
 
 1. `contact.sources` in `fabric.mod.json` is your repository: `https://github.com/you/my-addon`.
 2. Release with a tag `v<version>` (`v1.2.0`) and attach the jar.
@@ -18,11 +19,103 @@ Myriad updates addons from their **GitHub releases**, from the Addons window. Fo
    isn't offered to players still on the old one, who get told about it instead. A release without the line is
    offered to everyone.
 
-Releasing from elsewhere: `"custom": { "myriad": { "updates": "owner/repo" } }` in `fabric.mod.json`.
-`"updates": false` turns updating off.
+Releasing from elsewhere: `"custom": { "myriad": { "updates": "owner/repo" } }` in `fabric.mod.json`, or an https
+address for a feed (below). `"updates": false` turns updating off.
 
 The template has GitHub workflows that build on every push and release on a `v*` tag, with the `Minecraft:` line
-taken from the built jar.
+taken from the built jar, and sign the release when you've set up a key.
+
+## Signing your releases
+
+A signed addon takes only updates signed with your key, so nobody who gets into your GitHub account, your host or the
+connection between can hand your players a different jar. Players see "signed" on its card in Addons. Set it up once:
+
+1. `./gradlew generateSigningKey` prints your public key and writes the private key to a file in `build/signing`.
+2. Add the public key to `fabric.mod.json`:
+   ```json
+   "custom": { "myriad": { "keys": ["ed25519:<the public key it printed>"] } }
+   ```
+3. Make an environment named `release` that only `v*` tags can use, with yourself as a required reviewer (Settings,
+   Environments), and give it a secret `MYRIAD_SIGNING_KEY` holding the private key file's contents. With the
+   [GitHub CLI](https://cli.github.com):
+   ```bash
+   gh api -X PUT 'repos/{owner}/{repo}/environments/release' --input - <<EOF
+   {"reviewers": [{"type": "User", "id": $(gh api user -q .id)}],
+    "deployment_branch_policy": {"protected_branches": false, "custom_branch_policies": true}}
+   EOF
+   gh api -X POST 'repos/{owner}/{repo}/environments/release/deployment-branch-policies' -f name='v*' -f type=tag
+   gh secret set MYRIAD_SIGNING_KEY --env release < build/signing/myriad-signing-key-<key id>.txt
+   ```
+   Required reviewers need a public repository or a paid plan; on a free private one, leave out the `"reviewers"` line.
+4. Keep a copy of the key in your password manager (GitHub never shows a secret again), then delete the file.
+
+Addons made from an older template: copy `.github/workflows/release.yml` from the
+[template](https://github.com/MyriadClient/myriad-addon-template) and use plugin 2.7.0 or later.
+
+From then on the release workflow signs each release and attaches `<jar>.sig` next to the jar, in a job of its own that
+runs no build: nothing your build pulls in ever runs where the key is. With the reviewer set, nothing is signed
+without your approval, so someone who can push to the repository still can't sign a release.
+
+To sign by hand instead (the key never in CI), `./gradlew signAddon` signs the built jar with `MYRIAD_SIGNING_KEY`, or
+keep the key in a passphrase-protected file (`Signing generate`, below) and sign with `-PmyriadSigningKeyFile=<file>`
+and the passphrase in `MYRIAD_KEY_PASSPHRASE`.
+
+**What's checked.** Myriad takes an update only when it's signed by a key the installed version lists. The signature
+covers your addon's id, the version, and the jar's exact size and SHA-256, so it can't be moved to another addon, an
+older version or a changed jar. A release without a valid signature isn't offered at all. Addons that list no key
+keep updating as before, marked unsigned.
+
+**Changing keys.** List the new key in a release signed with the old one (`signAddon -PallowUndeclaredKey` when the new
+key isn't listed yet in the jar you're signing): the release after it must be signed with the new key. To stop signing,
+release a version listing no keys, signed with your current key.
+
+**Losing your key.** Without it you can't release an update your players will take: they'd have to reinstall by hand.
+That's why step 4 keeps a copy. If you'd rather your key never sat in CI at all, make it as a passphrase-protected file
+instead, `java -cp myriad-gradle-<version>.jar dev.myriadclient.gradle.signing.Signing generate my-addon.key` (the jar
+is on Myriad's maven), and sign by hand as above.
+
+## Your own update feed
+
+For a private addon, or one released somewhere other than GitHub, host a feed: a JSON file at an https address, named in
+`fabric.mod.json` as `"custom": { "myriad": { "updates": "https://example.com/my-addon/feed.json" } }`.
+
+```json
+{
+  "format": 1,
+  "id": "my-addon",
+  "name": "My Addon",
+  "keys": ["ed25519:..."],
+  "versions": [
+    {
+      "version": "1.2.0",
+      "file": "my-addon-1.2.0.jar",
+      "url": "my-addon-1.2.0.jar",
+      "size": 123456,
+      "sha256": "…",
+      "minecraft": "~26.3",
+      "notesUrl": "https://example.com/my-addon/1.2.0",
+      "signatures": [{ "key": "<key id>", "sig": "…" }]
+    }
+  ]
+}
+```
+
+Each entry is what `signAddon` writes to `<jar>.sig`, so a release is: sign it, upload the jar, and add the `.sig`'s
+contents to `versions`. `url` may be relative to the feed. Entries marked `"prerelease": true` are skipped. The top-level
+`keys` are what a player installing from the feed's link first trusts; the jar must list the key it's signed with.
+Myriad reads at most 1 MB of feed and refuses the whole feed if anything in it is malformed.
+
+A private feed or repository can take an access token: players paste it into the addon's **Private source** in Addons
+(or when adding it from a link), and Myriad sends it as `Authorization: Bearer <token>` only to the feed's own address,
+never to wherever a download is sent on to. For a private GitHub repository, use a fine-grained token that can only
+read that repository's contents.
+
+## Installing from a link
+
+Players can add your addon from its link: your GitHub repository or your feed's address, under Addons (the link button)
+or `.update add <link>`. Myriad downloads and checks it like an update, shows its name, where it's from and your key's
+fingerprint (or that it's unsigned) and installs it only when they say so. Publish your key's fingerprint (the 16
+characters `generateSigningKey` prints) where players can compare it. Only Myriad addons can be installed this way.
 
 ## Your addon in the menu
 
@@ -37,3 +130,4 @@ taken from the built jar.
   [Compatibility and versions](/docs/develop/compatibility#versions) explains.
 - Private settings are [protected](/docs/develop/sharing).
 - The dev client's `selftest` passes, and `myriad.auditMixins` finds nothing.
+- Signed: the release has its `.sig` next to the jar.

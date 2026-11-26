@@ -23,5 +23,21 @@ the one slowing your game's start), and each addon's own settings.
 it (it takes effect the next time you start the game). The switch in the title bar turns checking off; the buttons
 beside it check now and update everything. From chat: `.update check`, `.update all`.
 
+**Signed updates.** An addon's card says where its updates come from and whether they're signed. A signed addon takes
+only updates signed with its developer's key, so even someone who takes over its GitHub account or website can't push
+you a different jar: a release that isn't signed with that key is refused. Myriad's own updates are signed by its
+maintainer, offline, after checking the released jar is exactly what its source builds. An unsigned addon updates as
+before, and is only as safe as wherever it's released.
+
+**Adding an addon from a link**: the link button in the title bar (or `.update add <link>` in chat) takes an addon's
+GitHub repository or its update feed's address. Myriad downloads and checks it first and shows what it is, where it's
+from, and the fingerprint of the key it's signed with; it's installed only when you say so, and loads the next time
+you start the game. If its developer publishes their key's fingerprint, check it matches: every later update will need
+that key. An unsigned addon is marked in red: whoever controls where it's hosted decides what you get.
+
+**Private addons**: for an addon from a private repository or feed, paste the access token its developer gave you into
+**Private source** on its card (or the token field when adding it). It's kept in `myriad/updates/sources.json`, sent
+only to that source, and never shown or copied back out.
+
 If an addon fails to start, Myriad takes out everything it added and carries on without it. The Addons window shows
 why it failed.
