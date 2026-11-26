@@ -1,0 +1,97 @@
+---
+title: "Privacy policy"
+description: "What myriadclient.dev, Myriad's config sharing and the Myriad client collect (very little), and why."
+---
+
+# Privacy policy
+
+_Last updated: 25 November 2026_
+
+Myriad is a free, open-source project run by **the Myriad project** ([MyriadClient](https://github.com/MyriadClient)
+on GitHub). This page covers the website (myriadclient.dev), its API for shared configs (api.myriadclient.dev), its
+maven repository (maven.myriadclient.dev) and the Myriad client itself. Because the code is public, you can check
+everything below against what it actually does.
+
+## The short version
+
+- No accounts, no ads, no analytics, no tracking cookies, and nothing sold or shared for marketing.
+- The Myriad client sends us nothing unless you share a config.
+- Your IP address reaches our servers when you use them, as it does for any website. We use it to deliver pages and to
+  stop abuse, and we don't build profiles from it.
+
+## The website
+
+The site is static pages. It has no sign-in, no analytics and no third-party scripts. Its fonts are served from our own
+server, and the docs search runs entirely in your browser.
+
+- **Cloudflare** sits in front of the site, the API and maven to deliver them quickly and to block attacks. It processes
+  your IP address and the details of each request (the page, your browser's user agent) for that purpose, under
+  [Cloudflare's privacy policy](https://www.cloudflare.com/privacypolicy/).
+- **Our server** keeps ordinary request logs (IP address, time, page, browser) to keep it running and to investigate
+  abuse. They're kept only briefly and are never used to track anyone.
+- **Your browser** stores your light/dark choice for the docs in its local storage. It never leaves your device. See
+  the [cookie policy](/docs/cookies).
+
+## Shared configs
+
+When you share a config from Myriad, the client uploads what you chose to share:
+- its title, modules and settings (minus any setting an addon marks private, which Myriad leaves out before uploading
+  and the server drops if sent);
+- your theme, which may name its author (your Minecraft name, if you made it);
+- control panels and wheels;
+- the names and versions of your addons, Myriad and Minecraft.
+
+- **Who can see it:** anyone with its code or link. That's the point of sharing, so don't put anything in a share you
+  wouldn't post publicly.
+- **What else is kept:** when it was made, how many times it's been viewed, and a hash of the delete key your client
+  was given. No account or IP address is stored with it.
+- **IP addresses** are used in memory to limit how fast one address can upload, read or guess codes, and are then
+  forgotten. They're never written to the database.
+- **How long:** until you delete it, from Myriad (`.share delete <code>`, with the key your client kept). If you've lost the
+  key, ask us (below) with the share's code.
+
+## The Myriad client
+
+Myriad has no telemetry. It doesn't report what you do, which servers you play on or anything about your computer.
+It contacts other services only for these reasons:
+
+- **Update checks.** When the game starts (you can turn this off in Addons), Myriad asks GitHub's API about new
+  releases of Myriad and your addons. An addon with its own update feed is checked at its feed's address instead. Those
+  services see your IP address and which project is asked about, under their own policies
+  ([GitHub's](https://docs.github.com/site-policy/privacy-policies/github-general-privacy-statement)). A private feed's
+  access token, if you give one, is sent only to that feed.
+- **Sharing a config**, only when you do, as above.
+- **Adding an addon from a link**, only to the address you give.
+
+The Myriad cape is marked with a spare bit in your skin settings, which other players' clients see in-game. No server
+is involved. Addons are made by their own developers and may do things Myriad doesn't: check their own policies.
+
+## Children
+
+Nothing here asks for personal information, and we don't knowingly collect any from children. We never ask for or
+store your age or date of birth. When accounts open, they'll be for people aged 16 or over: signing up will ask you to
+confirm you are, and an account we learn belongs to someone younger will be deleted. The client and the site will keep
+working for everyone without one.
+
+## Planned: accounts
+
+We plan optional accounts on this site, for invites to private addons and similar. Sign-in will work through your
+Minecraft account: the client proves who you are to us through Mojang's own check, so we never see your password or
+your Minecraft login. An account would hold your Minecraft UUID, when it was made, and a sign-in cookie. This policy
+will say exactly what's kept, and why, **before** accounts open. Until then, none of this exists.
+
+## Your rights
+
+Wherever you live, you can ask what we hold about you, to have it corrected or deleted, or object to how it's used.
+Under the GDPR and the UK GDPR, our legal basis for the server logs and rate limits is our legitimate interest in
+running the services securely, and for shares it's that you asked us to publish them. As we hold almost nothing that
+identifies anyone, most requests will be about a share. You can also complain to your local data-protection authority.
+
+**Contact:** open an issue at
+[github.com/MyriadClient/myriad-api/issues](https://github.com/MyriadClient/myriad-api/issues). Issues are public, so
+include only what's needed (a share's code is enough to find it), never personal details.
+
+## Changes
+
+If this changes, the new version goes here with a new date first. Anything that collects more (like accounts) will be
+described here before it starts.

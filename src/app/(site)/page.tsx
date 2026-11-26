@@ -327,6 +327,8 @@ export default async function Home() {
             <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
             <li><Link className="hover:text-ink" href="/docs/develop">Write an addon</Link></li>
             <li><a className="hover:text-ink" href="/api/">API reference</a></li>
+            <li><Link className="hover:text-ink" href="/docs/privacy">Privacy</Link></li>
+            <li><Link className="hover:text-ink" href="/docs/cookies">Cookies</Link></li>
           </ul>
         </div>
       </footer>

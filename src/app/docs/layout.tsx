@@ -39,7 +39,7 @@ const footer = (
   <Footer>
     <span className="docs-footer">
       Myriad is free and open source. <Link href="/">myriadclient.dev</Link> · <a href={site.org}>GitHub</a> ·{" "}
-      <Link href="/llms.txt">llms.txt</Link>
+      <Link href="/llms.txt">llms.txt</Link> · <Link href="/docs/privacy">Privacy</Link> · <Link href="/docs/cookies">Cookies</Link>
     </span>
   </Footer>
 );
