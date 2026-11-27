@@ -887,20 +887,6 @@
   pointer-events: none;
 }
 
-/* What a tutorial step points at. */
-.mk-stage [data-hint] {
-  animation: mk-hint 1.6s var(--ease) infinite;
-}
-
-@keyframes mk-hint {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-accent) 0%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--k-accent) 55%, transparent);
-  }
-}
 
 /* The game behind the menu, while it's closed. */
 .mk-game {
@@ -956,4 +942,13 @@
   justify-content: space-between;
   min-height: calc(12 * var(--u));
   flex-shrink: 0;
+}
+
+/* The menu draws its own focus and hover (the focused window's border, the selection, hover fills): the browser's or
+   the site's focus ring on top would only double them. */
+.mk-stage,
+.mk-stage *,
+.mk-stage *:focus,
+.mk-stage *:focus-visible {
+  outline: none;
 }

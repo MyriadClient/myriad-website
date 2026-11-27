@@ -592,7 +592,7 @@ function CoachCard({
  *  goes to the top when the target is down where it sits. */
 function CoachLine({ stage, target, s }: { stage: React.RefObject<HTMLDivElement | null>; target?: Step["target"]; s: MenuState }) {
   const selector = typeof target === "function" ? target(s) : (target ?? null);
-  const [geo, setGeo] = useState<{ t: Rect; c: Rect; w: number; h: number } | null>(null);
+  const [geo, setGeo] = useState<{ t: Rect; c: Rect; w: number; h: number; r: number } | null>(null);
   useEffect(() => {
     const host = stage.current;
     if (!host) return;
@@ -616,10 +616,12 @@ function CoachLine({ stage, target, s }: { stage: React.RefObject<HTMLDivElement
       const top = t.y + t.h / 2 > hb.height * 0.55;
       if ((host.dataset.cardTop === "1") !== top) host.dataset.cardTop = top ? "1" : "";
       const c = { x: cb.left - hb.left, y: cb.top - hb.top, w: cb.width, h: cb.height };
-      const key = [t.x, t.y, t.w, t.h, c.x, c.y, c.w, c.h].map((v) => v.toFixed(1)).join();
+      // The ring follows the target's own corners.
+      const r = parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0;
+      const key = [t.x, t.y, t.w, t.h, c.x, c.y, c.w, c.h, r].map((v) => v.toFixed(1)).join();
       if (key !== last) {
         last = key;
-        setGeo({ t, c, w: hb.width, h: hb.height });
+        setGeo({ t, c, w: hb.width, h: hb.height, r });
       }
     };
     tick();
@@ -628,7 +630,7 @@ function CoachLine({ stage, target, s }: { stage: React.RefObject<HTMLDivElement
 
   if (!geo) return null;
   const { t, c } = geo;
-  const pad = 4;
+  const pad = 3;
   const ring = { x: t.x - pad, y: t.y - pad, w: t.w + pad * 2, h: t.h + pad * 2 };
   const below = c.y > t.y + t.h / 2; // the card is under the target
   const p = { x: Math.min(Math.max(t.x + t.w / 2, c.x + 24), c.x + c.w - 24), y: below ? c.y : c.y + c.h };
@@ -638,7 +640,7 @@ function CoachLine({ stage, target, s }: { stage: React.RefObject<HTMLDivElement
   const mid = (p.y + q.y) / 2;
   return (
     <svg className="tut-line" width={geo.w} height={geo.h} aria-hidden="true">
-      <rect x={ring.x} y={ring.y} width={ring.w} height={ring.h} rx={8} className="tut-ring" />
+      <rect x={ring.x} y={ring.y} width={ring.w} height={ring.h} rx={Math.min(geo.r + pad, ring.h / 2)} className="tut-ring" />
       {!overlaps && (
         <>
           <path d={`M ${p.x} ${p.y} C ${p.x} ${mid}, ${q.x} ${mid}, ${q.x} ${q.y}`} className="tut-path" />
