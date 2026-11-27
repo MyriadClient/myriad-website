@@ -1,71 +1,33 @@
-import Link from "next/link";
-import type { Metadata, Viewport } from "next";
-import { Footer, Layout, Navbar } from "nextra-theme-docs";
-import { Head } from "nextra/components";
+import type { Metadata } from "next";
 import { getPageMap } from "nextra/page-map";
-import "nextra-theme-docs/style.css";
-import { MyriadMark } from "@/components/MyriadMark";
-import { fontClasses } from "@/lib/fonts";
-import { site } from "@/lib/site";
+import { Search } from "@/components/docs/Search";
+import { Sidebar } from "@/components/docs/Sidebar";
+import { Footer } from "@/components/site/Footer";
+import { Header } from "@/components/site/Header";
 import "./docs.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL(site.url),
-  title: { default: "Docs", template: `%s · ${site.name} docs` },
-  description: "How to use Myriad, and how to build addons for it: modules, settings, the menu, hooks, shared configs.",
-  openGraph: { siteName: site.name, type: "website", locale: "en_US" },
+  title: { default: "Docs", template: "%s · Myriad docs" },
+  description: "How to use Myriad, and how to build addons for it.",
+  alternates: { types: { "text/plain": "/llms.txt" } },
 };
 
-export const viewport: Viewport = { themeColor: "#0c0c0c", colorScheme: "dark" };
-
-const navbar = (
-  <Navbar
-    logo={
-      <span className="docs-logo">
-        <MyriadMark size={22} /> <span>Myriad</span> <span className="docs-logo-dim">docs</span>
-      </span>
-    }
-    logoLink="/docs"
-    projectLink={site.github}
-  >
-    {/* Plain links: /api is the javadoc's own static pages, not part of the app. */}
-    <a className="docs-nav-link" href="/api/">
-      API
-    </a>
-  </Navbar>
-);
-
-const footer = (
-  <Footer>
-    <span className="docs-footer">
-      Myriad is free and open source. <Link href="/">myriadclient.dev</Link> · <a href={site.org}>GitHub</a> ·{" "}
-      <Link href="/llms.txt">llms.txt</Link> · <Link href="/docs/privacy">Privacy</Link> · <Link href="/docs/cookies">Cookies</Link>
-    </span>
-  </Footer>
-);
-
+/**
+ * The docs: the site's own header (with search, and the page list in its drawer on phones), the page list on the
+ * left, the page in the middle and its contents on the right. Nextra only compiles the pages and maps them.
+ */
 export default async function DocsLayout({ children }: LayoutProps<"/docs">) {
+  const pageMap = await getPageMap("/docs");
   return (
-    <html lang="en" dir="ltr" className={fontClasses} suppressHydrationWarning>
-      <Head color={{ hue: 152, saturation: 55, lightness: { dark: 67, light: 38 } }} backgroundColor={{ dark: "#0c0c0c", light: "#f6f8f7" }}>
-        <link rel="alternate" type="text/plain" href="/llms.txt" title="Myriad docs for language models" />
-      </Head>
-      <body>
-        <Layout
-          navbar={navbar}
-          footer={footer}
-          pageMap={await getPageMap("/docs")}
-          docsRepositoryBase="https://github.com/MyriadClient/myriad-website/blob/master"
-          editLink="Edit this page"
-          feedback={{ content: "Something unclear? Tell us", labels: "docs" }}
-          sidebar={{ defaultMenuCollapseLevel: 1, toggleButton: true }}
-          nextThemes={{ defaultTheme: "dark", forcedTheme: "dark" }}
-          darkMode={false}
-          copyPageButton
-        >
-          {children}
-        </Layout>
-      </body>
-    </html>
+    <>
+      <Header search={<Search />} drawer={<Sidebar pageMap={pageMap} />} />
+      <div className="mx-auto flex w-full max-w-7xl flex-1 gap-10 px-4 sm:px-6">
+        <aside className="doc-aside hidden w-60 shrink-0 md:block" data-pagefind-ignore>
+          <Sidebar pageMap={pageMap} />
+        </aside>
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+      <Footer />
+    </>
   );
 }

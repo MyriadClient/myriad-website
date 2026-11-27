@@ -40,7 +40,7 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
         <AddonIcon addon={a} className="h-16 w-16 shrink-0 text-2xl" />
         <div className="min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="text-3xl font-semibold sm:text-4xl">{a.name}</h1>
+            <h1 className="text-3xl sm:text-4xl">{a.name}</h1>
             <Badge kind={a.badge} />
           </div>
           <p className="mt-1 text-dim">
@@ -82,9 +82,9 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
       <section className="mt-10 max-w-3xl rounded-lg border border-line bg-raised p-5">
         <h2 className="font-display text-lg font-semibold">Install</h2>
         <p className="mt-2 leading-relaxed text-dim">
-          In game, open <strong className="font-medium text-ink">Addons</strong> from the launcher, press{" "}
-          <strong className="font-medium text-ink">Browse</strong> and search for {a.name}. Myriad checks the jar against
-          its signatures before installing it, and from then on takes its updates only through the Library.
+          In game, open <strong className="font-medium text-ink">Addons</strong>, press{" "}
+          <strong className="font-medium text-ink">Browse</strong> and search for {a.name}.{" "}
+          <Link className="text-ink underline underline-offset-4 hover:text-mint" href="/docs/use/addons/#the-myriad-library">How it&rsquo;s checked</Link>
         </p>
       </section>
 
@@ -118,10 +118,7 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
               </tbody>
             </table>
           </div>
-          <p className="mt-3 text-sm text-dim">
-            Each jar is the developer&rsquo;s own GitHub release. A withdrawn release is never offered again, and Myriad
-            won&rsquo;t install it.
-          </p>
+          <p className="mt-3 text-sm text-dim">Withdrawn releases are never installed.</p>
         </section>
       )}
     </article>

@@ -3,7 +3,7 @@ import { logoFirst, logoSecond, logoStroke } from "@/lib/logo";
 import { site } from "@/lib/site";
 
 export const dynamic = "force-static";
-export const alt = `${site.name}: an addon-first Minecraft utility client with a tiling window manager menu`;
+export const alt = `${site.name}: a free, open-source Minecraft client for Fabric`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 

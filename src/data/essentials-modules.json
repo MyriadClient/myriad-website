@@ -1,0 +1,344 @@
+[
+ {
+  "name": "Combat",
+  "icon": "",
+  "modules": [
+   {
+    "name": "Kill Aura",
+    "tag": "combat",
+    "description": "Attacks targets in reach, facing them first.",
+    "order": 2
+   },
+   {
+    "name": "Offhand",
+    "tag": "combat",
+    "description": "Keeps a totem, crystal, golden apple or shield in your off hand.",
+    "order": 3
+   },
+   {
+    "name": "Auto Armor",
+    "tag": "combat",
+    "description": "Wears your best armour, and swaps between chestplate and elytra on a bind.",
+    "order": 4
+   },
+   {
+    "name": "Velocity",
+    "tag": "combat",
+    "description": "Reduces knockback and pushing.",
+    "order": 5
+   },
+   {
+    "name": "Auto Disconnect",
+    "tag": "combat",
+    "description": "Leaves the server when you're about to die.",
+    "order": 6
+   }
+  ]
+ },
+ {
+  "name": "Movement",
+  "icon": "",
+  "modules": [
+   {
+    "name": "Elytra Tweaks",
+    "tag": "movement",
+    "description": "No Durability and a bind to start the glide.",
+    "order": 0
+   },
+   {
+    "name": "Rotation Lock",
+    "tag": "movement",
+    "description": "Keeps you flying the way you faced, whatever the camera does.",
+    "order": 1
+   },
+   {
+    "name": "Elytra Fly",
+    "tag": "movement",
+    "description": "Flies your elytra: bounces along highways, crosses open country, or flies with the movement keys.",
+    "order": 7
+   },
+   {
+    "name": "Rocket Boost",
+    "tag": "movement",
+    "description": "While a rocket pushes you, flies as fast along your look as Grim allows: full speed at once, faster on diagonals.",
+    "order": 8
+   },
+   {
+    "name": "Inventory Move",
+    "tag": "movement",
+    "description": "Lets you walk, jump and sprint with your inventory or a container open.",
+    "order": 9
+   },
+   {
+    "name": "No Slow",
+    "tag": "movement",
+    "description": "Keeps your speed while eating or using items, and through cobwebs.",
+    "order": 10
+   }
+  ]
+ },
+ {
+  "name": "World",
+  "icon": "",
+  "modules": [
+   {
+    "name": "Scaffold",
+    "tag": "world",
+    "description": "Keeps a block under you as you walk.",
+    "order": 11
+   },
+   {
+    "name": "Placement Tweaks",
+    "tag": "world",
+    "description": "Places blocks by hand the way you choose: facing, beside, against chests, in mid-air.",
+    "order": 12
+   },
+   {
+    "name": "Packet Mine",
+    "tag": "world",
+    "description": "Mines the blocks you hit for you, with your hand free.",
+    "order": 13
+   },
+   {
+    "name": "Nuker",
+    "tag": "world",
+    "description": "Breaks the blocks around you.",
+    "order": 14
+   },
+   {
+    "name": "Reach",
+    "tag": "world",
+    "description": "Lets you place blocks and hit entities from further away.",
+    "order": 15
+   },
+   {
+    "name": "Wall Interact",
+    "tag": "world",
+    "description": "Lets you hit entities and open containers through walls.",
+    "order": 16
+   }
+  ]
+ },
+ {
+  "name": "Player",
+  "icon": "",
+  "modules": [
+   {
+    "name": "Inventory Tweaks",
+    "tag": "player",
+    "description": "Opens shulker boxes from your inventory, and moves items with drags and the wheel.",
+    "order": 17
+   },
+   {
+    "name": "Replenish",
+    "tag": "player",
+    "description": "Refills hotbar stacks from your inventory.",
+    "order": 18
+   },
+   {
+    "name": "Middle Click",
+    "tag": "player",
+    "description": "Puts friends, experience, rockets or pearls on the middle mouse button.",
+    "order": 19
+   },
+   {
+    "name": "Auto Reconnect",
+    "tag": "player",
+    "description": "Joins the server you were on again after you're kicked or lose connection.",
+    "order": 20
+   }
+  ]
+ },
+ {
+  "name": "Render",
+  "icon": "",
+  "modules": [
+   {
+    "name": "Entity ESP",
+    "tag": "render",
+    "description": "Highlights players, mobs, crystals and more through walls.",
+    "order": 21
+   },
+   {
+    "name": "Tracers",
+    "tag": "render",
+    "description": "Draws lines to entities, storage and blocks.",
+    "order": 22
+   },
+   {
+    "name": "Nametags",
+    "tag": "render",
+    "description": "Draws readable name tags for players, mobs, items and pearls.",
+    "order": 23
+   },
+   {
+    "name": "Storage ESP",
+    "tag": "render",
+    "description": "Highlights chests, shulker boxes and other storage through walls.",
+    "order": 24
+   },
+   {
+    "name": "Block ESP",
+    "tag": "render",
+    "description": "Highlights the blocks you pick, like spawners or beds, through walls.",
+    "order": 25
+   },
+   {
+    "name": "Block Highlight",
+    "tag": "render",
+    "description": "Draws the block you're looking at in your own look, in place of vanilla's outline.",
+    "order": 26
+   },
+   {
+    "name": "Full Bright",
+    "tag": "render",
+    "description": "Lets you see in the dark.",
+    "order": 27
+   },
+   {
+    "name": "No Render",
+    "tag": "render",
+    "description": "Hides distracting effects, overlays and things.",
+    "order": 28
+   },
+   {
+    "name": "Time of Day",
+    "tag": "render",
+    "description": "Sets the time of day you see.",
+    "order": 29
+   },
+   {
+    "name": "View Model",
+    "tag": "render",
+    "description": "Moves, rotates, scales, hides or highlights your first-person hands.",
+    "order": 30
+   },
+   {
+    "name": "Zoom",
+    "tag": "render",
+    "description": "Zooms the camera in.",
+    "order": 31
+   },
+   {
+    "name": "Free Look",
+    "tag": "render",
+    "description": "Orbits the camera without turning your player; scroll to move it nearer or further.",
+    "order": 32
+   },
+   {
+    "name": "Freecam",
+    "tag": "render",
+    "description": "Detaches the camera so you can fly it around.",
+    "order": 33
+   },
+   {
+    "name": "Tooltips",
+    "tag": "render",
+    "description": "Adds container and map previews, durability and food values to tooltips.",
+    "order": 34
+   },
+   {
+    "name": "Chat",
+    "tag": "render",
+    "description": "Draws chat in the theme's font and colours, filtered, repeats stacked, more kept; Minecraft's Chat Settings here too.",
+    "order": 35
+   },
+   {
+    "name": "Extra Tab",
+    "tag": "render",
+    "description": "Draws the player list in Myriad's look: more players and rows, your pick of what's shown, friends, enemies and you picked out.",
+    "order": 36
+   }
+  ]
+ },
+ {
+  "name": "Automation",
+  "icon": "",
+  "modules": [
+   {
+    "name": "Auto Eat",
+    "tag": "automation",
+    "description": "Eats when your health or hunger gets low.",
+    "order": 37
+   },
+   {
+    "name": "Auto Tool",
+    "tag": "automation",
+    "description": "Switches to the best tool for what you're mining.",
+    "order": 38
+   },
+   {
+    "name": "Auto Walk",
+    "tag": "automation",
+    "description": "Walks forward without you holding the key.",
+    "order": 39
+   },
+   {
+    "name": "Anti AFK",
+    "tag": "automation",
+    "description": "Swings and crouches while you're away, so the server doesn't kick you for idling.",
+    "order": 40
+   },
+   {
+    "name": "Auto Mend",
+    "tag": "automation",
+    "description": "Mends your gear with bottles o' enchanting.",
+    "order": 41
+   },
+   {
+    "name": "Auto Sort",
+    "tag": "automation",
+    "description": "Sorts containers as you open them.",
+    "order": 42
+   },
+   {
+    "name": "Auto Rename",
+    "tag": "automation",
+    "description": "Renames items at an anvil in reach.",
+    "order": 43
+   },
+   {
+    "name": "Auto Craft",
+    "tag": "automation",
+    "description": "Crafts items as many as you can, in your inventory or at a table in reach, from input containers into output ones.",
+    "order": 44
+   },
+   {
+    "name": "Villager Roller",
+    "tag": "automation",
+    "description": "Rerolls a librarian until it sells the book you want.",
+    "order": 45
+   },
+   {
+    "name": "Auto Trader",
+    "tag": "automation",
+    "description": "Trades with villagers from chests into chests: buys with emeralds, or sells them carrots, paper and the like.",
+    "order": 46
+   },
+   {
+    "name": "Auto Farmer",
+    "tag": "automation",
+    "description": "Plants the crop you hold on empty farmland in reach.",
+    "order": 47
+   },
+   {
+    "name": "Junk Dropper",
+    "tag": "automation",
+    "description": "Throws out items you've listed as junk as soon as you pick them up.",
+    "order": 48
+   },
+   {
+    "name": "Printer",
+    "tag": "automation",
+    "description": "Builds Litematica schematics around you.",
+    "order": 49
+   },
+   {
+    "name": "Auto Portal",
+    "tag": "automation",
+    "description": "Builds a Nether portal where you right-click with obsidian, or in front of you when turned on.",
+    "order": 50
+   }
+  ]
+ }
+]

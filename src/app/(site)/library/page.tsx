@@ -5,7 +5,7 @@ import { library } from "@/lib/library";
 
 export const metadata: Metadata = {
   title: "Myriad Library",
-  description: "Addons for Myriad that Myriad has checked: built from their public source, or reviewed by Myriad. Install them from Browse in the Addons window.",
+  description: "Addons for Myriad, built from their source and checked. Install them in game with Browse.",
   alternates: { canonical: "/library/" },
 };
 
@@ -13,19 +13,12 @@ export default function LibraryPage() {
   const { open, addons } = library();
   return (
     <>
-      <div className="max-w-3xl">
-        <h1 className="text-4xl font-semibold sm:text-5xl">Myriad Library</h1>
-        <p className="mt-4 text-lg leading-relaxed text-dim">
-          Addons Myriad has checked. <strong className="font-medium text-ink">Verified</strong> addons are built from
-          their public source and match it byte for byte; <strong className="font-medium text-ink">Reviewed</strong>{" "}
-          addons are closed source and were looked over by Myriad&rsquo;s maintainer. Each release is signed by its
-          developer and by the Library.
-        </p>
-        <p className="mt-3 leading-relaxed text-dim">
-          Install them in game: open <strong className="font-medium text-ink">Addons</strong> from the launcher and press{" "}
-          <strong className="font-medium text-ink">Browse</strong>. Myriad checks every signature itself before installing
-          anything.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-4xl sm:text-5xl">Myriad Library</h1>
+          <p className="mt-3 text-lg text-dim">Addons built from their source and checked. Install them in game with Browse.</p>
+        </div>
+        <Link href="/docs/develop/library/" className="text-sm text-dim hover:text-ink">List your addon →</Link>
       </div>
       <div className="mt-10">
         {!open ? (

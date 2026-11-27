@@ -1,0 +1,634 @@
+@import "tailwindcss";
+
+/*
+ * The site's tokens are the client's default theme ("Myriad", core ThemeSettings): its near-black, its mint and the
+ * second gradient stop, its frosted surfaces, its text colours and its ease-out-quint curve. Anything that looks like
+ * the game on this site takes its colours from here.
+ */
+:root {
+  --bg: #0c0c0c;
+  --bg-raised: #131514;
+  --bg-top: #151816; /* the out-of-world gradient's lighter end (UiPainter) */
+  --surface: rgb(37 42 39 / 0.376);
+  --surface-hover: rgb(52 58 55 / 0.565);
+  --line: #222624;
+  --line-strong: #303633;
+  --text: #e9eeeb;
+  --text-dim: #8c9690;
+  --mint: #7fd8ae;
+  --mint-deep: #4fa884;
+  --red: #f38ba8;
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  --header-h: 3.5rem;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-raised: var(--bg-raised);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-dim: var(--text-dim);
+  --color-mint: var(--mint);
+  --color-mint-deep: var(--mint-deep);
+  --font-sans: var(--font-ui), system-ui, sans-serif;
+  --font-display: var(--font-ui), system-ui, sans-serif;
+  --font-mono: var(--font-mono-nf), ui-monospace, monospace;
+  --ease-quint: var(--ease);
+}
+
+html {
+  color-scheme: dark;
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 1rem);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--mint) 30%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--mint);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  padding: 0.15em 0.45em;
+  border: 1px solid var(--line-strong);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--bg-raised);
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* The menu's icons are Nerd Font glyphs in the mono font, as in the game. */
+.icon {
+  font-family: var(--font-mono);
+  font-style: normal;
+  line-height: 1;
+}
+
+/* The landing page's smoke: Dither faded out at its edges, so it sits in the page rather than on it. */
+.hero-smoke {
+  -webkit-mask-image: radial-gradient(70% 60% at 50% 35%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(70% 60% at 50% 35%, #000 25%, transparent 78%);
+}
+
+.band-smoke {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 45%, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 45%, #000 70%, transparent);
+}
+
+/* The hero: huge type, and the menu behind it on the right, larger than the screen, its left edge fading under the
+   type and its foot into the page. On narrow screens the menu sits under the type, bleeding off the right. */
+.hero-title {
+  font-size: clamp(3.4rem, 8.2vw, 8.6rem);
+  line-height: 0.92;
+  letter-spacing: -0.045em;
+  font-weight: 600;
+}
+
+.hero-stage {
+  position: relative;
+  order: 2;
+  width: 150vw;
+  margin: 0 0 -10vw 6vw;
+  -webkit-mask-image: linear-gradient(to right, #000 55%, transparent 92%), linear-gradient(to bottom, #000 55%, transparent 96%);
+  -webkit-mask-composite: source-in;
+  mask-image: linear-gradient(to right, #000 55%, transparent 92%), linear-gradient(to bottom, #000 55%, transparent 96%);
+  mask-composite: intersect;
+}
+
+.hero-stage .mk-stage {
+  border-radius: 14px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mint) 12%, transparent), 0 40px 120px -20px rgb(0 0 0 / 0.9);
+}
+
+@media (min-width: 64rem) {
+  .hero-stage {
+    position: absolute;
+    order: 0;
+    left: 35%;
+    top: 50%;
+    width: max(60rem, 70vw);
+    margin: 0;
+    transform: translateY(-50%) perspective(2400px) rotateY(-7deg) rotateX(2deg);
+    transform-origin: left center;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, #000 24%), linear-gradient(to bottom, #000 72%, transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, #000 24%), linear-gradient(to bottom, #000 72%, transparent 100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* A shared config, drawn like Myriad's menu in the sharer's theme (the --s-* variables come from the share). */
+.share-window {
+  background: var(--s-window);
+  border: 1px solid var(--s-border);
+  border-radius: var(--s-round);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+}
+
+.share-title {
+  background: var(--s-title);
+  border-bottom: 1px solid var(--s-border);
+}
+
+.share-card {
+  background: var(--s-surface);
+  border-radius: calc(var(--s-round) * 0.75);
+}
+
+/* Control panels and wheels: the last tile takes what's left of its row, so no row ends half empty. */
+@media (min-width: 48rem) {
+  .share-bento > :last-child:nth-child(2n + 1) {
+    grid-column: span 2;
+  }
+}
+
+@media (min-width: 80rem) {
+  .share-bento > :last-child:nth-child(2n + 1) {
+    grid-column: auto;
+  }
+
+  .share-bento > :last-child:nth-child(3n + 1) {
+    grid-column: span 3;
+  }
+
+  .share-bento > :last-child:nth-child(3n + 2) {
+    grid-column: span 2;
+  }
+}
+
+.share-pill {
+  display: inline-block;
+  padding: 0.05rem 0.5rem;
+  border: 1px solid var(--s-border);
+  border-radius: 999px;
+  color: var(--s-text);
+  font-size: 0.75rem;
+}
+
+.share-switch {
+  position: relative;
+  display: inline-block;
+  width: 1.9rem;
+  height: 1rem;
+  border-radius: 999px;
+  background: var(--s-border);
+}
+
+.share-switch > span {
+  position: absolute;
+  top: 0.15rem;
+  left: 0.15rem;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 0.2s ease;
+}
+
+.share-switch[data-on="true"] {
+  background: var(--s-accent);
+}
+
+.share-switch[data-on="true"] > span {
+  transform: translateX(0.9rem);
+}
+
+.share-slider {
+  display: inline-block;
+  width: 4.5rem;
+  height: 0.3rem;
+  border-radius: 999px;
+  background: var(--s-border);
+  overflow: hidden;
+}
+
+.share-slider > span {
+  display: block;
+  height: 100%;
+  background: var(--s-accent);
+}
+
+/*
+ * Myriad's launcher (core Launcher.java), at 2 px per UI unit: 260u wide, its top at 22% of the screen over a 0x66
+ * scrim, a 22u header with the search icon in accent, 15u rows, the selected one in accent at alpha 70, a 1u border in
+ * the theme's 45° accent → secondary gradient, rounding 4u. The docs search uses it.
+ */
+.launcher-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgb(0 0 0 / 0.4);
+  animation: launcher-fade 160ms var(--ease);
+}
+
+.launcher {
+  position: absolute;
+  left: 50%;
+  top: 18vh;
+  width: min(40rem, calc(100vw - 2rem));
+  transform: translateX(-50%);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background:
+    linear-gradient(color-mix(in srgb, var(--bg-raised) 92%, transparent), color-mix(in srgb, var(--bg-raised) 92%, transparent)) padding-box,
+    linear-gradient(45deg, var(--mint), var(--mint-deep)) border-box;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px rgb(0 0 0 / 0.5);
+  overflow: hidden;
+  animation: launcher-drop 160ms var(--ease);
+}
+
+.launcher-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  height: 44px;
+  padding: 0 0.9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--text-dim) 16%, transparent);
+}
+
+.launcher-head input {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  outline: none;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+
+.launcher-head input::placeholder {
+  color: var(--text-dim);
+}
+
+.launcher-icon {
+  color: var(--mint);
+  width: 1.1rem;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.launcher-list {
+  max-height: min(60vh, 30rem);
+  overflow-y: auto;
+  padding: 0.3rem;
+}
+
+.launcher-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.launcher-row .launcher-icon {
+  margin-top: 0.3rem;
+}
+
+.launcher-row[aria-selected="true"] {
+  background: color-mix(in srgb, var(--mint) 27.5%, transparent);
+}
+
+.launcher-title {
+  display: block;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.launcher-excerpt {
+  display: block;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.launcher-excerpt mark {
+  background: none;
+  color: var(--mint);
+}
+
+.launcher-empty {
+  padding: 0.9rem;
+  color: var(--text-dim);
+  font-size: 0.9rem;
+}
+
+@keyframes launcher-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes launcher-drop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -16px);
+  }
+}
+
+/* ---- the tutorial: the chapter list beside a menu that fills the rest of the screen ---- */
+.tut {
+  background: var(--bg);
+}
+
+@media (min-width: 64rem) {
+  .tut {
+    display: grid;
+    grid-template-columns: 18rem minmax(0, 1fr);
+    height: calc(100svh - var(--header-h));
+  }
+}
+
+.tut[data-full] {
+  height: 100vh;
+}
+
+.tut-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border-right: 1px solid var(--line);
+}
+
+.tut-region {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.tut-stage {
+  position: relative;
+}
+
+/* The menu takes the keyboard when clicked, and says so when it hasn't; the site's focus ring would only distract. */
+.tut [tabindex="0"]:focus-visible {
+  outline: none;
+}
+
+/* The instruction card sits over the menu, at its foot, or at its top when what it points at is down there. */
+.tut-card-slot {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  z-index: 20;
+  width: min(36rem, calc(100% - 2rem));
+  transform: translateX(-50%);
+}
+
+[data-card-top="1"] > .tut-card-slot {
+  bottom: auto;
+  top: 7%;
+}
+
+.tut-card {
+  border: 1px solid var(--line-strong);
+  border-radius: 14px;
+  padding: 0.9rem 1.1rem 1rem;
+  background: color-mix(in srgb, var(--bg-raised) 86%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px -16px rgb(0 0 0 / 0.7);
+}
+
+/* Each new step's words come in, so moving on is felt even when it happens at once. */
+.tut-text {
+  animation: tut-in 0.35s var(--ease);
+}
+
+@keyframes tut-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+.tut-line {
+  position: absolute;
+  inset: 0;
+  z-index: 19;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.tut-ring {
+  fill: none;
+  stroke: var(--mint);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--mint) 55%, transparent));
+}
+
+.tut-path {
+  fill: none;
+  stroke: var(--mint);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  animation: tut-dash 0.9s linear infinite;
+}
+
+.tut-end {
+  fill: var(--mint);
+}
+
+@keyframes tut-dash {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tut-path {
+    animation: none;
+  }
+}
+
+/* The chapter list: a rail through each chapter's node, lit up to where you are; the open chapter's steps under it. */
+.tut-steps > li {
+  position: relative;
+}
+
+.tut-steps > li::before,
+.tut-substeps > li::before {
+  content: "";
+  position: absolute;
+  left: 11px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--line-strong);
+}
+
+.tut-steps > li::before {
+  top: 1.6rem;
+  bottom: -0.3rem;
+}
+
+.tut-steps > li:last-child::before {
+  display: none;
+}
+
+.tut-steps > li[data-lit]::before,
+.tut-substeps > li[data-lit]::before {
+  background: var(--mint);
+}
+
+.tut-chapter {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  font-size: 0.9rem;
+  color: var(--text-dim);
+  transition: color 0.15s;
+}
+
+.tut-chapter:hover,
+li[data-current] > .tut-chapter {
+  color: var(--text);
+}
+
+li[data-current] > .tut-chapter {
+  font-weight: 600;
+}
+
+.tut-node {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--line-strong);
+  border-radius: 999px;
+  background: var(--bg);
+  font-size: 10px;
+}
+
+.tut-node[data-state="done"] {
+  border-color: var(--mint);
+  background: var(--mint);
+  color: var(--bg);
+}
+
+.tut-node[data-state="current"] {
+  border-color: var(--mint);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--mint) 14%, transparent);
+}
+
+.tut-node[data-state="sheet"] {
+  border-color: transparent;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.tut-substeps {
+  margin: 0.1rem 0 0.35rem;
+}
+
+.tut-substeps > li {
+  position: relative;
+}
+
+.tut-substeps > li::before {
+  top: -0.15rem;
+  bottom: -0.15rem;
+}
+
+.tut-substep {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.12rem 0;
+  text-align: left;
+  font-size: 0.83rem;
+  color: var(--text-dim);
+}
+
+.tut-substep:hover,
+.tut-substep[data-state="current"] {
+  color: var(--text);
+}
+
+.tut-substep > span:last-child {
+  padding: 0.3rem 0.55rem;
+  border-radius: 7px;
+}
+
+/* The step you're on: the client's selection, a full thin outline over a faint fill. */
+.tut-substep[data-state="current"] > span:last-child {
+  background: color-mix(in srgb, var(--mint) 11%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--mint) 78%, transparent);
+}
+
+.tut-dot {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+}
+
+.tut-dot::after {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--line-strong);
+}
+
+.tut-substep[data-state="done"] .tut-dot::after {
+  background: var(--mint);
+}
+
+.tut-substep[data-state="current"] .tut-dot::after {
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--mint);
+  background: var(--bg);
+}

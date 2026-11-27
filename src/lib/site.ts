@@ -1,8 +1,8 @@
 export const site = {
   name: "Myriad",
-  title: "Myriad: an addon-first Minecraft utility client with a tiling menu",
+  title: "Myriad: a free, open-source Minecraft client",
   description:
-    "Myriad is a free, open-source utility client for Minecraft 26.3 on Fabric. Its menu is a tiling window manager modelled on Hyprland, every module is an addon, and the stock modules pass Grim on 2b2t.",
+    "A free, open-source Minecraft client for Fabric with a keyboard-first menu and themes you control. Every feature is an addon, and the stock modules pass Grim on 2b2t.",
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000",
   /** Fallback only: the build reads the latest release from GitHub (see release.ts). */
   version: "2.0.0",

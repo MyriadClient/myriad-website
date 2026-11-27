@@ -1,89 +1,34 @@
 import Link from "next/link";
-import { MenuDemo, Logo } from "@/components/MenuDemo";
-import { ThemesShowcase } from "@/components/Themes";
-import {
-  AddonVignette,
-  GrimVignette,
-  LauncherVignette,
-  ProfilerVignette,
-  ThemeVignette,
-  TilingVignette,
-} from "@/components/Vignettes";
+import type { Metadata } from "next";
+import { Dither } from "@/components/fx/Dither";
+import { Showcase } from "@/components/home/Showcase";
+import { ThemePicker } from "@/components/home/ThemePicker";
+import { LibraryCard } from "@/components/LibraryList";
+import { library } from "@/lib/library";
 import { latestRelease } from "@/lib/release";
 import { site } from "@/lib/site";
-import { themes } from "@/lib/themes";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
+
+/** Short answers to what people search for; shown on the page and given to search engines as an FAQ. */
+const faq: [string, string][] = [
+  ["Is Myriad free?", "Yes. Myriad and Essentials are free and open source, in the public domain under CC0. Nothing is sold."],
+  ["Does it work on 2b2t?", "Yes. Essentials, the stock modules, is made for 2b2t: placing, breaking, rotating and inventory moves are timed to pass Grim by default."],
+  ["Which Minecraft version does it support?", "Minecraft 26.3, on the Fabric loader with Fabric API."],
+  ["Is it a mod or a client?", "Both: Myriad is a Fabric mod you put in your mods folder, a utility client with its own menu. Every feature comes from addons on its public API."],
+  ["Is it safe?", "Its source is public on GitHub, and every release is built reproducibly and signed. Addons in the Myriad Library are built from their source and checked before they're listed."],
+];
 
 const features = [
-  {
-    title: "Workspaces and layouts",
-    body: "Nine workspaces, each tiling its windows with Dwindle, Columns or Master. Lay out a combat workspace and a base workspace, merge windows, float the ones you want on top.",
-    art: <TilingVignette />,
-  },
-  {
-    title: "A launcher instead of a menu tree",
-    body: "Alt+Space fuzzy-searches modules, panels, themes, profiles and workspaces. Enter toggles, Shift+Enter opens settings. You rarely need the mouse.",
-    art: <LauncherVignette />,
-  },
-  {
-    title: "Themes that modules follow",
-    body: "Gaps, borders, rounding, blur, shadows, animation curves, fonts and every colour. A palette that ESP, tracers and the HUD read from, so the whole client matches.",
-    art: <ThemeVignette />,
-  },
-  {
-    title: "Made for 2b2t",
-    body: "The stock modules pass Grim by default. Placing, breaking, rotating and inventory services are timed and ordered for it, and switch to faster behaviour on servers that don't check.",
-    art: <GrimVignette />,
-  },
-  {
-    title: "Cheap by design",
-    body: "A module costs nothing until it does something. The built-in profiler shows milliseconds per second for every module, service and listener, so a slow addon is a glance away.",
-    art: <ProfilerVignette />,
-  },
-  {
-    title: "Addon-first",
-    body: "The core ships no modules. Essentials, the stock set, is an addon like any other. One API, a template, a reference addon, and a promise that what works on 1.0 works on every 1.x.",
-    art: <AddonVignette />,
-  },
-];
-
-const addons = [
-  {
-    name: "Myriad Essentials",
-    body: "The stock modules: Offhand, Kill Aura, Elytra Fly, Packet Mine, Scaffold, ESP, Nametags and the rest, with the HUD elements. Versioned on its own; remove it and Myriad boots with an empty module list.",
-    href: site.essentials,
-    icon: "essentials",
-  },
-  {
-    name: "Myriad Omarchy",
-    body: "A theme that follows your Omarchy system theme. Switch themes on the UI and the menu follows.",
-    href: site.omarchy,
-    icon: "omarchy",
-  },
-  {
-    name: "Addon template",
-    body: "A repository to start your own from, with the build, a module, a setting and a test already wired to the public API.",
-    href: site.template,
-    icon: "template",
-  },
-];
-
-const shortcuts: [string, string][] = [
-  ["mod+1..9", "Open the menu on a workspace, or switch to it"],
-  ["mod+Space", "Launcher, in game too"],
-  ["mod+Return", "Console"],
-  ["mod+W", "Close window"],
-  ["mod+T", "Toggle floating"],
-  ["mod+F", "Full screen"],
-  ["mod+L", "Cycle layout: Dwindle, Columns, Master"],
-  ["mod+Shift+1..9", "Move window to workspace"],
-  ["mod+S", "Toggle the HUD workspace"],
-  ["mod+Arrows", "Focus in that direction"],
-  ["mod+Shift+Arrows", "Swap in that direction"],
-  ["mod+LMB drag", "Move or swap a window"],
+  { icon: "", title: "Keyboard first", body: "Alt + Space opens anything. Windows tile themselves." },
+  { icon: "", title: "Made for 2b2t", body: "Essentials passes Grim out of the box." },
+  { icon: "", title: "Yours to theme", body: "Every colour, gap and effect. Modules follow." },
+  { icon: "", title: "Addon-first", body: "The core ships no modules. Add what you want." },
 ];
 
 export default async function Home() {
   const release = await latestRelease();
+  const addons = library().addons.slice(0, 4);
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -105,234 +50,154 @@ export default async function Home() {
   };
 
   return (
-    <>
+    <main className="flex-1 overflow-x-clip">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      <header className="sticky top-0 z-20 border-b border-line/70 bg-bg/80 backdrop-blur">
-        <nav aria-label="Main" className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4 sm:px-6">
-          <a href="#top" className="flex items-center gap-2.5 text-ink">
-            <Logo className="h-6 w-6" style={{ color: "var(--mint)" }} />
-            <span className="font-display text-lg font-semibold">Myriad</span>
-          </a>
-          <ul className="hidden items-center gap-6 text-sm text-dim md:flex">
-            <li><a className="hover:text-ink" href="#features">Features</a></li>
-            <li><a className="hover:text-ink" href="#themes">Themes</a></li>
-            <li><a className="hover:text-ink" href="#addons">Addons</a></li>
-            <li><Link className="hover:text-ink" href="/library/">Library</Link></li>
-            <li><a className="hover:text-ink" href="#install">Install</a></li>
-            <li><a className="hover:text-ink" href="#keys">Keys</a></li>
-            <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
-            <li><a className="hover:text-ink" href="/api/">API</a></li>
-          </ul>
-          <a
-            href={site.github}
-            className="rounded-md border border-line-strong px-3 py-1.5 text-sm text-ink transition-colors hover:border-mint hover:text-mint"
-          >
-            GitHub
-          </a>
-        </nav>
-      </header>
+      {/* Hero: one composition. The type on the left, the menu itself behind it on the right, bleeding off the edges and
+          fading under the type, the smoke tying them together. */}
+      <section className="hero relative isolate flex min-h-[calc(100svh-var(--header-h))] flex-col overflow-hidden">
+        <div aria-hidden className="hero-smoke absolute inset-0 -z-20">
+          <Dither unit="css" alpha={0.5} amount={0.75} scale={1.6} />
+        </div>
+        <div aria-hidden className="absolute inset-0 -z-20 bg-[radial-gradient(55%_60%_at_70%_45%,color-mix(in_srgb,var(--mint)_9%,transparent),transparent)]" />
 
-      <main id="top" className="flex-1 overflow-x-clip">
-        {/* Hero */}
-        <section className="relative mx-auto max-w-6xl px-4 pb-16 pt-16 sm:px-6 sm:pt-24">
-          <div
-            aria-hidden
-            className="pointer-events-none absolute left-1/2 -top-14 -z-10 h-[34rem] w-screen -translate-x-1/2"
-            style={{ background: "radial-gradient(ellipse 55% 60% at 35% 0%, rgba(127,216,174,0.12), transparent 70%)" }}
-          />
-          <div className="max-w-3xl">
-            <h1 className="text-[2.6rem] font-semibold leading-[1.02] sm:text-6xl">
-              A Minecraft client built like a desktop, not a click-GUI.
-            </h1>
-            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-dim">
-              Myriad&rsquo;s menu is a tiling window manager modelled on Hyprland: workspaces, layouts and a
-              launcher, all reachable from the keyboard. The core ships no modules. Every feature is an addon on a
-              public API, so the client is whatever you put next to it.
+        <div className="hero-stage">
+          <Showcase swapped />
+        </div>
+        {/* The type's side stays dark enough to read over the menu's faded edge. */}
+        <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 -z-10 hidden w-[55%] bg-[linear-gradient(90deg,var(--bg)_30%,transparent)] lg:block" />
+
+        <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-center px-4 pb-10 pt-12 sm:px-6 lg:pb-24 lg:pt-16">
+          <div className="max-w-[40rem] lg:max-w-[34rem] xl:max-w-[38rem]">
+            <p className="text-sm text-dim">
+              <span className="text-mint">Myriad {release.version}</span> · Minecraft utility client for Fabric {site.minecraft}
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              <a
-                href={release.url}
-                className="rounded-md bg-mint px-5 py-2.5 text-sm font-semibold text-bg transition-colors hover:bg-[#9fe0bf]"
-              >
+            <h1 className="hero-title mt-5">
+              Minecraft,
+              <br />
+              arranged.
+            </h1>
+            <p className="mt-6 max-w-md text-lg text-dim sm:text-xl">
+              A free, open-source Minecraft client with a menu you drive from the keyboard. Every feature is an addon.
+            </p>
+            <div className="mt-9 flex flex-wrap items-center gap-3">
+              <a href={release.url} className="rounded-full bg-mint px-6 py-3 font-semibold text-bg transition-colors hover:bg-[color-mix(in_srgb,var(--mint)_80%,white)]">
                 Download {release.version}
               </a>
-              <a
-                href={site.github}
-                className="rounded-md border border-line-strong px-5 py-2.5 text-sm font-medium text-ink transition-colors hover:border-ink"
-              >
-                Read the source
-              </a>
-              <p className="basis-full text-sm text-dim sm:basis-auto sm:pl-2">
-                Free and open source, for Fabric on Minecraft {site.minecraft}.
-              </p>
+              <Link href="/tutorial/" className="rounded-full border border-line-strong bg-bg/60 px-6 py-3 font-semibold text-ink backdrop-blur transition-colors hover:border-mint/60">
+                Try the tutorial
+              </Link>
             </div>
           </div>
-          <div className="mt-14">
-            <MenuDemo theme={themes[0]} />
-            <p className="mt-3 text-center text-sm text-dim">
-              Windows open and tile themselves. The launcher toggles a module. Settings split in beside the list.
-              One key switches the layout.
-            </p>
-          </div>
-        </section>
+        </div>
 
-        {/* Features */}
-        <section id="features" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-          <h2 className="max-w-xl text-3xl font-semibold sm:text-4xl">
-            Everything a window manager taught us, inside the game.
-          </h2>
-          <ul className="mt-12 grid gap-x-10 gap-y-14 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f) => (
-              <li key={f.title} className="flex flex-col gap-4">
-                {f.art}
-                <h3 className="text-xl font-semibold">{f.title}</h3>
-                <p className="text-[15px] leading-relaxed text-dim">{f.body}</p>
+        <div className="relative z-10 mx-auto hidden w-full max-w-7xl items-center justify-between px-4 pb-6 text-sm text-dim sm:px-6 lg:flex">
+          <p>
+            Open source <span className="mx-2 text-line-strong">■</span> Addon-first <span className="mx-2 text-line-strong">■</span> Passes Grim on 2b2t
+          </p>
+          <a href="#features" className="flex items-center gap-3 hover:text-ink">
+            Scroll <span className="block h-px w-24 bg-line-strong" />
+          </a>
+        </div>
+      </section>
+
+      <section aria-labelledby="features" id="features-section" className="mx-auto max-w-6xl scroll-mt-20 px-4 pt-16 sm:px-6">
+        <h2 id="features" className="sr-only">Features</h2>
+        <ul className="grid gap-x-8 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
+          {features.map((f) => (
+            <li key={f.title}>
+              <span className="icon text-lg text-mint" aria-hidden="true">{f.icon}</span>
+              <h3 className="mt-3 text-base">{f.title}</h3>
+              <p className="mt-1 text-sm text-dim">{f.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section aria-labelledby="themes" className="mx-auto max-w-6xl px-4 pt-28 sm:px-6">
+        <div className="text-center">
+          <h2 id="themes" className="text-3xl sm:text-4xl">Pick a theme. Everything follows.</h2>
+          <p className="mt-3 text-dim">Presets to start from, and every value yours to change.</p>
+        </div>
+        <div className="mt-10">
+          <ThemePicker />
+        </div>
+      </section>
+
+      <section aria-labelledby="library" className="relative mx-auto max-w-6xl px-4 pt-28 sm:px-6">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 id="library" className="text-3xl sm:text-4xl">The Myriad Library</h2>
+            <p className="mt-3 text-dim">Addons built from their source and checked. Install them in game with Browse.</p>
+          </div>
+          <Link href="/library/" className="text-sm font-semibold text-mint hover:underline">Browse the Library →</Link>
+        </div>
+        {addons.length > 0 && (
+          <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+            {addons.map((a) => (
+              <li key={a.id}>
+                <LibraryCard addon={a} />
               </li>
             ))}
           </ul>
-        </section>
+        )}
+      </section>
 
-        {/* Themes */}
-        <section id="themes" className="border-y border-line/70 bg-raised/40">
-          <div className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-            <h2 className="max-w-xl text-3xl font-semibold sm:text-4xl">Pick a theme, and the whole client follows.</h2>
-            <div className="mt-12">
-              <ThemesShowcase />
-            </div>
-          </div>
-        </section>
-
-        {/* Addons */}
-        <section id="addons" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-            <div>
-              <h2 className="text-3xl font-semibold sm:text-4xl">Official addons</h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-dim">
-                Addons share the standard tags, so modules from different authors sit in the same windows. An addon
-                built against 1.0 keeps working on every 1.x release: core&rsquo;s build checks the API on every change.
-              </p>
-              <p className="mt-4 text-[15px] leading-relaxed text-dim">
-                Addons by other developers are in the{" "}
-                <Link className="text-ink underline underline-offset-4 hover:text-mint" href="/library/">Myriad Library</Link>,
-                checked by Myriad and installed from Browse in the Addons window.
-              </p>
-            </div>
-            <dl className="divide-y divide-line border-y border-line">
-              {addons.map((a) => (
-                <div key={a.name} className="grid gap-2 py-5 sm:grid-cols-[13rem_1fr] sm:gap-6">
-                  <dt>
-                    <a
-                      href={a.href}
-                      className="flex items-center gap-3 font-medium text-ink underline-offset-4 hover:text-mint hover:underline"
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element -- static export, no image optimizer */}
-                      <img
-                        src={`${process.env.NEXT_PUBLIC_BASE_PATH ?? ""}/addons/${a.icon}.png`}
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="h-7 w-7 shrink-0 rounded-md"
-                      />
-                      {a.name}
-                    </a>
-                  </dt>
-                  <dd className="text-[15px] leading-relaxed text-dim">{a.body}</dd>
-                </div>
-              ))}
-            </dl>
-          </div>
-        </section>
-
-        {/* Install */}
-        <section id="install" className="border-y border-line/70 bg-raised/40">
-          <div className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-            <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-              <h2 className="text-3xl font-semibold sm:text-4xl">Install in three steps</h2>
-              <ol className="flex flex-col gap-6 text-[15px] leading-relaxed">
-                <li className="flex gap-5">
-                  <span className="mt-0.5 font-mono text-sm text-mint">1</span>
-                  <p className="text-dim">
-                    Install{" "}
-                    <a className="text-ink underline underline-offset-4 hover:text-mint" href="https://fabricmc.net/use/">
-                      Fabric Loader
-                    </a>{" "}
-                    for Minecraft {site.minecraft}, and{" "}
-                    <a className="text-ink underline underline-offset-4 hover:text-mint" href="https://modrinth.com/mod/fabric-api">
-                      Fabric API
-                    </a>
-                    . Java 25 or newer.
-                  </p>
-                </li>
-                <li className="flex gap-5">
-                  <span className="mt-0.5 font-mono text-sm text-mint">2</span>
-                  <p className="text-dim">
-                    Put the{" "}
-                    <a className="text-ink underline underline-offset-4 hover:text-mint" href={site.releases}>
-                      Myriad jar
-                    </a>{" "}
-                    in your <code className="font-mono text-ink">mods/</code> folder, with the{" "}
-                    <a className="text-ink underline underline-offset-4 hover:text-mint" href={site.essentialsReleases}>
-                      Essentials jar
-                    </a>{" "}
-                    and any other addons.
-                  </p>
-                </li>
-                <li className="flex gap-5">
-                  <span className="mt-0.5 font-mono text-sm text-mint">3</span>
-                  <p className="text-dim">
-                    In game or on the title screen, press <kbd>Alt+1</kbd> to open the menu, or <kbd>Alt+Space</kbd> for the
-                    launcher. The keys are also under Myriad in Minecraft&rsquo;s Controls.
-                  </p>
-                </li>
-              </ol>
-            </div>
-          </div>
-        </section>
-
-        {/* Keys */}
-        <section id="keys" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-20 sm:px-6">
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-            <div>
-              <h2 className="text-3xl font-semibold sm:text-4xl">Keys you already know</h2>
-              <p className="mt-4 text-[15px] leading-relaxed text-dim">
-                Default shortcuts follow Omarchy&rsquo;s tiling bindings. The mod key stands in for Super and
-                defaults to Alt. Change it in Theme, under Preferences, or in Minecraft&rsquo;s Controls. The first
-                two work in game without the menu open.
-              </p>
-            </div>
-            <ul className="grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
-              {shortcuts.map(([key, action]) => (
-                <li key={key} className="flex items-baseline justify-between gap-4 border-b border-line py-2">
-                  <span className="text-dim">{action}</span>
-                  <kbd>{key}</kbd>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t border-line/70">
-        <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-10 text-sm text-dim sm:flex-row sm:items-center sm:justify-between sm:px-6">
-          <p className="flex items-center gap-2.5">
-            <Logo className="h-5 w-5" style={{ color: "var(--mint)" }} />
-            <span>Myriad is public domain under CC0. Not affiliated with Mojang or Microsoft.</span>
-          </p>
-          <ul className="flex flex-wrap gap-5">
-            <li><a className="hover:text-ink" href={site.org}>GitHub</a></li>
-            <li><a className="hover:text-ink" href={site.github}>Source</a></li>
-            <li><a className="hover:text-ink" href={site.releases}>Releases</a></li>
-            <li><a className="hover:text-ink" href={site.issues}>Issues</a></li>
-            <li><Link className="hover:text-ink" href="/docs">Docs</Link></li>
-            <li><Link className="hover:text-ink" href="/library/">Library</Link></li>
-            <li><Link className="hover:text-ink" href="/docs/develop">Write an addon</Link></li>
-            <li><a className="hover:text-ink" href="/api/">API reference</a></li>
-            <li><Link className="hover:text-ink" href="/docs/privacy">Privacy</Link></li>
-            <li><Link className="hover:text-ink" href="/docs/cookies">Cookies</Link></li>
-          </ul>
+      <section aria-labelledby="faq" className="mx-auto max-w-3xl px-4 pt-28 sm:px-6">
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "FAQPage",
+              mainEntity: faq.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })),
+            }),
+          }}
+        />
+        <h2 id="faq" className="text-3xl sm:text-4xl">Questions</h2>
+        <div className="mt-8 divide-y divide-line border-y border-line">
+          {faq.map(([q, a]) => (
+            <details key={q} className="group py-4">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg">
+                {q}
+                <span className="icon text-sm text-dim transition-transform group-open:rotate-90" aria-hidden="true">{"\uf054"}</span>
+              </summary>
+              <p className="mt-2 text-dim">{a}</p>
+            </details>
+          ))}
         </div>
-      </footer>
-    </>
+      </section>
+
+      <section aria-labelledby="install" className="mx-auto max-w-6xl px-4 pb-28 pt-28 sm:px-6">
+        <h2 id="install" className="text-3xl sm:text-4xl">Install</h2>
+        <ol className="mt-8 grid gap-4 md:grid-cols-3">
+          <Step n={1} title="Install Fabric">
+            <a className="text-mint hover:underline" href="https://fabricmc.net/use/installer/">Fabric</a> for Minecraft {site.minecraft}, with{" "}
+            <a className="text-mint hover:underline" href="https://modrinth.com/mod/fabric-api">Fabric API</a>.
+          </Step>
+          <Step n={2} title="Add Myriad">
+            <a className="text-mint hover:underline" href={release.url}>Myriad</a> and{" "}
+            <a className="text-mint hover:underline" href={site.essentialsReleases}>Essentials</a> go in your mods folder.
+          </Step>
+          <Step n={3} title="Press Alt + 1">
+            In game, to open the menu. The <Link className="text-mint hover:underline" href="/tutorial/">tutorial</Link> shows the rest.
+          </Step>
+        </ol>
+      </section>
+
+      <div aria-hidden className="band-smoke relative h-40">
+        <Dither unit="css" alpha={0.45} amount={0.7} scale={1.2} seed={210} />
+      </div>
+    </main>
+  );
+}
+
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <li className="rounded-xl border border-line bg-raised/60 p-5">
+      <span className="font-mono text-sm text-mint">0{n}</span>
+      <h3 className="mt-2 text-lg">{title}</h3>
+      <p className="mt-1.5 text-sm text-dim">{children}</p>
+    </li>
   );
 }

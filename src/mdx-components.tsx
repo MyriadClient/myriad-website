@@ -1,8 +1,7 @@
-import { useMDXComponents as getDocsMDXComponents } from "nextra-theme-docs";
 import type { MDXComponents } from "nextra/mdx-components";
+import { docsComponents } from "@/components/docs/mdx";
 
-const docsComponents = getDocsMDXComponents();
-
+/** The MDX components every docs page gets (Nextra looks for this file). */
 export function useMDXComponents(components?: MDXComponents): MDXComponents {
   return { ...docsComponents, ...components };
 }

@@ -1,0 +1,959 @@
+/*
+ * Myriad's UI, drawn in the page. Every size is in the client's UI units: --u is the stage's height / 360 (the screen
+ * at UI Scale 1.5), and each number below is the one core's painter uses (UiPainter, WindowManager, CardEntry,
+ * the widgets, Launcher, CoreBarWidgets). Colours come from the theme's --k-* variables (theme.ts).
+ */
+
+/* The stage is the container its units are measured against; .mk-screen inside it is the screen. (A container's own
+ * properties can't use its container units, so nothing sized in units sits on .mk-stage itself.) */
+.mk-stage {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  container-type: size;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.mk-screen {
+  position: absolute;
+  inset: 0;
+  --u: calc(100cqh / 360);
+  --fs: calc(7.5 * var(--u));
+  --ease: cubic-bezier(0.23, 1, 0.32, 1);
+  font-family: var(--font-ui), system-ui, sans-serif;
+  font-size: var(--fs);
+  line-height: 1;
+  color: var(--k-text);
+  background: linear-gradient(var(--k-backdrop-top), var(--k-backdrop-bottom));
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: default;
+}
+
+.mk-stage * {
+  box-sizing: border-box;
+}
+
+.mk-icon {
+  font-family: var(--font-mono-nf), monospace;
+  font-style: normal;
+  line-height: 1;
+}
+
+.mk-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.mk-tint {
+  background: var(--k-tint);
+}
+
+.mk-layer > * {
+  pointer-events: auto;
+}
+
+/* ---- the bar: 14 high, plain, along the top ---- */
+.mk-bar {
+  position: absolute;
+  inset: 0 0 auto;
+  height: calc(14 * var(--u));
+  background: var(--k-bar);
+  display: flex;
+  align-items: center;
+  padding: 0 calc(6 * var(--u));
+  gap: calc(8 * var(--u));
+  z-index: 5;
+}
+
+.mk-bar-logo {
+  width: calc(12 * var(--u));
+  height: calc(12 * var(--u));
+  color: var(--k-accent);
+  cursor: pointer;
+}
+
+.mk-bar-logo:hover {
+  color: var(--k-text);
+}
+
+.mk-ws {
+  display: flex;
+  height: 100%;
+  align-items: center;
+}
+
+.mk-ws-cell {
+  position: relative;
+  width: calc(12 * var(--u));
+  height: 100%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.mk-ws-cell[data-hud] {
+  margin-left: calc(2 * var(--u));
+}
+
+.mk-ws-cell > span {
+  width: calc(10 * var(--u));
+  height: calc(10 * var(--u));
+  display: grid;
+  place-items: center;
+  border-radius: calc(2.5 * var(--u));
+  font-weight: 600;
+  font-size: calc(var(--fs) * 0.9);
+  color: color-mix(in srgb, var(--k-dim) 55%, transparent);
+  transition: border-radius 0.3s var(--ease), background-color 0.15s;
+}
+
+.mk-ws-cell[data-occupied] > span {
+  color: var(--k-text);
+}
+
+.mk-ws-cell:hover > span {
+  background: var(--k-surface-hover);
+}
+
+.mk-ws-cell[data-active] > span {
+  background: color-mix(in srgb, var(--k-accent) 86%, transparent);
+  color: transparent;
+  border-radius: calc(1.5 * var(--u));
+}
+
+.mk-ws-cell[data-active][data-layout="columns"] > span {
+  border-radius: 50%;
+}
+
+.mk-ws-cell[data-hud][data-active] > span {
+  color: #11111b;
+}
+
+.mk-bar-layout {
+  color: var(--k-dim);
+  font-size: calc(var(--fs) * 0.85);
+}
+
+.mk-bar-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: calc(200 * var(--u));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.mk-bar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: calc(8 * var(--u));
+}
+
+.mk-bar-fps {
+  color: var(--k-dim);
+  font-size: calc(var(--fs) * 0.9);
+}
+
+.mk-bar-clock {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.mk-bar-clock .mk-icon {
+  width: calc(11 * var(--u));
+  color: var(--k-accent);
+}
+
+/* ---- windows: drawn as two layers that move together, the background under the effect, the rest over it ---- */
+.mk-win,
+.mk-win-back {
+  position: absolute;
+  border-radius: calc(var(--k-rounding) * var(--u));
+  transition:
+    left 379ms var(--ease),
+    top 379ms var(--ease),
+    width 379ms var(--ease),
+    height 379ms var(--ease),
+    opacity 379ms var(--ease),
+    scale 379ms var(--ease);
+}
+
+.mk-win-back {
+  background: var(--k-window);
+}
+
+/* Floating and full-screen windows frost what's under them: the client blurs the screen drawn so far before each
+   window's background (UiRenderer.blurAgain; Blur Passes 3, Blur Size 2.5 by default). */
+.mk-win-back[data-raised] {
+  -webkit-backdrop-filter: blur(calc(5 * var(--u)));
+  backdrop-filter: blur(calc(5 * var(--u)));
+}
+
+/* A divider between tiles (DwindleLayout's splitters, gaps + 4 wide): invisible, it shows only as the cursor. */
+.mk-splitter {
+  position: absolute;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.mk-splitter:not([data-vertical]) {
+  cursor: ns-resize;
+}
+
+/* Where a dragged window lands (UiPainter): the accent at alpha 40 over a whole tile (a swap), 70 over a half. */
+.mk-drop {
+  position: absolute;
+  pointer-events: none;
+  border-radius: calc(var(--k-rounding) * var(--u));
+  background: color-mix(in srgb, var(--k-accent) 15.7%, transparent);
+  transition: all 70ms var(--ease);
+}
+
+.mk-drop[data-half] {
+  background: color-mix(in srgb, var(--k-accent) 27.5%, transparent);
+}
+
+.mk-title {
+  touch-action: none;
+}
+
+.mk-stage.mk-dragging .mk-win,
+.mk-stage.mk-dragging .mk-win-back {
+  transition: none;
+}
+
+.mk-win[data-state="opening"],
+.mk-win-back[data-state="opening"] {
+  opacity: 0;
+  scale: 0.87;
+}
+
+.mk-win[data-state="closing"],
+.mk-win-back[data-state="closing"] {
+  opacity: 0;
+  scale: 0.87;
+  transition-duration: 227ms;
+}
+
+.mk-win {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* The 1-unit border: the theme's 45° gradient when focused, the inactive colour otherwise. */
+.mk-win::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: calc(1 * var(--u));
+  background: var(--k-border-off);
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.mk-win[data-focused]::after {
+  background: linear-gradient(45deg, var(--k-border-from), var(--k-border-to));
+}
+
+.mk-title {
+  flex-shrink: 0;
+  height: calc(14 * var(--u));
+  padding: calc(1 * var(--u)) calc(1 * var(--u)) 0;
+  background: var(--k-title);
+  background-clip: content-box;
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.mk-title-inner {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 calc(2 * var(--u)) 0 calc(6 * var(--u));
+  min-width: 0;
+}
+
+.mk-title-icon {
+  width: calc(11 * var(--u));
+  flex-shrink: 0;
+  color: var(--k-dim);
+}
+
+.mk-win[data-focused] .mk-title-icon {
+  color: var(--k-accent);
+}
+
+.mk-title-text {
+  font-weight: 600;
+  color: var(--k-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.mk-win[data-focused] .mk-title-text {
+  color: var(--k-text);
+}
+
+.mk-title-sub {
+  margin-left: calc(5 * var(--u));
+  color: color-mix(in srgb, var(--k-dim) 59%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 2;
+}
+
+.mk-win[data-focused] .mk-title-sub {
+  color: color-mix(in srgb, var(--k-dim) 86%, transparent);
+}
+
+.mk-title-buttons {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: calc(1 * var(--u));
+  padding-left: calc(4 * var(--u));
+  flex-shrink: 0;
+}
+
+.mk-title-button {
+  width: calc(11 * var(--u));
+  color: var(--k-dim);
+  text-align: center;
+  cursor: pointer;
+}
+
+.mk-title-button:hover {
+  color: var(--k-text);
+}
+
+.mk-title-button[data-close]:hover {
+  color: var(--k-red);
+}
+
+.mk-content {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  margin: 0 var(--mk-inset) var(--mk-inset);
+  padding: calc(6 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+}
+
+/* ---- a module card: 16 high, the tag's colour sweeping in from the left when it's on ---- */
+.mk-card {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: calc(4 * var(--u));
+  transition: background-color 200ms var(--ease);
+}
+
+.mk-card[data-open] {
+  background: color-mix(in srgb, var(--k-surface) 55%, transparent);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--tag) 18%, transparent);
+}
+
+.mk-card-head {
+  position: relative;
+  height: calc(16 * var(--u));
+  display: flex;
+  align-items: center;
+  padding: 0 calc(16 * var(--u)) 0 calc(6 * var(--u));
+  border-radius: calc(4 * var(--u));
+  background: var(--k-surface);
+  backdrop-filter: blur(calc(2.5 * var(--u)));
+  overflow: hidden;
+  cursor: pointer;
+  color: var(--k-dim);
+  transition: color 180ms var(--ease), border-radius 200ms var(--ease);
+}
+
+.mk-card[data-open] .mk-card-head {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.mk-card-head:hover {
+  background: var(--k-surface-hover);
+}
+
+.mk-card-head::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--tag) 22%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 180ms var(--ease);
+}
+
+.mk-card[data-on] .mk-card-head {
+  color: var(--k-text);
+}
+
+.mk-card[data-on] .mk-card-head::before {
+  transform: scaleX(1);
+}
+
+.mk-card-name {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mk-badge {
+  position: relative;
+  flex-shrink: 0;
+  margin-left: calc(4 * var(--u));
+  padding: calc(1.5 * var(--u)) calc(4 * var(--u));
+  border-radius: 999px;
+  font-size: calc(var(--fs) * 0.7);
+  color: var(--k-dim);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--k-dim) 35%, transparent);
+}
+
+.mk-badge[data-tinted] {
+  font-weight: 600;
+  color: color-mix(in srgb, var(--tag) 65%, var(--k-text));
+  background: color-mix(in srgb, var(--tag) 20%, transparent);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--tag) 43%, transparent);
+}
+
+.mk-chevron {
+  position: absolute;
+  right: calc(4 * var(--u));
+  font-size: calc(var(--fs) * 0.75);
+  color: color-mix(in srgb, var(--k-dim) 59%, transparent);
+}
+
+.mk-card[data-open] > .mk-card-head .mk-chevron {
+  color: var(--tag);
+}
+
+/* Unfolding: a grid row from 0fr to 1fr over 200 ms, the body fading with it. */
+.mk-fold {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms var(--ease), opacity 200ms var(--ease);
+  opacity: 0;
+}
+
+.mk-fold[data-open] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.mk-fold > div {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.mk-card-body {
+  padding: calc(5 * var(--u)) calc(7 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(4 * var(--u));
+}
+
+.mk-desc {
+  color: var(--k-dim);
+  line-height: 1.35;
+}
+
+.mk-pills {
+  display: flex;
+  gap: calc(4 * var(--u));
+}
+
+.mk-pills .mk-badge {
+  margin: 0;
+}
+
+/* ---- a settings group (Collapsible): chevron, bold name, an indented body with a guide line ---- */
+.mk-group-head {
+  height: calc(14 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+  margin: 0 calc(-2 * var(--u));
+  padding: 0 calc(2 * var(--u));
+  border-radius: calc(3 * var(--u));
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mk-group-head:hover {
+  background: var(--k-surface);
+}
+
+.mk-group-head .mk-icon {
+  width: calc(8 * var(--u));
+  font-size: calc(var(--fs) * 0.75);
+  color: var(--k-dim);
+}
+
+.mk-group[data-open] > .mk-group-head .mk-icon {
+  color: var(--k-accent);
+}
+
+.mk-group-body {
+  margin: calc(3 * var(--u)) 0 calc(2 * var(--u)) calc(4 * var(--u));
+  padding-left: calc(6 * var(--u));
+  border-left: calc(1 * var(--u)) solid color-mix(in srgb, var(--k-dim) 25%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: calc(3 * var(--u));
+}
+
+/* ---- a setting: its name, and its editor at most half the row (110 wide) on the right ---- */
+.mk-row {
+  position: relative;
+  height: calc(14 * var(--u));
+  display: flex;
+  align-items: center;
+  gap: calc(4 * var(--u));
+}
+
+.mk-row::before {
+  content: "";
+  position: absolute;
+  inset: 0 calc(-2 * var(--u));
+  border-radius: calc(3 * var(--u));
+  background: color-mix(in srgb, var(--k-surface) 50%, transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mk-row:hover::before {
+  opacity: 1;
+}
+
+.mk-row-name {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding-left: calc(2 * var(--u));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mk-row[data-changed] .mk-row-name {
+  color: color-mix(in srgb, var(--k-accent) 60%, var(--k-text));
+}
+
+.mk-row-editor {
+  position: relative;
+  width: min(50%, calc(110 * var(--u)));
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.mk-toggle {
+  position: relative;
+  width: calc(20 * var(--u));
+  height: calc(10 * var(--u));
+  border-radius: 999px;
+  background: var(--k-surface-hover);
+  transition: background-color 160ms var(--ease);
+  cursor: pointer;
+}
+
+.mk-toggle[data-on] {
+  background: var(--k-accent);
+}
+
+.mk-toggle::after {
+  content: "";
+  position: absolute;
+  top: calc(2 * var(--u));
+  left: calc(2 * var(--u));
+  width: calc(6 * var(--u));
+  height: calc(6 * var(--u));
+  border-radius: 50%;
+  background: #fff;
+  transition: translate 160ms var(--ease);
+}
+
+.mk-toggle[data-on]::after {
+  translate: calc(10 * var(--u)) 0;
+}
+
+.mk-slider {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: calc(4 * var(--u));
+  background: var(--k-surface);
+  overflow: hidden;
+}
+
+.mk-slider:hover {
+  background: var(--k-surface-hover);
+}
+
+.mk-slider > i {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: color-mix(in srgb, var(--k-accent) 59%, transparent);
+  border-radius: calc(4 * var(--u));
+  transition: width 140ms var(--ease);
+}
+
+.mk-slider > span {
+  position: absolute;
+  right: calc(4 * var(--u));
+  top: 50%;
+  translate: 0 -50%;
+}
+
+.mk-field {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding: 0 calc(14 * var(--u)) 0 calc(6 * var(--u));
+  border-radius: calc(4 * var(--u));
+  background: var(--k-surface);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--k-border-off) 59%, transparent);
+  cursor: pointer;
+}
+
+.mk-field:hover {
+  background: var(--k-surface-hover);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--k-accent) 43%, transparent);
+}
+
+.mk-field .mk-icon {
+  position: absolute;
+  right: calc(5 * var(--u));
+  font-size: calc(var(--fs) * 0.75);
+  color: var(--k-dim);
+}
+
+.mk-swatch {
+  width: calc(20 * var(--u));
+  height: calc(10 * var(--u));
+  border-radius: calc(3 * var(--u));
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) rgb(255 255 255 / 0.15);
+}
+
+.mk-keybind {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: calc(4 * var(--u));
+  background: var(--k-surface);
+  cursor: pointer;
+}
+
+.mk-keybind:hover {
+  background: var(--k-surface-hover);
+}
+
+.mk-keybind[data-listening] {
+  background: color-mix(in srgb, var(--k-accent) 47%, transparent);
+}
+
+.mk-quiet {
+  height: calc(14 * var(--u));
+  display: grid;
+  place-items: center;
+  border-radius: calc(4 * var(--u));
+  color: var(--k-dim);
+  cursor: pointer;
+}
+
+.mk-quiet:hover {
+  background: var(--k-surface-hover);
+  color: var(--k-text);
+}
+
+/* ---- the launcher: 260 wide, its top at 22%, over a 0x66 scrim ---- */
+.mk-scrim {
+  position: absolute;
+  inset: 0;
+  background: rgb(0 0 0 / 0.4);
+  z-index: 8;
+  transition: opacity 160ms var(--ease);
+}
+
+.mk-scrim[data-closed] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mk-launcher {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: calc(260 * var(--u));
+  translate: -50% 0;
+  border-radius: calc(var(--k-rounding) * var(--u));
+  background: var(--k-window);
+  backdrop-filter: blur(calc(3 * var(--u)));
+  overflow: hidden;
+  transition: translate 160ms var(--ease), opacity 160ms var(--ease);
+}
+
+.mk-scrim[data-closed] .mk-launcher {
+  translate: -50% calc(-8 * var(--u));
+  opacity: 0;
+}
+
+.mk-launcher::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: calc(1 * var(--u));
+  background: linear-gradient(45deg, var(--k-border-from), var(--k-border-to));
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+/* Launcher.render: icon at x+8 and text at x+22, 6 down, at 1.1×; a divider at y+20 inset 6; rows from y+24. */
+.mk-launcher-head {
+  position: relative;
+  height: calc(22 * var(--u));
+  display: flex;
+  align-items: center;
+  padding: 0 calc(8 * var(--u));
+  font-size: calc(var(--fs) * 1.1);
+}
+
+.mk-launcher-head::after {
+  content: "";
+  position: absolute;
+  left: calc(6 * var(--u));
+  right: calc(6 * var(--u));
+  top: calc(20 * var(--u));
+  height: calc(1 * var(--u));
+  background: color-mix(in srgb, var(--k-dim) 16%, transparent);
+}
+
+.mk-launcher-head .mk-icon {
+  width: calc(14 * var(--u));
+  color: var(--k-accent);
+}
+
+.mk-launcher-placeholder {
+  color: var(--k-dim);
+  white-space: pre;
+}
+
+.mk-caret {
+  display: inline-block;
+  width: calc(0.8 * var(--u));
+  height: 1.1em;
+  margin-left: calc(0.5 * var(--u));
+  vertical-align: middle;
+  background: var(--k-text);
+  animation: mk-blink 1s steps(1) infinite;
+}
+
+.mk-launcher-list {
+  padding: calc(2 * var(--u)) calc(4 * var(--u)) calc(6 * var(--u));
+}
+
+.mk-launcher-row {
+  height: calc(15 * var(--u));
+  display: flex;
+  align-items: center;
+  padding: 0 calc(6 * var(--u)) 0 calc(5 * var(--u));
+  border-radius: calc(4 * var(--u));
+  cursor: pointer;
+}
+
+.mk-launcher-row:hover {
+  background: var(--k-surface);
+}
+
+.mk-launcher-row[data-selected] {
+  background: color-mix(in srgb, var(--k-accent) 27%, transparent);
+}
+
+.mk-launcher-row .mk-icon {
+  width: calc(15 * var(--u));
+  color: var(--k-accent);
+}
+
+.mk-launcher-row-title {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mk-launcher-row-hint {
+  color: var(--k-dim);
+  font-size: calc(var(--fs) * 0.85);
+  white-space: nowrap;
+}
+
+/* ---- toasts: a small window, top right under the bar ---- */
+.mk-toast {
+  position: absolute;
+  right: calc(6 * var(--u));
+  top: calc(20 * var(--u));
+  min-width: calc(110 * var(--u));
+  padding: calc(5 * var(--u)) calc(8 * var(--u));
+  border-radius: calc(var(--k-rounding) * var(--u));
+  background: var(--k-window);
+  z-index: 9;
+  transition: opacity 200ms var(--ease), translate 200ms var(--ease);
+}
+
+.mk-toast::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: calc(1 * var(--u));
+  background: linear-gradient(45deg, var(--k-border-from), var(--k-border-to));
+  -webkit-mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.mk-toast[data-hidden] {
+  opacity: 0;
+  translate: calc(10 * var(--u)) 0;
+}
+
+.mk-toast b {
+  display: block;
+  font-weight: 600;
+  margin-bottom: calc(2 * var(--u));
+}
+
+.mk-toast span {
+  color: var(--k-dim);
+}
+
+@keyframes mk-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mk-screen *,
+  .mk-stage *::before,
+  .mk-stage *::after {
+    transition-duration: 0ms !important;
+    animation: none !important;
+  }
+}
+
+/* Keyboard selection (WidgetRoot.drawSelection): 2 wider and 1 taller than the row, accent at alpha 28 inside a
+   1-unit accent outline at alpha 200, gliding between rows over 90 ms. */
+.mk-card[data-selected]::after {
+  content: "";
+  position: absolute;
+  left: calc(-2 * var(--u));
+  right: calc(-2 * var(--u));
+  top: calc(-1 * var(--u));
+  height: calc(18 * var(--u));
+  border-radius: calc(4 * var(--u));
+  background: color-mix(in srgb, var(--k-accent) 11%, transparent);
+  box-shadow: inset 0 0 0 calc(1 * var(--u)) color-mix(in srgb, var(--k-accent) 78%, transparent);
+  pointer-events: none;
+}
+
+/* What a tutorial step points at. */
+.mk-stage [data-hint] {
+  animation: mk-hint 1.6s var(--ease) infinite;
+}
+
+@keyframes mk-hint {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-accent) 0%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 calc(2 * var(--u)) color-mix(in srgb, var(--k-accent) 55%, transparent);
+  }
+}
+
+/* The game behind the menu, while it's closed. */
+.mk-game {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--k-dim);
+  font-size: calc(var(--fs) * 1.2);
+}
+
+.mk-crosshair {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: calc(9 * var(--u));
+  height: calc(9 * var(--u));
+  translate: -50% -50%;
+  background:
+    linear-gradient(var(--k-text), var(--k-text)) center / calc(1 * var(--u)) 100% no-repeat,
+    linear-gradient(var(--k-text), var(--k-text)) center / 100% calc(1 * var(--u)) no-repeat;
+  opacity: 0.8;
+}
+
+.mk-option {
+  height: calc(13 * var(--u));
+  display: flex;
+  align-items: center;
+  padding: 0 calc(6 * var(--u));
+  border-radius: calc(3 * var(--u));
+  cursor: pointer;
+}
+
+.mk-option:hover {
+  background: var(--k-surface-hover);
+}
+
+.mk-option[data-picked] {
+  background: color-mix(in srgb, var(--k-accent) 12%, transparent);
+}
+
+.mk-options {
+  margin-top: calc(2 * var(--u));
+  padding: calc(2 * var(--u));
+  border-radius: 0 0 calc(4 * var(--u)) calc(4 * var(--u));
+  background: var(--k-surface);
+}
+
+/* ModuleSettingsPanel's header: Enabled or Disabled, bold, and the module's switch. */
+.mk-module-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: calc(12 * var(--u));
+  flex-shrink: 0;
+}

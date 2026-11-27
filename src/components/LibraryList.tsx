@@ -43,7 +43,7 @@ export function LibraryList({ addons }: { addons: LibraryAddon[] }) {
   );
 }
 
-function LibraryCard({ addon: a }: { addon: LibraryAddon }) {
+export function LibraryCard({ addon: a }: { addon: LibraryAddon }) {
   const latest = a.versions.find((v) => !v.yanked);
   return (
     <Link
