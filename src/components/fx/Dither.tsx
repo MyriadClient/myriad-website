@@ -127,6 +127,8 @@ export function Dither({
 }: DitherProps) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const theme = useSiteTheme();
+  /** Recolours the running smoke (a theme change), without starting it again: a canvas's lost context never comes back. */
+  const recolour = useRef<((rgba: [number, number, number, number]) => void) | null>(null);
 
   useEffect(() => {
     const el = canvas.current;
@@ -155,8 +157,9 @@ export function Dither({
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
 
     const u = (name: string) => gl.getUniformLocation(program, name);
+    const uColor = u("uColor");
     const [r, g, b] = rgb(color);
-    gl.uniform4f(u("uColor"), r, g, b, alpha);
+    gl.uniform4f(uColor, r, g, b, alpha);
     gl.uniform1f(u("uAmount"), Math.min(1, Math.max(0.1, amount)));
     gl.uniform1f(u("uScale"), Math.min(3, Math.max(0.5, scale)));
     const uResolution = u("uResolution"), uTime = u("uTime"), uSize = u("uSize");
@@ -219,15 +222,27 @@ export function Dither({
     document.addEventListener("visibilitychange", onVisibility);
     resize();
     run();
+    recolour.current = ([cr, cg, cb, ca]) => {
+      gl.uniform4f(uColor, cr, cg, cb, ca);
+      draw(still ? frozen : performance.now());
+    };
 
     return () => {
+      recolour.current = null;
       cancelAnimationFrame(frame);
       sizes.disconnect();
       seen.disconnect();
       document.removeEventListener("visibilitychange", onVisibility);
       gl.getExtension("WEBGL_lose_context")?.loseContext();
     };
-  }, [color, alpha, amount, size, scale, drift, seed, unit, theme]);
+    // Colour and theme changes go through recolour below; the effect only restarts for what can't be changed live.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amount, size, scale, drift, seed, unit]);
+
+  useEffect(() => {
+    const [r, g, b] = rgb(color);
+    recolour.current?.([r, g, b, alpha]);
+  }, [color, alpha, theme]);
 
   return <canvas ref={canvas} aria-hidden="true" className={`pointer-events-none block h-full w-full ${className}`} />;
 }
