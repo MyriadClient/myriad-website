@@ -138,6 +138,34 @@ release.
 Every release of a closed-source addon is reviewed by a person, so expect it to take longer than an open-source one.
 It's still built from the tagged source, and a jar that isn't exactly what the source builds isn't signed.
 
+## Invite-only addons
+
+A closed-source addon can be **invite-only**: players see it in Browse (its name, icon, description and modules), but
+only the Minecraft accounts you invite can install it. There's no download address anywhere: Myriad's server fetches the
+jar from your private repository and hands it only to an invited account, and the game checks it's exactly the release
+Myriad signed.
+
+1. Keep the source **and** the releases in one **private repository**, which `fabric.mod.json` names as its update
+   source: `"custom": { "myriad": { "updates": "you/my-addon" } }`. Install the Myriad Library App on it.
+2. Publish a release with the jar and its `.sig`, as for any closed-source addon. Ask the maintainer to list it as
+   invite-only.
+3. Make invites with your developer key (the one you sign releases with), from your addon's folder:
+
+```bash
+./gradlew libraryInvite -Paction=create -Puses=5 -Pdays=14 -Plabel=testers   # a code, shown once
+./gradlew libraryInvite -Paction=list                                         # your invites and their uses left
+./gradlew libraryInvite -Paction=revoke -Pinvite=3                            # that code stops working
+./gradlew libraryInvite -Paction=grants                                       # who has access
+./gradlew libraryInvite -Paction=revoke-grant -Pplayer=<uuid>                 # that player loses access
+./gradlew libraryInvite -Paction=restore-grant -Pplayer=<uuid>                # and gets it back
+```
+
+The code is made on your computer and never sent: Myriad keeps only its hash, so not even Myriad's server could tell
+anyone your code. Each request is signed with your key, names the API it's for, is good for five minutes and works
+once. A revoked player stays revoked: no code brings them back, only `restore-grant`. Give the code to the
+player; in Browse they sign in with Minecraft and enter it. Revoking a player stops their updates; a jar they already
+downloaded stays on their computer, as with any download.
+
 ## Withdrawing a release or an addon
 
 - **A bad release:** open an issue (below) with the addon and version and it's withdrawn. A withdrawn release is

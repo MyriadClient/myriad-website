@@ -105,16 +105,26 @@ never sold or used for marketing.
 ## Children
 
 Nothing here asks for personal information, and we don't knowingly collect any from children. We never ask for or
-store your age or date of birth. When accounts open, they'll be for people aged 16 or over: signing up will ask you to
-confirm you are, and an account we learn belongs to someone younger will be deleted. The client and the site will keep
-working for everyone without one.
+store your age or date of birth. Signing in (above) is for people aged 16 or over, and an account we learn belongs to
+someone younger will be deleted. The client and the site work for everyone without one.
 
-## Planned: accounts
+## Signing in, for invite-only addons
 
-We plan optional accounts on this site, for invites to private addons and similar. Sign-in will work through your
-Minecraft account: the client proves who you are to us through Mojang's own check, so we never see your password or
-your Minecraft login. An account would hold your Minecraft UUID, when it was made, and a sign-in cookie. This policy
-will say exactly what's kept, and why, **before** accounts open. Until then, none of this exists.
+Signing in is optional, and only needed to install an addon its developer invited you to. You sign in from the game:
+it proves which Minecraft account you are through Mojang's own check (the one joining a server uses), so your password
+and your Minecraft login go only to Mojang, never to us. We keep:
+
+- your Minecraft account's UUID and name;
+- each session: a random token (we keep only its hash), a label like "Myriad on Linux", when it was made and last used.
+  A session ends after 30 days unused, when you sign out, or when you end it from another session;
+- the invite-only addons you've been invited to (from which invite, and when), and each time you download one (kept
+  30 days, to stop codes being shared around);
+- for each invite, only its hash, how many uses it has left and when it expires: never the code itself.
+
+The developer of an addon you're invited to sees your Minecraft name and UUID, and when you were invited, so they can
+manage who has access. There are no cookies: the game sends its session token itself. Signing out (`.account logout`,
+or Sign out in Browse) ends the session here and on our side; ask us (below) to delete the rest.
+
 
 ## Your rights
 

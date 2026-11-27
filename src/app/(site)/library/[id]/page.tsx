@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { AddonIcon, Badge } from "@/components/LibraryList";
+import { AddonIcon, Badge, InviteBadge } from "@/components/LibraryList";
 import { badgeText, day, latest, library, size } from "@/lib/library";
 
 export const dynamicParams = false;
@@ -42,6 +42,7 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
             <h1 className="text-3xl sm:text-4xl">{a.name}</h1>
             <Badge kind={a.badge} />
+            {a.invite && <InviteBadge />}
           </div>
           <p className="mt-1 text-dim">
             {a.author ? <>by {a.author} · </> : null}
@@ -84,6 +85,7 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
         <p className="mt-2 leading-relaxed text-dim">
           In game, open <strong className="font-medium text-ink">Addons</strong>, press{" "}
           <strong className="font-medium text-ink">Browse</strong> and search for {a.name}.{" "}
+          {a.invite && <>It&rsquo;s invite-only: sign in with Minecraft there and enter the code its developer gave you. </>}
           <Link className="text-ink underline underline-offset-4 hover:text-mint" href="/docs/use/addons/#the-myriad-library">How it&rsquo;s checked</Link>
         </p>
       </section>
@@ -134,7 +136,11 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
                 {a.versions.map((v) => (
                   <tr key={`${v.version}/${v.sha256}`} className={`border-b border-line ${v.yanked ? "text-dim" : ""}`}>
                     <td className="py-2 pr-4 font-mono">
-                      <a className={`hover:text-mint ${v.yanked ? "line-through" : ""}`} href={v.url} rel="nofollow noopener">{v.version}</a>
+                      {v.url ? (
+                        <a className={`hover:text-mint ${v.yanked ? "line-through" : ""}`} href={v.url} rel="nofollow noopener">{v.version}</a>
+                      ) : (
+                        <span className={v.yanked ? "line-through" : ""}>{v.version}</span>
+                      )}
                       {v.yanked && <span className="ml-2 font-sans">withdrawn</span>}
                     </td>
                     <td className="py-2 pr-4">{v.minecraft ?? ""}</td>

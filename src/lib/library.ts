@@ -5,7 +5,8 @@ import { join } from "node:path";
 export type LibraryRelease = {
   version: string;
   sha256: string;
-  url: string;
+  /** Null for an invite-only listing: its jars go only to invited accounts, in game. */
+  url: string | null;
   size: number;
   minecraft: string | null;
   commit: string | null;
@@ -24,6 +25,8 @@ export type LibraryAddon = {
   updated: string | null;
   icon: boolean;
   versions: LibraryRelease[];
+  /** Invite-only: shown here, installable only by accounts its developer invited. */
+  invite?: boolean;
   /** What it adds and what's new in its newest release, as its build read them (absent before the Library had them). */
   modules?: { name: string; description: string; tag: string }[];
   changelog?: { version: string; text: string } | null;

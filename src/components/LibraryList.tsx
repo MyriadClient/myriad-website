@@ -55,6 +55,7 @@ export function LibraryCard({ addon: a }: { addon: LibraryAddon }) {
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <h2 className="font-display text-lg font-semibold text-ink">{a.name}</h2>
           <Badge kind={a.badge} />
+          {a.invite && <InviteBadge />}
         </div>
         {a.author && <p className="text-sm text-dim">by {a.author}</p>}
         {a.description && <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-dim">{a.description}</p>}
@@ -77,6 +78,14 @@ export function Badge({ kind }: { kind: "verified" | "reviewed" }) {
   ) : (
     <span title="Closed source, reviewed by Myriad" className="rounded border border-line-strong px-1.5 py-0.5 text-xs text-ink">
       Reviewed
+    </span>
+  );
+}
+
+export function InviteBadge() {
+  return (
+    <span title="Its developer invites who can install it" className="rounded border border-line-strong px-1.5 py-0.5 text-xs text-dim">
+      <span className="icon mr-1" aria-hidden="true">{"\uf023"}</span>Invite only
     </span>
   );
 }

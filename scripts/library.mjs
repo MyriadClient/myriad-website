@@ -102,10 +102,11 @@ function text(v, max) {
 const match = (re, v) => (typeof v === "string" && re.test(v) ? v : null);
 const date = (v) => (typeof v === "string" && !Number.isNaN(Date.parse(v)) ? new Date(v).toISOString() : null);
 
-function release(v) {
-  const version = match(VERSION, v?.version), sha256 = match(SHA, v?.sha256), url = match(DOWNLOAD, v?.url);
+/** One release; an invite-only listing's have no address (their jars go only to invited accounts, in game). */
+function release(v, invite) {
+  const version = match(VERSION, v?.version), sha256 = match(SHA, v?.sha256), url = invite ? null : match(DOWNLOAD, v?.url);
   const size = Number(v?.size);
-  if (!version || !sha256 || !url || !Number.isSafeInteger(size) || size <= 0 || size > 64 * 1024 * 1024) return null;
+  if (!version || !sha256 || (!invite && !url) || !Number.isSafeInteger(size) || size <= 0 || size > 64 * 1024 * 1024) return null;
   return {
     version, sha256, url, size,
     minecraft: text(v.minecraft, 100) || null,
@@ -150,7 +151,8 @@ function changelog(v) {
 function addon(a, detail) {
   const id = match(ID, a?.id);
   if (!id || (a.badge !== "verified" && a.badge !== "reviewed")) return null;
-  const versions = (Array.isArray(detail?.versions) ? detail.versions : []).slice(0, 50).map(release).filter(Boolean);
+  const invite = a.access === "invite";
+  const versions = (Array.isArray(detail?.versions) ? detail.versions : []).slice(0, 50).map((v) => release(v, invite)).filter(Boolean);
   return {
     id,
     name: text(a.name, 64) || id,
@@ -161,6 +163,7 @@ function addon(a, detail) {
     updated: date(a.updated),
     icon: false,
     versions,
+    invite,
     modules: modules(detail?.modules),
     changelog: changelog(detail?.changelog),
   };
