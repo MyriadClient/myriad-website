@@ -41,7 +41,8 @@ Your addon needs:
 
 1. Install the **Myriad Library** GitHub App on the addon's repository (only that repository is needed). It reads the
    repository's contents and releases, and reports back as a check on your releases. It can't push, change settings or
-   see your other repositories.
+   see your other repositories. Its key is held only by Myriad's private builder: Myriad's web server has no key that
+   can read your repository.
 2. Publish a release as usual. A "Myriad Library" check appears on the release's commit and says how it's going.
 3. The builder builds and inspects it, then it waits for Myriad's maintainer. A new addon is always looked at by a
    person: its build scripts, what it does and what it talks to.
@@ -108,6 +109,9 @@ Players see what your addon adds before they install it, read by the builder fro
   (`## 1.2.0` or `## [1.2.0] - 2026-11-26`), up to the next `##` heading. Plain lines and lists read best.
 - **Your icon**: the `icon` in `fabric.mod.json`, shrunk to 256 pixels.
 
+An [invite-only](#invite-only-addons) addon shows its name, description, icon and modules to everyone; its changelog and
+repository only if you choose.
+
 ## The check on your release
 
 | Check says | What it means |
@@ -131,9 +135,11 @@ release.
    `"custom": { "myriad": { "updates": "you/my-addon-releases" } }`.
 2. Install the Myriad Library App on **both** repositories.
 3. Tag the same commit in both, with the same tag, and publish the release in the public one.
-4. Nothing is built until the maintainer accepts the addon. Then a private builder fetches your source once, with a
-   read-only token for that one repository that lasts 15 minutes, builds and inspects it, and keeps the archive of your
-   source privately for one day, for the review. Your source is never published.
+4. Nothing is built until the maintainer accepts the addon. Then Myriad's private builder fetches your source with a
+   read-only token it makes for that one repository (it lasts at most an hour), builds and inspects it, and keeps the
+   archive of your source privately for one day, for the review. The maintainer's copy for the review is deleted once
+   the release is approved or refused, except the newest approved source, kept to compare your next release against.
+   Your source is never published.
 
 Every release of a closed-source addon is reviewed by a person, so expect it to take longer than an open-source one.
 It's still built from the tagged source, and a jar that isn't exactly what the source builds isn't signed.
@@ -141,9 +147,9 @@ It's still built from the tagged source, and a jar that isn't exactly what the s
 ## Invite-only addons
 
 A closed-source addon can be **invite-only**: players see it in Browse (its name, icon, description and modules), but
-only the Minecraft accounts you invite can install it. There's no download address anywhere: Myriad's server fetches the
-jar from your private repository and hands it only to an invited account, and the game checks it's exactly the release
-Myriad signed.
+only the Minecraft accounts you invite can install it. There's no download address anywhere: Myriad's private builder
+reads the release from your private repository, and once the maintainer signs it, Myriad's server keeps that exact jar
+and hands it only to an invited account. The game checks it's exactly the release Myriad signed.
 
 1. Keep the source **and** the releases in one **private repository**, which `fabric.mod.json` names as its update
    source: `"custom": { "myriad": { "updates": "you/my-addon" } }`. Install the Myriad Library App on it.
@@ -155,16 +161,27 @@ Myriad signed.
 ./gradlew libraryInvite -Paction=create -Puses=5 -Pdays=14 -Plabel=testers   # a code, shown once
 ./gradlew libraryInvite -Paction=list                                         # your invites and their uses left
 ./gradlew libraryInvite -Paction=revoke -Pinvite=3                            # that code stops working
+./gradlew libraryInvite -Paction=revoke-all -Pinvite=3                        # ...and everyone it let in loses access
 ./gradlew libraryInvite -Paction=grants                                       # who has access
+./gradlew libraryInvite -Paction=grants -Pinvite=3                            # who that code let in
 ./gradlew libraryInvite -Paction=revoke-grant -Pplayer=<uuid>                 # that player loses access
 ./gradlew libraryInvite -Paction=restore-grant -Pplayer=<uuid>                # and gets it back
+./gradlew libraryInvite -Paction=show -Pshow=changelog,repo                   # what everyone sees beyond the modules
 ```
 
 The code is made on your computer and never sent: Myriad keeps only its hash, so not even Myriad's server could tell
 anyone your code. Each request is signed with your key, names the API it's for, is good for five minutes and works
 once. A revoked player stays revoked: no code brings them back, only `restore-grant`. Give the code to the
-player; in Browse they sign in with Minecraft and enter it. Revoking a player stops their updates; a jar they already
-downloaded stays on their computer, as with any download.
+player; in Browse they sign in with Minecraft and enter it.
+
+**What everyone sees.** By default, players who aren't invited see your addon's name, description, icon and modules;
+your changelog and repository are shown only to invited players. `-Paction=show -Pshow=changelog`, `repo` or
+`changelog,repo` shows them to everyone; `-Pshow=` hides them again.
+
+**What invite-only protects, and what it doesn't.** Nobody without an invite can download your addon. An invited
+player installs an ordinary jar, as with any mod: they could copy it, pass it on or decompile it. Revoking a player
+stops their updates, but a jar they already downloaded stays on their computer. Invite people you trust, use codes with
+few uses and a short expiry, and use `revoke-all` if a code gets out.
 
 ## Withdrawing a release or an addon
 

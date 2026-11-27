@@ -5,7 +5,7 @@ description: "What myriadclient.dev, Myriad's config sharing and the Myriad clie
 
 # Privacy policy
 
-_Last updated: 26 November 2026_
+_Last updated: 27 November 2026_
 
 Myriad is a free, open-source project run by **the Myriad project** ([MyriadClient](https://github.com/MyriadClient)
 on GitHub). This page covers the website (myriadclient.dev), its API (api.myriadclient.dev), its maven repository
@@ -68,7 +68,7 @@ It contacts other services only for these reasons:
 - **The Myriad Library.** When you press Browse in Addons, and with each update check, Myriad downloads the Library's
   list from our API as one file. Nothing is sent with it but the ordinary request (your IP address, as above), and
   what you search for stays in the game. Installing or updating an addon from the Library downloads its jar from the
-  developer's GitHub release, under GitHub's policy.
+  developer's GitHub release, under GitHub's policy; an invite-only addon's jar comes from our API instead.
 
 The Myriad cape is marked with a spare bit in your skin settings, which other players' clients see in-game. No server
 is involved. Addons are made by their own developers and may do things Myriad doesn't: check their own policies.
@@ -87,12 +87,16 @@ about those repositories and their releases, and we keep:
   private;
 - the releases you publish (tag, jar address, when), each build's result and our builder's report on it (hashes, what
   the inspection found, why it was or wasn't listed), and the maintainer's decisions;
-- what you show players: your addon's name, description, author, icon and source repository;
+- what you show players: your addon's name, description, author, icon and source repository (for an invite-only addon,
+  its changelog and repository only if you choose to show them);
+- for an invite-only addon, the jar of each release the maintainer signs, to hand to the players you invite;
 - the ids of GitHub's notifications, to ignore repeats.
 
-We don't receive your source code, except that closed-source addons are built by a private builder with a token that
-reads one repository once. That copy of your source exists only inside that build, and the archive of it is kept
-privately for a day for the review. The open-source builder's run logs are public on GitHub, like your source.
+We don't receive your source code on our servers. The Myriad Library App's key is held only by our private builder,
+which builds a closed-source addon with a read-only token for its one repository. That copy of your source exists only
+inside that build, and the archive of it is kept privately for a day for the review. The maintainer's review copy is
+deleted once the release is approved or refused, except the newest approved source, kept to compare your next release
+against until your addon is delisted. The open-source builder's run logs are public on GitHub, like your source.
 
 Signed listings, releases and withdrawals are published in the Library's list, and stay checkable by every game for
 as long as the Library runs: they name your addon, the GitHub ids of its repository and owner, and its keys. The rest is kept while your
@@ -116,7 +120,8 @@ and your Minecraft login go only to Mojang, never to us. We keep:
 
 - your Minecraft account's UUID and name;
 - each session: a random token (we keep only its hash), a label like "Myriad on Linux", when it was made and last used.
-  A session ends after 30 days unused, when you sign out, or when you end it from another session;
+  A session ends after 30 days unused, 90 days after you signed in however much it's used, when you sign out, or when
+  you end it from another session;
 - the invite-only addons you've been invited to (from which invite, and when), and each time you download one (kept
   30 days, to stop codes being shared around);
 - for each invite, only its hash, how many uses it has left and when it expires: never the code itself.

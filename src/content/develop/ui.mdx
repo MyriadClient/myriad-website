@@ -59,6 +59,10 @@ Widgets: `Label` (`.dim()`, `.bold()`), `Button` (`.accent()`, or `.quiet()` for
 `Collapsible`, `HBox`/`VBox` (`addWeighted`, `addFixed`), `ScrollView`, `Spacer`, `Preview` (below), and `SettingsView.build(settings)`,
 which lays out a whole `Settings` like a module's.
 
+To keep a footer (a Reset button, a form's actions) at the bottom of a window instead of straight after the content,
+put `Spacer.fill()` between them: it takes whatever height the scroll view has left, and nothing once the content
+fills it (Myriad 2.11 and later; check with `Myriad.isAtLeast("2.11.0")`).
+
 ## Previews
 
 `Preview` shows something in 3D so the player can see what render settings do to it: `Preview.entity(type)`,
