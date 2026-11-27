@@ -88,6 +88,34 @@ export default async function AddonPage({ params }: PageProps<"/library/[id]">) 
         </p>
       </section>
 
+      {a.changelog && (
+        <section className="mt-10 max-w-3xl">
+          <h2 className="font-display text-xl font-semibold">What&rsquo;s new in {a.changelog.version}</h2>
+          <div className="mt-3 space-y-1.5 text-sm leading-relaxed text-dim">
+            {a.changelog.text.split("\n").map((line, i) =>
+              line.trim() === "" ? <div key={i} className="h-2" /> : <p key={i}>{line.replace(/\*\*|`/g, "").replace(/^[-*] /, "• ")}</p>,
+            )}
+          </div>
+        </section>
+      )}
+
+      {a.modules && a.modules.length > 0 && (
+        <section className="mt-10">
+          <h2 className="font-display text-xl font-semibold">
+            {a.modules.length} {a.modules.length === 1 ? "module" : "modules"}
+          </h2>
+          <ul className="mt-4 grid gap-x-8 gap-y-3 sm:grid-cols-2 lg:grid-cols-3">
+            {a.modules.map((m) => (
+              <li key={m.name} className="text-sm">
+                <span className="font-semibold text-ink">{m.name}</span>
+                {m.tag && <span className="ml-2 text-xs text-dim">{m.tag}</span>}
+                {m.description && <p className="mt-0.5 text-dim">{m.description}</p>}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {a.versions.length > 0 && (
         <section className="mt-10">
           <h2 className="font-display text-xl font-semibold">Releases</h2>

@@ -115,6 +115,38 @@ function release(v) {
   };
 }
 
+/** Developer text kept line by line: each line cleaned, blank runs squeezed, at most `maxLines` lines and `max` characters. */
+function lines(v, max, maxLines) {
+  if (typeof v !== "string") return "";
+  const out = [];
+  let blank = false;
+  for (const line of v.split(/\r\n|\r|\n/)) {
+    const c = text(line, max);
+    if (!c) {
+      if (!blank && out.length) out.push("");
+      blank = true;
+      continue;
+    }
+    blank = false;
+    out.push(c);
+    if (out.length >= maxLines) break;
+  }
+  while (out.length && out[out.length - 1] === "") out.pop();
+  return [...out.join("\n")].slice(0, max).join("").trim();
+}
+
+function modules(v) {
+  return (Array.isArray(v) ? v : [])
+    .slice(0, 300)
+    .map((m) => ({ name: text(m?.name, 64), description: text(m?.description, 200), tag: text(m?.tag, 32) }))
+    .filter((m) => m.name);
+}
+
+function changelog(v) {
+  const version = match(VERSION, v?.version), body = lines(v?.text, 4000, 80);
+  return version && body ? { version, text: body } : null;
+}
+
 function addon(a, detail) {
   const id = match(ID, a?.id);
   if (!id || (a.badge !== "verified" && a.badge !== "reviewed")) return null;
@@ -129,6 +161,8 @@ function addon(a, detail) {
     updated: date(a.updated),
     icon: false,
     versions,
+    modules: modules(detail?.modules),
+    changelog: changelog(detail?.changelog),
   };
 }
 

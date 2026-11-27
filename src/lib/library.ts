@@ -24,6 +24,9 @@ export type LibraryAddon = {
   updated: string | null;
   icon: boolean;
   versions: LibraryRelease[];
+  /** What it adds and what's new in its newest release, as its build read them (absent before the Library had them). */
+  modules?: { name: string; description: string; tag: string }[];
+  changelog?: { version: string; text: string } | null;
 };
 
 export type Library = { open: boolean; addons: LibraryAddon[] };
