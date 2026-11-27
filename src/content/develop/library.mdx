@@ -64,10 +64,13 @@ A release is signed automatically only when all of these hold:
 - **Its id and what it `provides` are unchanged.**
 - **The inspection finds nothing new.** The builder reads the jar without running it and notes anything it should
   explain: its own class loaders, `Unsafe`, starting processes, loading native code, network access and the hosts it
-  names, Java agents and script engines, use of Myriad's internals (`dev.myriadclient.impl`), nested jars, and classes
-  with no matching source, reflection (looking up or calling code by name), and class files or jars hidden among the
-  resources. None of these is forbidden. Each one the maintainer accepts for your listing is fine in later releases; a
-  new one waits for a look.
+  names (links, bare domains and IP addresses), Java agents and script engines, use of Myriad's internals
+  (`dev.myriadclient.impl`), nested jars, classes with no matching source, reflection (looking up or calling code by
+  name), mixins into the game's connection, packets, login or account classes, and class files or jars hidden among the
+  resources. None of these is forbidden. Each is noted **per class**: one the maintainer accepts for your listing is fine
+  in later releases, and the same thing in a new class waits for a look.
+- **It doesn't reach for the player's account.** Reading the session token, using Mojang's session service, or naming
+  the launcher's account files or a browser's or Discord's storage sends every release that does it to the maintainer.
 - **It isn't obfuscated.** Obfuscated jars aren't listed.
 
 Your repository also has to keep the build honest:
@@ -94,6 +97,16 @@ java -cp myriad-gradle-<version>.jar dev.myriadclient.gradle.signing.Signing bui
 
 The first prints what the builder would note, as JSON; the second prints your build logic's hash, which changes
 whenever a file that needs a fresh look changes.
+
+## What Browse shows
+
+Players see what your addon adds before they install it, read by the builder from the release itself:
+
+- **Your modules**: each module's name, description and kind, from the `super(...)` call in its constructor. Literal
+  strings show best (`super(Tags.COMBAT, "Kill Aura", "Attacks targets in reach.")`).
+- **What's new**: the section of `CHANGELOG.md`, at your repository's root, headed with the version
+  (`## 1.2.0` or `## [1.2.0] - 2026-11-26`), up to the next `##` heading. Plain lines and lists read best.
+- **Your icon**: the `icon` in `fabric.mod.json`, shrunk to 256 pixels.
 
 ## The check on your release
 

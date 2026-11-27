@@ -15,18 +15,30 @@ Myriad's.
 
 ## The Addons window
 
-Open **Addons** from the launcher. It lists every addon with its version and links, how long it took to start (to find
-the one slowing your game's start), and each addon's own settings.
+Open **Addons** from the launcher. The row at the top switches between **Installed** and **Browse the Library**, with
+**Add from link** at its end. Each addon's card shows its icon and what it is; **Details** holds who made it, what it
+adds, how long it took to start (to find the one slowing your game's start), its running cost while the Profiler is
+open, and where it updates from. Its own settings follow, and its actions sit along the card's foot.
 
-**Updates**: Myriad checks each addon's releases. When there's a new version, a badge shows it, and **Update** installs
-it (it takes effect the next time you start the game). The switch in the title bar turns checking off; the buttons
-beside it check now and update everything. From chat: `.update check`, `.update all`.
+**Updates**: Myriad checks each addon's releases. When there's a new version, a badge shows it, the card shows what's
+new when the Library knows, and **Update** installs it (it takes effect the next time you start the game). The switch in
+the title bar turns checking off; the button beside it checks now, and **Update all** appears when there's more than one.
+From chat: `.update check`, `.update all`.
+
+**Auto update**: off for every addon until you turn it on, on its card. It's only offered for addons whose updates are
+checked against a signature: those from the Library, Myriad itself, and addons that sign their releases. An update it
+finds is downloaded and checked the same way, then installs the next time you start the game; it never restarts
+anything. With any addon on auto update, a long session checks again every six hours.
+
+**Remove**: on an addon's card, after you confirm. Its jar leaves the mods folder when you quit (a copy is kept in
+`myriad/updates/old`), so the addon stays until then; **Keep it** takes that back. Myriad itself can't be removed here.
 
 ## The Myriad Library
 
-**Browse** in the Addons window's title bar shows the [Myriad Library](/library/): addons by other developers that
-Myriad has checked. Search it, pick one, and **Install** shows what it is and who signed it before anything is
-installed. It loads the next time you start the game.
+**Browse the Library**, at the top of the Addons window, shows the [Myriad Library](/library/): addons by other
+developers that Myriad has checked. Each listing shows its icon, its modules and what's new in its latest release, so
+you know what you'd install. Search it, pick one, and **Install** shows who signed it before anything is installed. It
+loads the next time you start the game.
 
 - **Verified** addons are open source. Myriad's builder built the release from its public source and checked the jar
   is exactly that build.
@@ -53,7 +65,7 @@ you a different jar: a release that isn't signed with that key is refused. Myria
 maintainer, offline, after checking the released jar is exactly what its source builds. An unsigned addon updates as
 before, and is only as safe as wherever it's released.
 
-**Adding an addon from a link**: the link button in the title bar (or `.update add <link>` in chat) takes an addon's
+**Adding an addon from a link**: **Add from link** at the top of the Addons window (or `.update add <link>` in chat) takes an addon's
 GitHub repository or its update feed's address. Myriad downloads and checks it first and shows what it is, where it's
 from, and the fingerprint of the key it's signed with; it's installed only when you say so, and loads the next time
 you start the game. If its developer publishes their key's fingerprint, check it matches: every later update will need
