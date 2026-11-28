@@ -15,10 +15,12 @@ Myriad's.
 
 ## The Addons window
 
-Open **Addons** from the launcher. The row at the top switches between **Installed** and **Browse the Library**, with
-**Add from link** at its end. Each addon's card shows its icon and what it is; **Details** holds who made it, what it
-adds, how long it took to start (to find the one slowing your game's start), its running cost while the Profiler is
-open, and where it updates from. Its own settings follow, and its actions sit along the card's foot.
+Open **Addons** from the launcher. It's one list: **Installed** first, then what else the **Myriad Library** offers. The
+search at the top finds addons in both by name, author or module, and **Add from link** sits beside it. Each card shows
+an addon's icon and what it is. Open it for **What's new**, in the same place on every card, then **Details**: who made
+it, its id, how long it took to start (to find the one slowing your game's start) and the key its updates are signed
+with. Its own settings follow, and its actions sit along the card's foot: its source, update, auto update, remove. What
+an addon costs while the game runs is in the Profiler.
 
 **Updates**: Myriad checks each addon's releases. When there's a new version, a badge shows it, the card shows what's
 new when the Library knows, and **Update** installs it (it takes effect the next time you start the game). The switch in
@@ -35,10 +37,11 @@ anything. With any addon on auto update, a long session checks again every six h
 
 ## The Myriad Library
 
-**Browse the Library**, at the top of the Addons window, shows the [Myriad Library](/library/): addons by other
-developers that Myriad has checked. Each listing shows its icon, its modules and what's new in its latest release, so
-you know what you'd install. Search it, pick one, and press **Install**: Myriad downloads it and checks every signature
-first, and nothing is written unless they all hold. It loads the next time you start the game.
+The **Myriad Library** section of the Addons window lists the [Myriad Library](/library/)'s addons you don't have yet:
+addons by other developers that Myriad has checked. Each card shows what's new in its latest release and **What it
+adds**, every module with what it does, so you know what you'd install. Searching for a module narrows that list to the
+match. Pick one and press **Install**: Myriad downloads it and checks every signature first, and nothing is written
+unless they all hold. It loads the next time you start the game.
 
 - **Verified** addons are open source. Myriad's builder built the release from its public source and checked the jar
   is exactly that build.
@@ -51,25 +54,27 @@ Myriad checked the addon, not that it's perfect: an addon can still have bugs, s
 An addon installed from the Library takes its updates **only through the Library**, so a release that wasn't checked
 never reaches you, even from the addon's own GitHub. Its card says so. **Unpin** on the card goes back to updating from
 the addon's own source. An addon you already had gets its badge when your jar is exactly a listed release, but keeps
-updating from its own source: only installing from Browse pins an addon to the Library.
+updating from its own source: only installing from the Library pins an addon to the Library.
 
-Myriad reads the Library as one file when you press Browse or check for updates. What you search for never leaves the
-game. If the Library can't be reached, Browse shows the copy it last read. Once that copy is two days old, nothing is
+Myriad reads the Library as one file when you open the Addons window or check for updates. What you search for never
+leaves the game. If the Library can't be reached, the window shows the copy it last read. Once that copy is two days old, nothing is
 installed or updated from it until Myriad reads a fresh one.
 
 ### Invite-only addons
 
-An addon marked **Invite only** can be installed by the players its developer invited. In Browse, **Sign in with
-Minecraft** once: the game proves which Minecraft account you are the way joining a server does, so your password and
+An addon marked **Invite only** can be installed by the players its developer invited. **Sign in with Minecraft** once,
+at the foot of the Addons window or on the addon's card: the game proves which Minecraft account you are the way joining a server does, so your password and
 login go only to Mojang. Then enter the code its developer gave you (`myr-…`) and press **Redeem and install**: the code
-is checked and the addon installed in one step. It updates through the Library like any other, and you see its
-changelog even when its developer keeps that from everyone else. You stay signed in for 30 days of use, and at most 90
+is checked and the addon installed in one step. It updates through the Library like any other (if you're signed out
+when an update comes, its card offers **Sign in and update**), and you see its changelog even when its developer keeps
+that from everyone else. You stay signed in for 30 days of use, and at most 90
 days, then sign in again. `.account` shows who you're signed in as, and `.account logout` (or Sign out at the foot of
-Browse) signs you out. What's kept is in the [privacy policy](/docs/privacy/).
+the Addons window) signs you out. What's kept is in the [privacy policy](/docs/privacy/).
 
 ## Updates and signing
 
-**Signed updates.** An addon's card says where its updates come from and whether they're signed. A signed addon takes
+**Signed updates.** An addon's **Details** show the key its updates are signed with, and its **Source** button where
+they come from. A signed addon takes
 only updates signed with its developer's key, so even someone who takes over its GitHub account or website can't push
 you a different jar: a release that isn't signed with that key is refused. Myriad's own updates are signed by its
 maintainer, offline, after checking the released jar is exactly what its source builds. An unsigned addon updates as
@@ -82,8 +87,9 @@ you start the game. If its developer publishes their key's fingerprint, check it
 that key. An unsigned addon is marked in red: whoever controls where it's hosted decides what you get.
 
 **Private addons**: for an addon from a private repository or feed, paste the access token its developer gave you into
-**Private source** on its card (or the token field when adding it). It's kept in `myriad/updates/sources.json`, sent
-only to that source, and never shown or copied back out.
+the token field when adding it. If you need to add or replace one later, **Access token** appears on its card once a
+token is saved or its source can't be read. It's kept in `myriad/updates/sources.json`, sent only to that source, and
+never shown or copied back out. (Invite-only Library addons never need one: they update with your sign-in.)
 
 If an addon fails to start, Myriad takes out everything it added and carries on without it. The Addons window shows
 why it failed.

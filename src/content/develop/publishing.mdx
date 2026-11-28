@@ -105,8 +105,8 @@ contents to `versions`. `url` may be relative to the feed. Entries marked `"prer
 `keys` are what a player installing from the feed's link first trusts; the jar must list the key it's signed with.
 Myriad reads at most 1 MB of feed and refuses the whole feed if anything in it is malformed.
 
-A private feed or repository can take an access token: players paste it into the addon's **Private source** in Addons
-(or when adding it from a link), and Myriad sends it as `Authorization: Bearer <token>` only to the feed's own address,
+A private feed or repository can take an access token: players paste it when adding the addon from a link (or later
+under **Access token** on its card), and Myriad sends it as `Authorization: Bearer <token>` only to the feed's own address,
 never to wherever a download is sent on to. For a private GitHub repository, use a fine-grained token that can only
 read that repository's contents.
 
@@ -119,7 +119,7 @@ characters `generateSigningKey` prints) where players can compare it. Only Myria
 
 ## The Myriad Library
 
-To have players find your addon under **Browse** in the Addons window, list it in the
+To have players find your addon in the Addons window's Library list, list it in the
 [Myriad Library](/docs/develop/library): install its GitHub App and keep releasing as above.
 
 ## Your addon in the menu

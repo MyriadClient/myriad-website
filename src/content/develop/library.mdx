@@ -1,11 +1,11 @@
 ---
 title: "The Myriad Library"
-description: "List your addon in the Myriad Library: players find it under Browse, and each release is built from your source, checked and signed."
+description: "List your addon in the Myriad Library: players find it in the Addons window, and each release is built from your source, checked and signed."
 ---
 
 # The Myriad Library
 
-The [Myriad Library](/library/) is the list of addons players find under **Browse** in the Addons window. Myriad checks
+The [Myriad Library](/library/) is the list of addons players find in the Addons window, below the ones they have. Myriad checks
 every addon in it, and every release:
 
 - **Verified** (open source): Myriad's builder builds your tagged source and checks that the jar you released is byte
@@ -99,7 +99,7 @@ java -cp myriad-gradle-<version>.jar dev.myriadclient.gradle.signing.Signing bui
 The first prints what the builder would note, as JSON; the second prints your build logic's hash, which changes
 whenever a file that needs a fresh look changes.
 
-## What Browse shows
+## What players see
 
 Players see what your addon adds before they install it, read by the builder from the release itself:
 
@@ -119,7 +119,7 @@ repository only if you choose.
 | Queued | Waiting for the builder. |
 | Waiting for Myriad | A new closed-source addon, waiting for the maintainer to accept it before it's built. |
 | Building | The builder is building and inspecting it. |
-| Listed | It's in the Library. Players see it the next time Browse or the update check reads the Library. |
+| Listed | It's in the Library. Players see it the next time the Addons window or the update check reads the Library. |
 | Waiting for review | It built and checked out, but needs a person: a new addon, changed build logic or a new finding. The check says which. |
 | Not listed | It didn't build, the jar didn't match its source, or it wasn't signed. The check says why; fix it and release again. |
 
@@ -146,7 +146,7 @@ It's still built from the tagged source, and a jar that isn't exactly what the s
 
 ## Invite-only addons
 
-A closed-source addon can be **invite-only**: players see it in Browse (its name, icon, description and modules), but
+A closed-source addon can be **invite-only**: players see it in the Library (its name, icon, description and modules), but
 only the Minecraft accounts you invite can install it. There's no download address anywhere: Myriad's private builder
 reads the release from your private repository, and once the maintainer signs it, Myriad's server keeps that exact jar
 and hands it only to an invited account. The game checks it's exactly the release Myriad signed.
@@ -172,7 +172,7 @@ and hands it only to an invited account. The game checks it's exactly the releas
 The code is made on your computer and never sent: Myriad keeps only its hash, so not even Myriad's server could tell
 anyone your code. Each request is signed with your key, names the API it's for, is good for five minutes and works
 once. A revoked player stays revoked: no code brings them back, only `restore-grant`. Give the code to the
-player; in Browse they sign in with Minecraft and enter it.
+player; on its card in the Addons window they sign in with Minecraft and enter it.
 
 **What everyone sees.** By default, players who aren't invited see your addon's name, description, icon and modules;
 your changelog and repository are shown only to invited players. `-Paction=show -Pshow=changelog`, `repo` or
@@ -188,7 +188,7 @@ few uses and a short expiry, and use `revoke-all` if a code gets out.
 - **A bad release:** open an issue (below) with the addon and version and it's withdrawn. A withdrawn release is
   never offered again, and players who haven't installed it never will. Release a fixed version as usual.
 - **Your whole addon:** uninstall the App, or make the repository private. The listing is paused: it stops showing
-  under Browse and gets no updates, and players keep what they have.
+  in the Library and gets no updates, and players keep what they have.
 - **Transferring the repository** to another owner pauses the listing too, until the maintainer checks it's still yours.
   Renaming it just updates the name.
 
